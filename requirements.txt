@@ -1,0 +1,10 @@
+aiofiles
+aiohttp
+fastapi
+patchright
+playwright
+psutil
+pydantic
+uvicorn
+watchdog
+zstandard

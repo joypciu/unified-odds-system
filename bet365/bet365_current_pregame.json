@@ -1,0 +1,1332 @@
+{
+  "extraction_info": {
+    "timestamp": "2025-11-11T13:01:05.544438",
+    "session_id": "20251111_125659",
+    "total_games": 56,
+    "status": "active"
+  },
+  "sports_data": {
+    "NBA": {
+      "games": [
+        {
+          "sport": "NBA",
+          "team1": "BOS Celtics",
+          "team2": "PHI 76ers",
+          "date": "Tue Nov 11",
+          "time": "8:10 PM",
+          "fixture_id": "nba_real_0",
+          "confidence_score": 0.0,
+          "game_id": "bos_celtics:phi_76ers:20251111:2010",
+          "odds": {
+            "moneyline": [
+              "+110",
+              "-130"
+            ],
+            "spread": [
+              "+2.0 -110",
+              "-2.0 -110"
+            ],
+            "total": [
+              "O 232.5 -105",
+              "U 232.5 -115"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NBA",
+          "team1": "DEN Nuggets",
+          "team2": "SAC Kings",
+          "date": "Tue Nov 11",
+          "time": "11:10 PM",
+          "fixture_id": "nba_real_1",
+          "confidence_score": 0.0,
+          "game_id": "den_nuggets:sac_kings:20251111:2310",
+          "odds": {
+            "moneyline": [
+              "-425",
+              "+325"
+            ],
+            "spread": [
+              "-8.5 -110",
+              "+8.5 -110"
+            ],
+            "total": [
+              "O 242.5 -110",
+              "U 242.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NBA",
+          "team1": "GS Warriors",
+          "team2": "OKC Thunder",
+          "date": "Tue Nov 11",
+          "time": "8:10 PM",
+          "fixture_id": "nba_real_2",
+          "confidence_score": 0.0,
+          "game_id": "gs_warriors:okc_thunder:20251111:2010",
+          "odds": {
+            "moneyline": [
+              "+235",
+              "-290"
+            ],
+            "spread": [
+              "+7.0 -110",
+              "-7.0 -110"
+            ],
+            "total": [
+              "O 228.5 -110",
+              "U 228.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NBA",
+          "team1": "IND Pacers",
+          "team2": "UTA Jazz",
+          "date": "Tue Nov 11",
+          "time": "9:10 PM",
+          "fixture_id": "nba_real_3",
+          "confidence_score": 0.0,
+          "game_id": "ind_pacers:uta_jazz:20251111:2110",
+          "odds": {
+            "moneyline": [
+              "-135",
+              "+115"
+            ],
+            "spread": [
+              "-2.0 -115",
+              "+2.0 -105"
+            ],
+            "total": [
+              "O 230.5 -110",
+              "U 230.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NBA",
+          "team1": "MEM Grizzlies",
+          "team2": "NY Knicks",
+          "date": "Tue Nov 11",
+          "time": "7:40 PM",
+          "fixture_id": "nba_real_4",
+          "confidence_score": 0.0,
+          "game_id": "mem_grizzlies:ny_knicks:20251111:1940",
+          "odds": {
+            "moneyline": [
+              "+310",
+              "-390"
+            ],
+            "spread": [
+              "+9.0 -110",
+              "-9.0 -110"
+            ],
+            "total": [
+              "O 234.0 -110",
+              "U 234.0 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NBA",
+          "team1": "TOR Raptors",
+          "team2": "BKN Nets",
+          "date": "Tue Nov 11",
+          "time": "7:40 PM",
+          "fixture_id": "nba_real_5",
+          "confidence_score": 0.0,
+          "game_id": "tor_raptors:bkn_nets:20251111:1940",
+          "odds": {
+            "moneyline": [
+              "-425",
+              "+325"
+            ],
+            "spread": [
+              "-10.5 -105",
+              "+10.5 -115"
+            ],
+            "total": [
+              "O 233.5 -110",
+              "U 233.5 -110"
+            ],
+            "runline": []
+          }
+        }
+      ]
+    },
+    "NHL": {
+      "games": [
+        {
+          "sport": "NHL",
+          "team1": "TOR Maple Leafs",
+          "team2": "BOS Bruins",
+          "date": "Tue Nov 11",
+          "time": "7:07 PM",
+          "fixture_id": "nhl_0",
+          "confidence_score": 0.0,
+          "game_id": "tor_maple_leafs:bos_bruins:20251111:1907",
+          "odds": {
+            "moneyline": [
+              "-135",
+              "+115"
+            ],
+            "spread": [
+              "-1.5 +180",
+              "+1.5 -220"
+            ],
+            "total": [
+              "O 6.5 +100",
+              "U 6.5 -120"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NHL",
+          "team1": "LA Kings",
+          "team2": "MTL Canadiens",
+          "date": "Tue Nov 11",
+          "time": "7:07 PM",
+          "fixture_id": "nhl_1",
+          "confidence_score": 0.0,
+          "game_id": "la_kings:mtl_canadiens:20251111:1907",
+          "odds": {
+            "moneyline": [
+              "-105",
+              "-115"
+            ],
+            "spread": [
+              "+1.5 -270",
+              "-1.5 +220"
+            ],
+            "total": [
+              "O 6.0 -105",
+              "U 6.0 -115"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NHL",
+          "team1": "DAL Stars",
+          "team2": "OTT Senators",
+          "date": "Tue Nov 11",
+          "time": "7:07 PM",
+          "fixture_id": "nhl_2",
+          "confidence_score": 0.0,
+          "game_id": "dal_stars:ott_senators:20251111:1907",
+          "odds": {
+            "moneyline": [
+              "-120",
+              "+100"
+            ],
+            "spread": [
+              "-1.5 +220",
+              "+1.5 -270"
+            ],
+            "total": [
+              "O 5.5 -130",
+              "U 5.5 +110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NHL",
+          "team1": "WAS Capitals",
+          "team2": "CAR Hurricanes",
+          "date": "Tue Nov 11",
+          "time": "7:07 PM",
+          "fixture_id": "nhl_3",
+          "confidence_score": 0.0,
+          "game_id": "was_capitals:car_hurricanes:20251111:1907",
+          "odds": {
+            "moneyline": [
+              "+140",
+              "-165"
+            ],
+            "spread": [
+              "+1.5 -185",
+              "-1.5 +155"
+            ],
+            "total": [
+              "O 5.5 -130",
+              "U 5.5 +110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NHL",
+          "team1": "CGY Flames",
+          "team2": "STL Blues",
+          "date": "Tue Nov 11",
+          "time": "8:07 PM",
+          "fixture_id": "nhl_4",
+          "confidence_score": 0.0,
+          "game_id": "cgy_flames:stl_blues:20251111:2007",
+          "odds": {
+            "moneyline": [
+              "+125",
+              "-150"
+            ],
+            "spread": [
+              "+1.5 -205",
+              "-1.5 +170"
+            ],
+            "total": [
+              "O 5.5 -125",
+              "U 5.5 +105"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NHL",
+          "team1": "SJ Sharks",
+          "team2": "MIN Wild",
+          "date": "Tue Nov 11",
+          "time": "8:07 PM",
+          "fixture_id": "nhl_5",
+          "confidence_score": 0.0,
+          "game_id": "sj_sharks:min_wild:20251111:2007",
+          "odds": {
+            "moneyline": [
+              "+180",
+              "-220"
+            ],
+            "spread": [
+              "+1.5 -130",
+              "-1.5 +110"
+            ],
+            "total": [
+              "O 6.5 -110",
+              "U 6.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NHL",
+          "team1": "ANA Ducks",
+          "team2": "COL Avalanche",
+          "date": "Tue Nov 11",
+          "time": "9:37 PM",
+          "fixture_id": "nhl_6",
+          "confidence_score": 0.0,
+          "game_id": "ana_ducks:col_avalanche:20251111:2137",
+          "odds": {
+            "moneyline": [
+              "+185",
+              "-225"
+            ],
+            "spread": [
+              "+1.5 -130",
+              "-1.5 +110"
+            ],
+            "total": [
+              "O 6.5 -130",
+              "U 6.5 +110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NHL",
+          "team1": "WPG Jets",
+          "team2": "VAN Canucks",
+          "date": "Tue Nov 11",
+          "time": "10:07 PM",
+          "fixture_id": "nhl_7",
+          "confidence_score": 0.0,
+          "game_id": "wpg_jets:van_canucks:20251111:2207",
+          "odds": {
+            "moneyline": [
+              "-130",
+              "+110"
+            ],
+            "spread": [
+              "-1.5 +210",
+              "+1.5 -260"
+            ],
+            "total": [
+              "O 5.5 -125",
+              "U 5.5 +105"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NHL",
+          "team1": "CLB Blue Jackets",
+          "team2": "SEA Kraken",
+          "date": "Tue Nov 11",
+          "time": "10:07 PM",
+          "fixture_id": "nhl_8",
+          "confidence_score": 0.0,
+          "game_id": "clb_blue_jacket:sea_kraken:20251111:2207",
+          "odds": {
+            "moneyline": [
+              "+100",
+              "-120"
+            ],
+            "spread": [
+              "+1.5 -250",
+              "-1.5 +205"
+            ],
+            "total": [
+              "O 6.0 -130",
+              "U 6.0 +110"
+            ],
+            "runline": []
+          }
+        }
+      ]
+    },
+    "NFL": {
+      "games": [
+        {
+          "sport": "NFL",
+          "team1": "NY Jets",
+          "team2": "NE Patriots",
+          "date": "2025-11-11",
+          "time": "8:15 PM",
+          "fixture_id": "ny_jets:ne_patriots:20251111:2015",
+          "confidence_score": 0.0,
+          "game_id": "ny_jets:ne_patriots:20251111:2015",
+          "odds": {
+            "moneyline": [
+              "+550",
+              "-800"
+            ],
+            "spread": [
+              "+11.5 -110",
+              "-11.5 -110"
+            ],
+            "total": [
+              "O 43.5 -110",
+              "U 43.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "WAS Commanders",
+          "team2": "MIA Dolphins",
+          "date": "2025-11-11",
+          "time": "9:30 AM",
+          "fixture_id": "was_commanders:mia_dolphins:20251111:0930",
+          "confidence_score": 0.0,
+          "game_id": "was_commanders:mia_dolphins:20251111:0930",
+          "odds": {
+            "moneyline": [
+              "+125",
+              "-150"
+            ],
+            "spread": [
+              "+2.5 +100",
+              "-2.5 -120"
+            ],
+            "total": [
+              "O 47.5 -110",
+              "U 47.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "TB Buccaneers",
+          "team2": "BUF Bills",
+          "date": "2025-11-11",
+          "time": "1:00 PM",
+          "fixture_id": "tb_buccaneers:buf_bills:20251111:1300",
+          "confidence_score": 0.0,
+          "game_id": "tb_buccaneers:buf_bills:20251111:1300",
+          "odds": {
+            "moneyline": [
+              "+210",
+              "-260"
+            ],
+            "spread": [
+              "+5.5 -110",
+              "-5.5 -110"
+            ],
+            "total": [
+              "O 49.5 -110",
+              "U 49.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "CHI Bears",
+          "team2": "MIN Vikings",
+          "date": "2025-11-11",
+          "time": "1:00 PM",
+          "fixture_id": "chi_bears:min_vikings:20251111:1300",
+          "confidence_score": 0.0,
+          "game_id": "chi_bears:min_vikings:20251111:1300",
+          "odds": {
+            "moneyline": [
+              "+140",
+              "-165"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 48.5 -110",
+              "U 48.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "CIN Bengals",
+          "team2": "PIT Steelers",
+          "date": "2025-11-11",
+          "time": "1:00 PM",
+          "fixture_id": "cin_bengals:pit_steelers:20251111:1300",
+          "confidence_score": 0.0,
+          "game_id": "cin_bengals:pit_steelers:20251111:1300",
+          "odds": {
+            "moneyline": [
+              "+205",
+              "-250"
+            ],
+            "spread": [
+              "+5.5 -110",
+              "-5.5 -110"
+            ],
+            "total": [
+              "O 49.5 -110",
+              "U 49.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "GB Packers",
+          "team2": "NY Giants",
+          "date": "2025-11-11",
+          "time": "1:00 PM",
+          "fixture_id": "gb_packers:ny_giants:20251111:1300",
+          "confidence_score": 0.0,
+          "game_id": "gb_packers:ny_giants:20251111:1300",
+          "odds": {
+            "moneyline": [
+              "-400",
+              "+320"
+            ],
+            "spread": [
+              "-7.5 -110",
+              "+7.5 -110"
+            ],
+            "total": [
+              "O 44.5 -110",
+              "U 44.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "LA Chargers",
+          "team2": "JAX Jaguars",
+          "date": "2025-11-11",
+          "time": "1:00 PM",
+          "fixture_id": "la_chargers:jax_jaguars:20251111:1300",
+          "confidence_score": 0.0,
+          "game_id": "la_chargers:jax_jaguars:20251111:1300",
+          "odds": {
+            "moneyline": [
+              "-155",
+              "+130"
+            ],
+            "spread": [
+              "-2.5 -120",
+              "+2.5 +100"
+            ],
+            "total": [
+              "O 44.0 -110",
+              "U 44.0 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "CAR Panthers",
+          "team2": "ATL Falcons",
+          "date": "2025-11-11",
+          "time": "1:00 PM",
+          "fixture_id": "car_panthers:atl_falcons:20251111:1300",
+          "confidence_score": 0.0,
+          "game_id": "car_panthers:atl_falcons:20251111:1300",
+          "odds": {
+            "moneyline": [
+              "+165",
+              "-200"
+            ],
+            "spread": [
+              "+3.5 -110",
+              "-3.5 -110"
+            ],
+            "total": [
+              "O 42.5 -110",
+              "U 42.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "HOU Texans",
+          "team2": "TEN Titans",
+          "date": "2025-11-11",
+          "time": "1:00 PM",
+          "fixture_id": "hou_texans:ten_titans:20251111:1300",
+          "confidence_score": 0.0,
+          "game_id": "hou_texans:ten_titans:20251111:1300",
+          "odds": {
+            "moneyline": [
+              "-380",
+              "+300"
+            ],
+            "spread": [
+              "-7.0 -110",
+              "+7.0 -110"
+            ],
+            "total": [
+              "O 39.5 -110",
+              "U 39.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "SF 49ers",
+          "team2": "ARI Cardinals",
+          "date": "2025-11-11",
+          "time": "4:05 PM",
+          "fixture_id": "sf_49ers:ari_cardinals:20251111:1605",
+          "confidence_score": 0.0,
+          "game_id": "sf_49ers:ari_cardinals:20251111:1605",
+          "odds": {
+            "moneyline": [
+              "-150",
+              "+125"
+            ],
+            "spread": [
+              "-2.5 -110",
+              "+2.5 -110"
+            ],
+            "total": [
+              "O 48.5 -110",
+              "U 48.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "SEA Seahawks",
+          "team2": "LA Rams",
+          "date": "2025-11-11",
+          "time": "4:05 PM",
+          "fixture_id": "sea_seahawks:la_rams:20251111:1605",
+          "confidence_score": 0.0,
+          "game_id": "sea_seahawks:la_rams:20251111:1605",
+          "odds": {
+            "moneyline": [
+              "+125",
+              "-150"
+            ],
+            "spread": [
+              "+2.5 +100",
+              "-2.5 -120"
+            ],
+            "total": [
+              "O 48.5 -110",
+              "U 48.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "KC Chiefs",
+          "team2": "DEN Broncos",
+          "date": "2025-11-11",
+          "time": "4:25 PM",
+          "fixture_id": "kc_chiefs:den_broncos:20251111:1625",
+          "confidence_score": 0.0,
+          "game_id": "kc_chiefs:den_broncos:20251111:1625",
+          "odds": {
+            "moneyline": [
+              "-205",
+              "+170"
+            ],
+            "spread": [
+              "-4.0 -110",
+              "+4.0 -110"
+            ],
+            "total": [
+              "O 44.0 -110",
+              "U 44.0 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "BAL Ravens",
+          "team2": "CLE Browns",
+          "date": "2025-11-11",
+          "time": "4:25 PM",
+          "fixture_id": "bal_ravens:cle_browns:20251111:1625",
+          "confidence_score": 0.0,
+          "game_id": "bal_ravens:cle_browns:20251111:1625",
+          "odds": {
+            "moneyline": [
+              "-450",
+              "+350"
+            ],
+            "spread": [
+              "-8.5 -105",
+              "+8.5 -115"
+            ],
+            "total": [
+              "O 41.5 -110",
+              "U 41.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "DET Lions",
+          "team2": "PHI Eagles",
+          "date": "2025-11-11",
+          "time": "8:20 PM",
+          "fixture_id": "det_lions:phi_eagles:20251111:2020",
+          "confidence_score": 0.0,
+          "game_id": "det_lions:phi_eagles:20251111:2020",
+          "odds": {
+            "moneyline": [
+              "+105",
+              "-125"
+            ],
+            "spread": [
+              "+1.5 -110",
+              "-1.5 -110"
+            ],
+            "total": [
+              "O 49.5 -110",
+              "U 49.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NFL",
+          "team1": "DAL Cowboys",
+          "team2": "LV Raiders",
+          "date": "2025-11-11",
+          "time": "8:15 PM",
+          "fixture_id": "dal_cowboys:lv_raiders:20251111:2015",
+          "confidence_score": 0.0,
+          "game_id": "dal_cowboys:lv_raiders:20251111:2015",
+          "odds": {
+            "moneyline": [
+              "-185",
+              "+155"
+            ],
+            "spread": [
+              "-3.5 -110",
+              "+3.5 -110"
+            ],
+            "total": [
+              "O 50.0 -110",
+              "U 50.0 -110"
+            ],
+            "runline": []
+          }
+        }
+      ]
+    },
+    "NCAAF": {
+      "games": [
+        {
+          "sport": "NCAAF",
+          "team1": "Clemson",
+          "team2": "Louisville",
+          "date": "Fri Nov 14",
+          "time": "7:30 PM",
+          "fixture_id": "ncaaf_0",
+          "confidence_score": 0.0,
+          "game_id": "clemson:louisville:20251114:1930",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Michigan",
+          "team2": "Northwestern",
+          "date": "Fri Nov 14",
+          "time": "12:00 PM",
+          "fixture_id": "ncaaf_1",
+          "confidence_score": 0.0,
+          "game_id": "michigan:northwestern:20251114:1200",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "South Carolina",
+          "team2": "Texas A&M",
+          "date": "Fri Nov 14",
+          "time": "12:00 PM",
+          "fixture_id": "ncaaf_2",
+          "confidence_score": 0.0,
+          "game_id": "south_carolina:texas_am:20251114:1200",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Oklahoma",
+          "team2": "Alabama",
+          "date": "Fri Nov 14",
+          "time": "3:30 PM",
+          "fixture_id": "ncaaf_3",
+          "confidence_score": 0.0,
+          "game_id": "oklahoma:alabama:20251114:1530",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Iowa",
+          "team2": "USC",
+          "date": "Fri Nov 14",
+          "time": "3:30 PM",
+          "fixture_id": "ncaaf_4",
+          "confidence_score": 0.0,
+          "game_id": "iowa:usc:20251114:1530",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "UCF",
+          "team2": "Texas Tech",
+          "date": "Fri Nov 14",
+          "time": "3:30 PM",
+          "fixture_id": "ncaaf_5",
+          "confidence_score": 0.0,
+          "game_id": "ucf:texas_tech:20251114:1530",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Virginia",
+          "team2": "Duke",
+          "date": "Fri Nov 14",
+          "time": "3:30 PM",
+          "fixture_id": "ncaaf_6",
+          "confidence_score": 0.0,
+          "game_id": "virginia:duke:20251114:1530",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Georgia Tech",
+          "team2": "Boston College",
+          "date": "Fri Nov 14",
+          "time": "3:30 PM",
+          "fixture_id": "ncaaf_7",
+          "confidence_score": 0.0,
+          "game_id": "georgia_tech:boston_college:20251114:1530",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Florida",
+          "team2": "Ole Miss",
+          "date": "Fri Nov 14",
+          "time": "7:00 PM",
+          "fixture_id": "ncaaf_8",
+          "confidence_score": 0.0,
+          "game_id": "florida:ole_miss:20251114:1900",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Utah",
+          "team2": "Baylor",
+          "date": "Fri Nov 14",
+          "time": "7:00 PM",
+          "fixture_id": "ncaaf_9",
+          "confidence_score": 0.0,
+          "game_id": "utah:baylor:20251114:1900",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Texas",
+          "team2": "Georgia",
+          "date": "Fri Nov 14",
+          "time": "7:30 PM",
+          "fixture_id": "ncaaf_10",
+          "confidence_score": 0.0,
+          "game_id": "texas:georgia:20251114:1930",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "UCLA",
+          "team2": "Ohio State",
+          "date": "Fri Nov 14",
+          "time": "7:30 PM",
+          "fixture_id": "ncaaf_11",
+          "confidence_score": 0.0,
+          "game_id": "ucla:ohio_state:20251114:1930",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "Mississippi State",
+          "team2": "Missouri",
+          "date": "Fri Nov 14",
+          "time": "7:45 PM",
+          "fixture_id": "ncaaf_12",
+          "confidence_score": 0.0,
+          "game_id": "mississippi_sta:missouri:20251114:1945",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        },
+        {
+          "sport": "NCAAF",
+          "team1": "TCU",
+          "team2": "BYU",
+          "date": "Fri Nov 14",
+          "time": "10:15 PM",
+          "fixture_id": "ncaaf_13",
+          "confidence_score": 0.0,
+          "game_id": "tcu:byu:20251114:2215",
+          "odds": {
+            "moneyline": [
+              "+135",
+              "-160"
+            ],
+            "spread": [
+              "+3.0 -110",
+              "-3.0 -110"
+            ],
+            "total": [
+              "O 50.5 -110",
+              "U 50.5 -110"
+            ],
+            "runline": []
+          }
+        }
+      ]
+    },
+    "PGA": {
+      "games": [
+        {
+          "sport": "PGA",
+          "team1": "Rico Hoey",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_0",
+          "confidence_score": 0.0,
+          "game_id": "rico_hoey:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Kevin Yu",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_1",
+          "confidence_score": 0.0,
+          "game_id": "kevin_yu:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Thorbjorn Olesen",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_2",
+          "confidence_score": 0.0,
+          "game_id": "thorbjorn_olese:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Nico Echavarria",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_3",
+          "confidence_score": 0.0,
+          "game_id": "nico_echavarria:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Patrick Rodgers",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_4",
+          "confidence_score": 0.0,
+          "game_id": "patrick_rodgers:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Pierceson Coody",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_5",
+          "confidence_score": 0.0,
+          "game_id": "pierceson_coody:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Chad Ramey",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_6",
+          "confidence_score": 0.0,
+          "game_id": "chad_ramey:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Matt Wallace",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_7",
+          "confidence_score": 0.0,
+          "game_id": "matt_wallace:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Jesper Svensson",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_8",
+          "confidence_score": 0.0,
+          "game_id": "jesper_svensson:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "PGA",
+          "team1": "Matti Schmid",
+          "team2": "Field (Butterfield Bermuda Championship)",
+          "date": "2025-11-11",
+          "time": "Tournament",
+          "fixture_id": "pga_9",
+          "confidence_score": 0.0,
+          "game_id": "matti_schmid:field_butterfie:20251111:0000",
+          "odds": {
+            "moneyline": [],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        }
+      ]
+    },
+    "Tennis": {
+      "games": [
+        {
+          "sport": "Tennis",
+          "team1": "Carlos Alcaraz",
+          "team2": "Taylor Fritz",
+          "date": "Fri Nov 14",
+          "time": "8:00 AM",
+          "fixture_id": "tennis_0",
+          "confidence_score": 0.0,
+          "game_id": "carlos_alcaraz:taylor_fritz:20251114:0800",
+          "odds": {
+            "moneyline": [
+              "-500",
+              "+350"
+            ],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        },
+        {
+          "sport": "Tennis",
+          "team1": "Lorenzo Musetti",
+          "team2": "Alex De Minaur",
+          "date": "Fri Nov 14",
+          "time": "2:30 PM",
+          "fixture_id": "tennis_1",
+          "confidence_score": 0.0,
+          "game_id": "lorenzo_musetti:alex_de_minaur:20251114:1430",
+          "odds": {
+            "moneyline": [
+              "+240",
+              "-300"
+            ],
+            "spread": [],
+            "total": [],
+            "runline": []
+          }
+        }
+      ]
+    }
+  }
+}

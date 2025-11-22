@@ -1,0 +1,28 @@
+{
+  "email": {
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "sender_email": "your-email@gmail.com",
+    "sender_password": "your-app-password",
+    "admin_email": "admin@example.com",
+    "alert_cooldown_minutes": 30,
+    "enabled": true
+  },
+  "monitoring": {
+    "check_interval_seconds": 300,
+    "data_stale_threshold_minutes": 60,
+    "failure_threshold": 3,
+    "modules": [
+      "bet365_pregame",
+      "bet365_live",
+      "fanduel_pregame",
+      "fanduel_live",
+      "1xbet_pregame",
+      "1xbet_live"
+    ]
+  },
+  "cache": {
+    "auto_update": true,
+    "update_interval_minutes": 30
+  }
+}

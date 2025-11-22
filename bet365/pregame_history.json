@@ -1,0 +1,204 @@
+{
+  "timestamp": "2025-11-11T13:01:05.546142",
+  "total_completed": 12,
+  "games": [
+    {
+      "sport": "PGA",
+      "team1": "Rico Hoey",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_0",
+      "confidence_score": 0.0,
+      "game_id": "rico_hoey:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Kevin Yu",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_1",
+      "confidence_score": 0.0,
+      "game_id": "kevin_yu:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Thorbjorn Olesen",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_2",
+      "confidence_score": 0.0,
+      "game_id": "thorbjorn_olese:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Nico Echavarria",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_3",
+      "confidence_score": 0.0,
+      "game_id": "nico_echavarria:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Patrick Rodgers",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_4",
+      "confidence_score": 0.0,
+      "game_id": "patrick_rodgers:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Pierceson Coody",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_5",
+      "confidence_score": 0.0,
+      "game_id": "pierceson_coody:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Chad Ramey",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_6",
+      "confidence_score": 0.0,
+      "game_id": "chad_ramey:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Matt Wallace",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_7",
+      "confidence_score": 0.0,
+      "game_id": "matt_wallace:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Jesper Svensson",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_8",
+      "confidence_score": 0.0,
+      "game_id": "jesper_svensson:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "PGA",
+      "team1": "Matti Schmid",
+      "team2": "Field (Butterfield Bermuda Championship)",
+      "date": "2025-11-11",
+      "time": "Tournament",
+      "fixture_id": "pga_9",
+      "confidence_score": 0.0,
+      "game_id": "matti_schmid:field_butterfie:20251111:0000",
+      "odds": {
+        "moneyline": [],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "Tennis",
+      "team1": "Carlos Alcaraz",
+      "team2": "Taylor Fritz",
+      "date": "Fri Nov 14",
+      "time": "8:00 AM",
+      "fixture_id": "tennis_0",
+      "confidence_score": 0.0,
+      "game_id": "carlos_alcaraz:taylor_fritz:20251114:0800",
+      "odds": {
+        "moneyline": [
+          "-500",
+          "+350"
+        ],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    },
+    {
+      "sport": "Tennis",
+      "team1": "Lorenzo Musetti",
+      "team2": "Alex De Minaur",
+      "date": "Fri Nov 14",
+      "time": "2:30 PM",
+      "fixture_id": "tennis_1",
+      "confidence_score": 0.0,
+      "game_id": "lorenzo_musetti:alex_de_minaur:20251114:1430",
+      "odds": {
+        "moneyline": [
+          "+240",
+          "-300"
+        ],
+        "spread": [],
+        "total": [],
+        "runline": []
+      }
+    }
+  ]
+}
