@@ -3,6 +3,8 @@
 
 This guide explains how to set up automatic deployment of the Unified Odds System to your VPS using GitHub integration. Every time you push changes to the `main` branch, the VPS will automatically pull the changes and restart the service.
 
+> 💡 **New to GitHub Actions?** Check out [`GITHUB_ACTIONS_SETUP.md`](GITHUB_ACTIONS_SETUP.md) for a beginner-friendly step-by-step guide with troubleshooting tips!
+
 ---
 
 ## 🎯 Overview

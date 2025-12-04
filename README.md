@@ -369,6 +369,128 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 4. Add tests
 5. Submit a pull request
 
+## GitHub-Based VPS Deployment
+
+The system supports automatic deployment to VPS servers using GitHub Actions. Every push to the `main` branch will automatically deploy to your VPS and restart the service.
+
+### Quick Setup Guide
+
+1. **Push your code to GitHub**
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git remote add origin https://github.com/YOUR_USERNAME/unified-odds-system.git
+   git push -u origin main
+   ```
+
+2. **Configure GitHub Secrets**
+   
+   Go to: `https://github.com/YOUR_USERNAME/unified-odds-system/settings/secrets/actions`
+   
+   Add these 4 secrets:
+   
+   | Secret Name | Value | Description |
+   |------------|-------|-------------|
+   | `VPS_HOST` | Your VPS IP address | e.g., `142.44.160.36` |
+   | `VPS_USERNAME` | VPS SSH username | Usually `ubuntu` or `root` |
+   | `VPS_PORT` | SSH port | Usually `22` |
+   | `VPS_SSH_KEY` | SSH private key | See below |
+
+3. **Get Your SSH Private Key**
+   
+   On your VPS, run:
+   ```bash
+   cat ~/.ssh/id_ed25519
+   ```
+   
+   Copy the **entire output** including the BEGIN and END lines:
+   ```
+   -----BEGIN OPENSSH PRIVATE KEY-----
+   ...key content...
+   -----END OPENSSH PRIVATE KEY-----
+   ```
+   
+   If the key doesn't exist, create one:
+   ```bash
+   ssh-keygen -t ed25519 -C "your-email@example.com" -f ~/.ssh/id_ed25519
+   ```
+
+4. **Add Public Key to authorized_keys**
+   
+   **CRITICAL STEP**: The public key must be in `~/.ssh/authorized_keys` on your VPS:
+   
+   ```bash
+   # Display your public key
+   cat ~/.ssh/id_ed25519.pub
+   
+   # Add it to authorized_keys
+   cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+   
+   # Set correct permissions
+   chmod 600 ~/.ssh/authorized_keys
+   chmod 700 ~/.ssh
+   ```
+
+5. **Run the automated deployment script**
+   
+   On your VPS:
+   ```bash
+   cd ~
+   wget https://raw.githubusercontent.com/YOUR_USERNAME/unified-odds-system/main/deploy_unified_odds_auto.sh
+   chmod +x deploy_unified_odds_auto.sh
+   ./deploy_unified_odds_auto.sh
+   ```
+   
+   This will:
+   - Install all dependencies (Chrome, xvfb, Python packages)
+   - Clone your repository
+   - Set up systemd service
+   - Configure automatic startup
+
+6. **Test the deployment**
+   
+   Make a small change and push:
+   ```bash
+   echo "# Test" >> README.md
+   git add README.md
+   git commit -m "Test auto-deployment"
+   git push origin main
+   ```
+   
+   Check the Actions tab on GitHub to see the deployment: `https://github.com/YOUR_USERNAME/unified-odds-system/actions`
+
+### How It Works
+
+- GitHub Actions workflow (`.github/workflows/deploy.yml`) monitors pushes to `main`
+- On push, it connects to your VPS via SSH
+- Pulls latest code, installs dependencies, restarts service
+- You get instant feedback on deployment success/failure
+
+### Troubleshooting GitHub Actions
+
+**Error: `ssh: unable to authenticate`**
+- Solution: Make sure the SSH **public key** is in `~/.ssh/authorized_keys` on VPS
+- Verify: `cat ~/.ssh/authorized_keys` should show your public key
+
+**Error: `Permission denied (publickey)`**
+- Check that VPS_SSH_KEY secret contains the **entire private key** with BEGIN/END lines
+- Ensure no extra spaces or line breaks when pasting into GitHub
+
+**Deployment not triggering**
+- Check the `.github/workflows/deploy.yml` file exists in your repository
+- Verify you're pushing to the `main` branch (not `master` or other)
+
+**Service fails to start**
+- SSH into VPS and check logs: `sudo journalctl -u unified-odds -n 50`
+- Verify config.json is properly configured
+- Check Chrome installation: `google-chrome --version`
+
+For detailed deployment guides, see:
+- `GITHUB_DEPLOYMENT_GUIDE.md` - Complete deployment documentation
+- `AUTOMATED_DEPLOYMENT_GUIDE.md` - Using the automated setup script
+- `QUICKSTART_GITHUB_DEPLOY.md` - 3-step quick setup
+
 ## Support
 
 For issues and questions:
@@ -394,7 +516,10 @@ For issues and questions:
 - Web UI
 - Basic REST API
 - Team name caching
-- Memory optimization#   T e s t   d e p l o y m e n t  
- #   T e s t   2  
- #   T e s t   3   -   S S H   k e y   f i x e d  
+- Memory optimization#   T e s t   d e p l o y m e n t 
+ 
+ #   T e s t   2 
+ 
+ #   T e s t   3   -   S S H   k e y   f i x e d 
+ 
  
