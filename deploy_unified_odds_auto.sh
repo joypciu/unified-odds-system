@@ -25,7 +25,7 @@ GITHUB_REPO_SSH="git@github.com:${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}.git"
 
 echo "📍 Project directory: $PROJECT_DIR"
 echo "📦 Service name: $SERVICE_NAME"
-echo "📦 GitHub repo: $GITHUB_REPO_OWNER/$GITHUB_REPO_NAME"
+echo "📦 GitHub repo: joypciu/$GITHUB_REPO_NAME"
 echo ""
 
 # Function to print colored output
@@ -138,7 +138,7 @@ cat "$SSH_KEY_PATH.pub"
 echo ""
 echo "👉 Follow these steps:"
 echo "   1. Copy the SSH key above"
-echo "   2. Go to: https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/settings/keys"
+echo "   2. Go to: https://github.com/joypciu/$GITHUB_REPO_NAME/settings/keys"
 echo "   3. Click 'Add deploy key'"
 echo "   4. Paste the key and give it a title: 'VPS Deploy Key'"
 echo "   5. ✅ Check 'Allow write access' (optional)"
