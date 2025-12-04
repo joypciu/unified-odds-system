@@ -58,7 +58,9 @@ sudo apt install -y \
     google-chrome-stable \
     xvfb \
     curl \
-    wget
+    wget \
+    gawk \
+    util-linux
 
 # If Chrome installation failed, try alternative method
 if ! command -v google-chrome &> /dev/null; then

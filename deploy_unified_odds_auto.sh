@@ -65,7 +65,9 @@ sudo apt install -y \
     git \
     xvfb \
     curl \
-    wget
+    wget \
+    gawk \
+    util-linux
 
 # Install Chrome
 if ! command -v google-chrome &> /dev/null; then
