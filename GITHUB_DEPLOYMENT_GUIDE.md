@@ -122,8 +122,8 @@ cat ~/.ssh/unified_odds_deploy.pub
 ```
 
 3. **Add deploy key to GitHub**:
-   - Go to your repository on GitHub
-   - Click **Settings** → **Deploy keys** → **Add deploy key**
+   - Go to: https://github.com/joypciu/unified-odds-system/settings/keys
+   - Click **Add deploy key**
    - Title: `VPS Deploy Key`
    - Paste the public key
    - ✅ Check "Allow write access" (if you want the VPS to push)
@@ -157,7 +157,7 @@ ssh -T git@github.com
 6. **Update git remote to use SSH**:
 ```bash
 cd /home/ubuntu/services/unified-odds
-git remote set-url origin git@github.com:YOUR_USERNAME/unified-odds-system.git
+git remote set-url origin git@github.com:joypciu/unified-odds-system.git
 ```
 
 ### Step 4: Setup GitHub Actions Secrets
@@ -170,8 +170,8 @@ cat ~/.ssh/id_ed25519
 ```
 
 2. **Add secrets to GitHub**:
-   - Go to your repository on GitHub
-   - Click **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+   - Go to: https://github.com/joypciu/unified-odds-system/settings/secrets/actions
+   - Click **New repository secret**
 
 Add these secrets:
 
