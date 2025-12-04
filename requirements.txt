@@ -1,5 +1,6 @@
 aiofiles
 aiohttp
+email-validator
 fastapi
 patchright
 playwright
