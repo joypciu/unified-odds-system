@@ -37,6 +37,11 @@ try:
     WATCHDOG_AVAILABLE = True
 except ImportError:
     WATCHDOG_AVAILABLE = False
+    # Define dummy classes to avoid NameError
+    class Observer:
+        pass
+    class FileSystemEventHandler:
+        pass
 
 
 class RealtimeUnifiedCollector:
@@ -641,23 +646,31 @@ class UnifiedSystemRunner:
                 return False
 
             self.log(f"🚀 Starting {name}...")
+            self.log(f"   Script: {script_name}")
+            self.log(f"   Working dir: {working_dir}")
+            self.log(f"   Args: {args}")
 
             # Build command with memory optimization
             cmd = [sys.executable, script_name]
             if args:
                 cmd.extend(args)
-            
-            # Add environment variables for Chrome memory optimization
-            env = os.environ.copy()
-            env['CHROME_MEMORY_PRESSURE_THRESHOLD'] = '50'  # Enable memory pressure at 50% usage
-            env['CHROMIUM_FLAGS'] = '--disable-dev-shm-usage --disable-gpu --no-sandbox'
 
-            # Start process WITHOUT capturing output (let it run in its own console)
+            self.log(f"   Command: {' '.join(cmd)}")
+            
+            # Clean environment for subprocess - avoid Chrome flag conflicts
+            env = os.environ.copy()
+            # Remove any conflicting environment variables
+            env.pop('CHROMIUM_FLAGS', None)
+            env.pop('CHROME_MEMORY_PRESSURE_THRESHOLD', None)
+            # Chrome flags are now handled directly in fanduel_master_collector.py
+
+            # Start process (for debugging, don't detach and capture output)
+            self.log(f"Starting process (not detached for debugging)...")
             process = subprocess.Popen(
                 cmd,
                 cwd=working_dir,
-                env=env,
-                creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0
+                env=env
+                # Removed detached flags and output redirection for debugging
             )
 
             self.processes.append({
@@ -929,10 +942,11 @@ class UnifiedSystemRunner:
             time.sleep(2)
 
             # FanDuel Pregame needs duration argument in minutes - save data immediately when found
+            # Note: FanDuel now opens homepage first, then sport tabs sequentially to avoid blocks
             fanduel_pregame_started = self.start_scraper(
                 'fanduel_master_collector.py',
                 self.fanduel_dir,
-                'FanDuel Pregame',
+                'FanDuel Pregame (Homepage-First)',
                 args=[str(collection_minutes)]
             )
 
@@ -1084,10 +1098,11 @@ class UnifiedSystemRunner:
             time.sleep(2)
 
             # FanDuel Pregame with 0 duration = infinite monitoring
+            # Note: FanDuel now opens homepage first, then sport tabs sequentially to avoid blocks
             fanduel_pregame_started = self.start_scraper(
                 'fanduel_master_collector.py',
                 self.fanduel_dir,
-                'FanDuel Pregame',
+                'FanDuel Pregame (Homepage-First)',
                 args=['0']
             )
 
@@ -1254,10 +1269,11 @@ class UnifiedSystemRunner:
             time.sleep(2)
 
             # FanDuel Pregame with 0 duration = infinite monitoring
+            # Note: FanDuel now opens homepage first, then sport tabs sequentially to avoid blocks
             fanduel_pregame_started = self.start_scraper(
                 'fanduel_master_collector.py',
                 self.fanduel_dir,
-                'FanDuel Pregame',
+                'FanDuel Pregame (Homepage-First)',
                 args=['0']  # 0 = infinite monitoring
             )
 

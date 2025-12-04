@@ -20,7 +20,11 @@ class FanDuelMasterCollector:
 
     def __init__(self):
         self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.debug_port = 9228
+        # Use a random port to avoid conflicts when multiple instances run
+        import socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('', 0))
+            self.debug_port = s.getsockname()[1]
 
         # Browser
         self.playwright = None
@@ -103,35 +107,58 @@ class FanDuelMasterCollector:
             f'--user-data-dir={profile_dir}',
             '--no-first-run',
             '--disable-blink-features=AutomationControlled',
-            '--start-maximized'
+            '--start-maximized',
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
+            # Removed --no-sandbox which can cause connection issues
         ]
 
         self.logger.info("Launching Chrome...")
-        self.chrome_process = subprocess.Popen(
-            cmd,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-        self.logger.info(f"Chrome launched (PID: {self.chrome_process.pid})")
+        self.logger.info(f"Debug port: {self.debug_port}")
+        self.logger.info(f"Command: {' '.join(cmd)}")
+
+        try:
+            self.chrome_process = subprocess.Popen(
+                cmd,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            self.logger.info(f"Chrome launched (PID: {self.chrome_process.pid})")
+        except Exception as e:
+            self.logger.error(f"Failed to launch Chrome: {e}")
+            raise
 
     async def setup_browser(self):
         """Setup browser connection"""
         self.logger.info("Connecting to Chrome...")
 
-        self.playwright = await async_playwright().start()
-        self.launch_chrome()
-        await asyncio.sleep(3)
+        try:
+            self.playwright = await async_playwright().start()
+            self.logger.info("Playwright started")
 
-        self.browser = await self.playwright.chromium.connect_over_cdp(
-            f"http://localhost:{self.debug_port}"
-        )
-        self.context = self.browser.contexts[0]
-        
-        # Set up unified response handler
-        self.context.on('response', self.unified_response_handler)
-        
-        self.logger.info("Connected with unified response handler!")
+            self.launch_chrome()
+            self.logger.info("Waiting for Chrome to be ready...")
+            await asyncio.sleep(3)
+
+            self.logger.info(f"Attempting to connect to Chrome on port {self.debug_port}")
+            self.browser = await self.playwright.chromium.connect_over_cdp(
+                f"http://localhost:{self.debug_port}",
+                timeout=10000
+            )
+            self.logger.info("Connected to Chrome successfully")
+
+            self.context = self.browser.contexts[0]
+            self.logger.info(f"Got browser context with {len(self.context.pages)} existing pages")
+
+            # Set up unified response handler
+            self.context.on('response', self.unified_response_handler)
+
+            self.logger.info("Connected with unified response handler!")
+
+        except Exception as e:
+            self.logger.error(f"Failed to setup browser: {e}")
+            raise
 
     async def unified_response_handler(self, response):
         """Unified response handler that captures ALL data and IMMEDIATELY saves - only after page fully loads"""
@@ -1204,8 +1231,8 @@ class FanDuelMasterCollector:
             self.logger.error(f"Error saving data: {e}")
 
     async def open_sport_tabs_and_capture_all_apis_parallel(self):
-        """Open all sport tabs first, then trigger them sequentially after 2-3 seconds to avoid verification blocks"""
-        self.logger.info("Opening all sport tabs first, then triggering sequentially...")
+        """Open homepage first in separate tab, then trigger sport tabs sequentially to avoid verification blocks"""
+        self.logger.info("Opening homepage first, then triggering sport tabs sequentially...")
 
         # Define all sport URLs
         sport_urls = [
@@ -1228,9 +1255,33 @@ class FanDuelMasterCollector:
             ('rugby-union', 'https://sportsbook.fanduel.com/rugby-union')
         ]
 
-        # Create all pages first
+        # PHASE 1: Create and navigate to homepage first to establish session
         if self.context is None:
             raise Exception("Browser context not initialized")
+
+        self.logger.info("Creating homepage tab...")
+        try:
+            homepage_page = await self.context.new_page()
+            self.sport_pages['homepage'] = homepage_page
+            self.logger.info("Homepage tab created")
+        except Exception as e:
+            self.logger.error(f"Error creating homepage page: {e}")
+            return
+
+        # Navigate to homepage first
+        homepage_url = 'https://sportsbook.fanduel.com/'
+        self.logger.info("Attempting homepage navigation for session establishment...")
+        success = await self._navigate_sport_page('homepage', homepage_url, delay=0)
+        if not success:
+            self.logger.warning("⚠️ Homepage navigation failed - this may affect session establishment")
+            self.logger.warning("Continuing with sport tabs, but verification blocks are more likely")
+        else:
+            self.logger.info("✅ Homepage loaded successfully - session established for better access")
+
+        # Wait a bit after homepage loads before opening sport tabs
+        await asyncio.sleep(3)
+
+        # PHASE 2: Create all sport pages
         for sport_name, sport_url in sport_urls:
             try:
                 sport_page = await self.context.new_page()
@@ -1238,45 +1289,59 @@ class FanDuelMasterCollector:
             except Exception as e:
                 self.logger.error(f"Error creating page for {sport_name}: {e}")
 
-        self.logger.info(f"All sport tabs created - {len(self.sport_pages)} sports ready")
+        self.logger.info(f"All sport tabs created - {len(self.sport_pages)} total tabs ready (including homepage)")
 
         # Now navigate to all pages sequentially with 2-3 second delays to avoid detection
         verification_blocked = False
         blocked_sport = None
         blocked_index = -1
+        successfully_loaded = []
 
         for i, (sport_name, sport_url) in enumerate(sport_urls):
             if sport_name in self.sport_pages:
+                self.logger.info(f"Opening {sport_name.upper()} tab ({i+1}/{len(sport_urls)})")
                 success = await self._navigate_sport_page(sport_name, sport_url, delay=0)  # No delay since we're doing sequentially
 
                 if not success:
                     verification_blocked = True
                     blocked_sport = sport_name
                     blocked_index = i
-                    self.logger.warning(f"🚫 VERIFICATION BLOCK DETECTED ON {sport_name.upper()}")
-                    self.logger.warning("⏳ WAITING FOR YOU TO RESOLVE VERIFICATION MANUALLY...")
+                    self.logger.warning(f"🚫 PAGE LOAD BLOCK DETECTED ON {sport_name.upper()}")
+                    self.logger.warning("⏳ WAITING FOR PAGE TO LOAD...")
 
-                    # Wait for user to resolve verification
+                    # Wait for page to load
                     resolution_success = await self._wait_for_verification_resolution(sport_name)
 
-                    if not resolution_success:
-                        self.logger.error(f"❌ VERIFICATION TIMEOUT ON {sport_name.upper()} - STOPPING SCRIPT")
-                        self.logger.error("Please restart the script after resolving the verification issue")
-                        break
+                    if resolution_success:
+                        successfully_loaded.append(sport_name)
+                        self.logger.info(f"✅ PAGE LOADED SUCCESSFULLY: {sport_name.upper()}")
+                        verification_blocked = False  # Reset flag since it's resolved
+                    else:
+                        self.logger.error(f"❌ PAGE LOAD FAILED: {sport_name.upper()} - SKIPPING")
+                        # Continue with next tab instead of stopping completely
 
-                    # Verification resolved, continue with remaining tabs
-                    self.logger.info(f"✅ VERIFICATION RESOLVED ON {sport_name.upper()} - CONTINUING WITH REMAINING TABS")
-                    verification_blocked = False  # Reset flag since it's resolved
+                else:
+                    successfully_loaded.append(sport_name)
+                    self.logger.info(f"✅ {sport_name.upper()} loaded immediately")
 
-                # Wait 2-3 seconds between each tab to avoid triggering verification (only if not blocked)
-                if not verification_blocked and i < len(sport_urls) - 1:
+                # Wait 2-3 seconds between each tab to avoid triggering verification
+                if i < len(sport_urls) - 1:
                     await asyncio.sleep(2.5)  # 2.5 seconds between tabs
 
-        if verification_blocked:
-            self.logger.warning("⚠️  VERIFICATION BLOCK DETECTED - Script will continue with monitoring already opened tabs")
-            self.logger.warning("Resolve verification manually, then the script can continue collecting data")
+        # Report final status
+        total_sports_attempted = len(sport_urls)
+        total_sports_loaded = len(successfully_loaded)
+
+        if total_sports_loaded == 0:
+            self.logger.error("❌ NO SPORT TABS LOADED SUCCESSFULLY")
+            self.logger.error("This indicates a fundamental connection or verification issue")
+            return  # Exit early if no tabs loaded
+        elif total_sports_loaded < total_sports_attempted:
+            self.logger.warning(f"⚠️  PARTIAL SUCCESS: {total_sports_loaded}/{total_sports_attempted} sports loaded")
+            self.logger.warning(f"Successfully loaded: {', '.join(successfully_loaded)}")
+            self.logger.warning("Script will continue with available tabs")
         else:
-            self.logger.info(f"All sport tabs opened sequentially - {len(self.sport_pages)} sports ready for maximum API capture")
+            self.logger.info(f"✅ ALL TABS LOADED: {total_sports_loaded}/{total_sports_attempted} sports ready for API capture")
 
     async def _navigate_sport_page(self, sport_name: str, sport_url: str, delay: int = 0):
         """Navigate to a single sport page with proper loading waits and verification detection"""
@@ -1377,30 +1442,74 @@ class FanDuelMasterCollector:
             return False
 
     async def _wait_for_verification_resolution(self, sport_name: str):
-        """Wait for user to resolve verification by checking periodically"""
-        self.logger.info(f"⏳ Waiting for verification resolution on {sport_name.upper()}...")
-        self.logger.info("Please solve the verification challenge in the Chrome window")
-        self.logger.info("The script will automatically continue once verification is resolved")
+        """Wait for page to actually load by checking content and network status"""
+        self.logger.info(f"⏳ Waiting for {sport_name.upper()} page to load...")
+        self.logger.info("Checking page content and network status")
 
-        max_wait_time = 300  # 5 minutes max wait
-        check_interval = 5   # Check every 5 seconds
+        max_wait_time = 60  # 1 minute max wait (reduced from 5 minutes)
+        check_interval = 3   # Check every 3 seconds
+
+        page = self.sport_pages[sport_name]
 
         for waited in range(0, max_wait_time, check_interval):
             await asyncio.sleep(check_interval)
 
-            # Check if verification is still present
-            page = self.sport_pages[sport_name]
-            still_blocked = await self._check_for_verification_block(page, sport_name)
+            try:
+                # Check if page has actual content (not just error page)
+                body_text = await page.inner_text('body')
+                title = await page.title()
 
-            if not still_blocked:
-                self.logger.info(f"✅ VERIFICATION RESOLVED on {sport_name.upper()} after {waited + check_interval} seconds!")
-                return True
+                # Check for successful page load indicators
+                content_length = len(body_text)
+                has_sports_content = any(keyword in body_text.lower() for keyword in [
+                    'odds', 'bet', 'sports', 'football', 'basketball', 'soccer', 'baseball',
+                    'moneyline', 'spread', 'total', 'fanduel'
+                ])
 
-            if waited % 30 == 0:  # Log every 30 seconds
+                # Check if title indicates successful load (not error)
+                title_lower = title.lower()
+                is_error_page = any(error in title_lower for error in [
+                    'error', 'blocked', 'access denied', 'verification required',
+                    'connection aborted', 'site cannot be reached'
+                ])
+
+                self.logger.debug(f"{sport_name}: Content length={content_length}, Has sports content={has_sports_content}, Title='{title}', Is error={is_error_page}")
+
+                # Consider page loaded if it has substantial content and sports-related text
+                if content_length > 1000 and has_sports_content and not is_error_page:
+                    self.logger.info(f"✅ PAGE LOADED SUCCESSFULLY: {sport_name.upper()} (Content: {content_length} chars, Title: '{title}')")
+                    return True
+
+                # If we have some content but it's an error page, wait longer
+                elif content_length > 100 and is_error_page:
+                    self.logger.debug(f"Error page detected for {sport_name}, waiting...")
+                    continue
+
+                # If page has minimal content, it might still be loading
+                elif content_length < 100:
+                    self.logger.debug(f"Minimal content for {sport_name}, still loading...")
+                    continue
+
+            except Exception as check_error:
+                self.logger.debug(f"Error checking page status for {sport_name}: {check_error}")
+                continue
+
+            if waited % 15 == 0:  # Log every 15 seconds
                 remaining = max_wait_time - waited
-                self.logger.info(f"Still waiting for verification... ({remaining}s remaining)")
+                self.logger.info(f"Still waiting for {sport_name} to load... ({remaining}s remaining)")
 
-        self.logger.error(f"⏰ TIMEOUT: Verification not resolved within {max_wait_time} seconds")
+        # If we get here, page didn't load properly
+        try:
+            final_title = await page.title()
+            final_content = await page.inner_text('body')
+            self.logger.error(f"❌ PAGE LOAD FAILED: {sport_name.upper()}")
+            self.logger.error(f"   Final title: '{final_title}'")
+            self.logger.error(f"   Content length: {len(final_content)} chars")
+            if len(final_content) < 500:
+                self.logger.error(f"   Content preview: {final_content[:200]}...")
+        except Exception as e:
+            self.logger.error(f"❌ Could not get final page status for {sport_name}: {e}")
+
         return False
 
     def _load_leagues_analysis(self):
@@ -1419,10 +1528,12 @@ class FanDuelMasterCollector:
 
     async def interact_with_tabs(self):
         """Minimal interaction - just scroll to trigger some API calls without clicking tabs"""
-        self.logger.info("Minimal interaction - scrolling to trigger API calls...")
+        self.logger.info("Minimal interaction - scrolling sport tabs to trigger API calls...")
 
-        # Just scroll on each page to trigger some API calls without clicking specific tabs
+        # Just scroll on each sport page to trigger some API calls (skip homepage)
         for sport_name, page in self.sport_pages.items():
+            if sport_name == 'homepage':
+                continue  # Skip homepage for scrolling interactions
             try:
                 # Scroll down to load more content and trigger some API calls
                 for _ in range(5):
@@ -1447,7 +1558,7 @@ class FanDuelMasterCollector:
 
             # Dynamic interaction based on analysis findings
             if cycle % 8 == 0:  # More frequent interaction
-                sport_names = list(self.sport_pages.keys())
+                sport_names = [name for name in self.sport_pages.keys() if name != 'homepage']  # Exclude homepage
                 if sport_names:
                     page = self.sport_pages[sport_names[cycle % len(sport_names)]]
                     try:
@@ -1625,8 +1736,10 @@ class FanDuelMasterCollector:
                 update_count += 1
                 elapsed = int(time.time() - start_time)
 
-                # Trigger potential updates by scrolling on pages
+                # Trigger potential updates by scrolling on sport pages (skip homepage)
                 for sport_name, page in self.sport_pages.items():
+                    if sport_name == 'homepage':
+                        continue  # Skip homepage for scrolling
                     try:
                         await page.mouse.wheel(0, 100)
                         await asyncio.sleep(0.3)
@@ -1740,16 +1853,22 @@ class FanDuelMasterCollector:
 
 async def main():
     import sys
-    duration = 0  # Default to infinite
-    if len(sys.argv) > 1:
-        try:
-            duration = int(sys.argv[1])
-        except ValueError:
-            print(f"Invalid duration argument: {sys.argv[1]}. Using infinite monitoring.")
-            duration = 0
+    import argparse
+
+    parser = argparse.ArgumentParser(description='FanDuel Master Collector')
+    parser.add_argument('duration', nargs='?', type=int, default=0,
+                       help='Monitoring duration in minutes (0 = infinite)')
+    parser.add_argument('--headless', action='store_true',
+                       help='Run Chrome in headless mode')
+
+    args = parser.parse_args()
+
+    # Set headless mode if requested
+    if args.headless:
+        os.environ['PLAYWRIGHT_HEADLESS'] = '1'
 
     collector = FanDuelMasterCollector()
-    await collector.run(monitoring_duration=duration)
+    await collector.run(monitoring_duration=args.duration)
 
 if __name__ == "__main__":
     asyncio.run(main())

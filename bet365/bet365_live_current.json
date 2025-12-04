@@ -1,8 +1,2088 @@
 {
-  "last_updated": "2025-11-11T13:07:03.943859",
-  "session_id": "20251111_130505",
-  "total_matches": 0,
-  "matches": [],
+  "last_updated": "2025-11-25T12:00:03.622463",
+  "session_id": "20251125_115302",
+  "total_matches": 55,
+  "matches": [
+    {
+      "fixture_index": 1,
+      "teams": {
+        "home": "IND Pacers (CHIEFKEEF)",
+        "away": "PHX Suns (Kadzima)"
+      },
+      "scores": {
+        "home": "37",
+        "away": "35"
+      },
+      "time": "04:42",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "-1.5",
+            "odds": "+100"
+          },
+          "away": {
+            "line": "+1.5",
+            "odds": "-140"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "141.5",
+            "odds": "-115"
+          },
+          "under": {
+            "line": "141.5",
+            "odds": "-125"
+          }
+        },
+        "moneyline": {
+          "home": {
+            "odds": "-120"
+          },
+          "away": {
+            "odds": "-120"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "04:42",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614888"
+    },
+    {
+      "fixture_index": 2,
+      "teams": {
+        "home": "DAL Mavericks (HUNCHO)",
+        "away": "DEN Nuggets (SPARKZ)"
+      },
+      "scores": {
+        "home": "41",
+        "away": "40"
+      },
+      "time": "03:46",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "-3.5",
+            "odds": "-115"
+          },
+          "away": {
+            "line": "+3.5",
+            "odds": "-125"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "102.5",
+            "odds": "-120"
+          },
+          "under": {
+            "line": "102.5",
+            "odds": "-120"
+          }
+        },
+        "moneyline": {
+          "home": {
+            "odds": "-300"
+          },
+          "away": {
+            "odds": "+210"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "03:46",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614890"
+    },
+    {
+      "fixture_index": 3,
+      "teams": {
+        "home": "MIL Bucks (MARINE)",
+        "away": "PHX Suns (OCEAN)"
+      },
+      "scores": {
+        "home": "30",
+        "away": "40"
+      },
+      "time": "00:37",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "+12.5",
+            "odds": "-120"
+          },
+          "away": {
+            "line": "-12.5",
+            "odds": "-120"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "101.5",
+            "odds": "-130"
+          },
+          "under": {
+            "line": "101.5",
+            "odds": "-110"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "00:37",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614891"
+    },
+    {
+      "fixture_index": 4,
+      "teams": {
+        "home": "MIA Heat (SHERIFF)",
+        "away": "TOR Raptors (DAGGER)"
+      },
+      "scores": {
+        "home": "29",
+        "away": "28"
+      },
+      "time": "05:00",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "-1.5",
+            "odds": "+105"
+          },
+          "away": {
+            "line": "+1.5",
+            "odds": "-145"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "110.5",
+            "odds": "-120"
+          },
+          "under": {
+            "line": "110.5",
+            "odds": "-120"
+          }
+        },
+        "moneyline": {
+          "home": {
+            "odds": "-120"
+          },
+          "away": {
+            "odds": "-120"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "05:00",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614893"
+    },
+    {
+      "fixture_index": 5,
+      "teams": {
+        "home": "DEN Nuggets (BOMBARDIER)",
+        "away": "DAL Mavericks (MACHINE)"
+      },
+      "scores": {
+        "home": "18",
+        "away": "15"
+      },
+      "time": "02:20",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "+7.5",
+            "odds": "-125"
+          },
+          "away": {
+            "line": "-7.5",
+            "odds": "-115"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "98.5",
+            "odds": "-120"
+          },
+          "under": {
+            "line": "98.5",
+            "odds": "-120"
+          }
+        },
+        "moneyline": {
+          "home": {
+            "odds": "+320"
+          },
+          "away": {
+            "odds": "-500"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "02:20",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614894"
+    },
+    {
+      "fixture_index": 6,
+      "teams": {
+        "home": "DEN Nuggets (ESSENCE)",
+        "away": "CHA Hornets (ADMIRAL)"
+      },
+      "scores": {
+        "home": "11",
+        "away": "11"
+      },
+      "time": "00:11",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "+2.5",
+            "odds": "-125"
+          },
+          "away": {
+            "line": "-2.5",
+            "odds": "-115"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "97.5",
+            "odds": "-120"
+          },
+          "under": {
+            "line": "97.5",
+            "odds": "-120"
+          }
+        },
+        "moneyline": {
+          "home": {
+            "odds": "+120"
+          },
+          "away": {
+            "odds": "-160"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "00:11",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614895"
+    },
+    {
+      "fixture_index": 7,
+      "teams": {
+        "home": "DAL Mavericks (PHARAOH)",
+        "away": "CHA Hornets (LEGACY)"
+      },
+      "scores": {
+        "home": "2",
+        "away": "0"
+      },
+      "time": "03:55",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "-6.5",
+            "odds": "-120"
+          },
+          "away": {
+            "line": "+6.5",
+            "odds": "-120"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "93.5",
+            "odds": "-120"
+          },
+          "under": {
+            "line": "93.5",
+            "odds": "-120"
+          }
+        },
+        "moneyline": {
+          "home": {
+            "odds": "-300"
+          },
+          "away": {
+            "odds": "+210"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "03:55",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614896"
+    },
+    {
+      "fixture_index": 8,
+      "teams": {
+        "home": "Chelsea (GianniKid)",
+        "away": "Liverpool (hotShot)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "0"
+      },
+      "time": "",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "-125"
+          },
+          "tie": {
+            "odds": "+280"
+          },
+          "away": {
+            "odds": "+230"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Soccer",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622136",
+      "first_seen": "2025-11-25T12:00:03.622135"
+    },
+    {
+      "fixture_index": 9,
+      "teams": {
+        "home": "PSG (zoyir)",
+        "away": "Real Madrid (deroll)"
+      },
+      "scores": {
+        "home": "2",
+        "away": "3"
+      },
+      "time": "07:40",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "07:40",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B151",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614899"
+    },
+    {
+      "fixture_index": 10,
+      "teams": {
+        "home": "River Plate (maksdh)",
+        "away": "Man City (tohi4)"
+      },
+      "scores": {
+        "home": "1",
+        "away": "3"
+      },
+      "time": "07:37",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "07:37",
+        "match_status": "Live"
+      },
+      "sport": "Esports",
+      "sport_code": "B151",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614900"
+    },
+    {
+      "fixture_index": 11,
+      "teams": {
+        "home": "Eintracht (Professor)",
+        "away": "Newcastle (Leon)"
+      },
+      "scores": {
+        "home": "1",
+        "away": "2"
+      },
+      "time": "10:46",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+2200"
+          },
+          "tie": {
+            "odds": "+350"
+          },
+          "away": {
+            "odds": "-550"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "10:46",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Esports",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614901"
+    },
+    {
+      "fixture_index": 12,
+      "teams": {
+        "home": "Marseille (Ryan)",
+        "away": "Atalanta (Sensei)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "1"
+      },
+      "time": "11:08",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+3300"
+          },
+          "tie": {
+            "odds": "+350"
+          },
+          "away": {
+            "odds": "-550"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "11:08",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Esports",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614903"
+    },
+    {
+      "fixture_index": 13,
+      "teams": {
+        "home": "Barcelona (INFERNO)",
+        "away": "Napoli (CASTLE)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "0"
+      },
+      "time": "02:59",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+120"
+          },
+          "tie": {
+            "odds": "+187"
+          },
+          "away": {
+            "odds": "+225"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "02:59",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B151",
+      "has_odds": true,
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614904"
+    },
+    {
+      "fixture_index": 14,
+      "teams": {
+        "home": "England (THREAT)",
+        "away": "France (CATALYST)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "1"
+      },
+      "time": "08:00",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "08:00",
+        "match_status": "Live"
+      },
+      "sport": "Esports",
+      "sport_code": "B151",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614905"
+    },
+    {
+      "fixture_index": 15,
+      "teams": {
+        "home": "Man City (DOMINATOR)",
+        "away": "Bayern (SMHAMILA)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "0"
+      },
+      "time": "",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "-138"
+          },
+          "tie": {
+            "odds": "+275"
+          },
+          "away": {
+            "odds": "+260"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Soccer",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.614906",
+      "first_seen": "2025-11-25T12:00:03.614906"
+    },
+    {
+      "fixture_index": 16,
+      "teams": {
+        "home": "Ghana (kirman)",
+        "away": "Sweden (Trush99)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "1"
+      },
+      "time": "01:29",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+105"
+          },
+          "tie": {
+            "odds": "+333"
+          },
+          "away": {
+            "odds": "+160"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "01:29",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Esports",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614911"
+    },
+    {
+      "fixture_index": 17,
+      "teams": {
+        "home": "USA (hrk)",
+        "away": "Mexico (Stason23)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "1"
+      },
+      "time": "02:10",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+300"
+          },
+          "tie": {
+            "odds": "+300"
+          },
+          "away": {
+            "odds": "-163"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "02:10",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Esports",
+      "sport_code": "B151",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614912"
+    },
+    {
+      "fixture_index": 1,
+      "teams": {
+        "home": "India",
+        "away": "South Africa"
+      },
+      "scores": {
+        "home": "201 All Out",
+        "away": "489 & 107/3"
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+1800"
+          },
+          "draw": {
+            "odds": "+137"
+          },
+          "away": {
+            "odds": "-150"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Cricket",
+      "sport_code": "B3",
+      "has_odds": true,
+      "last_updated": "2025-11-25T12:00:03.614914",
+      "first_seen": "2025-11-25T12:00:03.614915"
+    },
+    {
+      "fixture_index": 2,
+      "teams": {
+        "home": "New South Wales",
+        "away": "Tasmania"
+      },
+      "scores": {
+        "home": "391/9d & 174/9",
+        "away": "623/8"
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+10000"
+          },
+          "away": {
+            "odds": "-100000"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Cricket",
+      "sport_code": "B3",
+      "has_odds": true,
+      "last_updated": "2025-11-25T12:00:03.614916",
+      "first_seen": "2025-11-25T12:00:03.614916"
+    },
+    {
+      "fixture_index": 3,
+      "teams": {
+        "home": "South Australia",
+        "away": "Western Australia"
+      },
+      "scores": {
+        "home": "333 All Out",
+        "away": "188 & 176/3"
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "-600"
+          },
+          "away": {
+            "odds": "+400"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Cricket",
+      "sport_code": "B3",
+      "has_odds": true,
+      "last_updated": "2025-11-25T12:00:03.614917",
+      "first_seen": "2025-11-25T12:00:03.614918"
+    },
+    {
+      "fixture_index": 1,
+      "teams": {
+        "home": "Taiwan Seas",
+        "away": "JABA"
+      },
+      "scores": {
+        "home": "1",
+        "away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Baseball",
+      "sport_code": "B16",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614919",
+      "first_seen": "2025-11-25T12:00:03.614920"
+    },
+    {
+      "fixture_index": 1,
+      "teams": {
+        "home": "Mumbai Warriors",
+        "away": "Brothers WA"
+      },
+      "scores": {
+        "home": "0",
+        "away": "0"
+      },
+      "time": "00:00",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "00:00",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614921",
+      "first_seen": "2025-11-25T12:00:03.614922"
+    },
+    {
+      "fixture_index": 2,
+      "teams": {
+        "home": "Arsenal (RuBIX)",
+        "away": "Man City (Inquisitor)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "1"
+      },
+      "time": "09:24",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "09:24",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614923"
+    },
+    {
+      "fixture_index": 3,
+      "teams": {
+        "home": "Liverpool (hotShot)",
+        "away": "Tottenham (Kodak)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "0"
+      },
+      "time": "09:39",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "09:39",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614925"
+    },
+    {
+      "fixture_index": 5,
+      "teams": {
+        "home": "River Plate (maksdh)",
+        "away": "Man City (tohi4)"
+      },
+      "scores": {
+        "home": "1",
+        "away": "1"
+      },
+      "time": "08:30",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "08:30",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614927"
+    },
+    {
+      "fixture_index": 6,
+      "teams": {
+        "home": "Eintracht (Professor)",
+        "away": "Newcastle (Leon)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "2"
+      },
+      "time": "",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614928",
+      "first_seen": "2025-11-25T12:00:03.614928"
+    },
+    {
+      "fixture_index": 7,
+      "teams": {
+        "home": "Marseille (Ryan)",
+        "away": "Atalanta (Sensei)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "0"
+      },
+      "time": "",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614929",
+      "first_seen": "2025-11-25T12:00:03.614930"
+    },
+    {
+      "fixture_index": 9,
+      "teams": {
+        "home": "England (THREAT)",
+        "away": "France (CATALYST)"
+      },
+      "scores": {
+        "home": "0",
+        "away": "0"
+      },
+      "time": "",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614931",
+      "first_seen": "2025-11-25T12:00:03.614932"
+    },
+    {
+      "fixture_index": 10,
+      "teams": {
+        "home": "Real Madrid (JAEGER)",
+        "away": "Man City (DOMINATOR)"
+      },
+      "scores": {
+        "home": "1",
+        "away": "1"
+      },
+      "time": "",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614933",
+      "first_seen": "2025-11-25T12:00:03.614933"
+    },
+    {
+      "fixture_index": 11,
+      "teams": {
+        "home": "Mexico (Stason23)",
+        "away": "Ghana (kirman)"
+      },
+      "scores": {
+        "home": "4",
+        "away": "7"
+      },
+      "time": "",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614934",
+      "first_seen": "2025-11-25T12:00:03.614935"
+    },
+    {
+      "fixture_index": 12,
+      "teams": {
+        "home": "Sweden (Trush99)",
+        "away": "Denmark (Dan_dragonio)"
+      },
+      "scores": {
+        "home": "2",
+        "away": "5"
+      },
+      "time": "",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Soccer",
+      "sport_code": "B1",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614935",
+      "first_seen": "2025-11-25T12:00:03.614936"
+    },
+    {
+      "fixture_index": 1,
+      "teams": {
+        "home": "Ertis Pavlodar",
+        "away": "VC Abay"
+      },
+      "scores": {
+        "home": "1-0",
+        "away": "1-2"
+      },
+      "sets_scores": {
+        "home": "1",
+        "away": "1",
+        "points_home": "0",
+        "points_away": "2"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+350"
+          },
+          "away": {
+            "odds": "-600"
+          }
+        },
+        "handicap": {
+          "home": {
+            "odds": "+350"
+          },
+          "away": {
+            "odds": "-600"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Volleyball",
+      "sport_code": "B91",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614938"
+    },
+    {
+      "fixture_index": 2,
+      "teams": {
+        "home": "Kaohsiung Uni of S&T  (W)",
+        "away": "Chung Cheng University (W)"
+      },
+      "scores": {
+        "home": "0-7",
+        "away": "2-16"
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "2",
+        "points_home": "7",
+        "points_away": "16"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "SP"
+          },
+          "away": {
+            "odds": "-100000"
+          }
+        },
+        "handicap": {
+          "home": {
+            "odds": "+2500"
+          },
+          "away": {
+            "odds": "-100000"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Volleyball",
+      "sport_code": "B91",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614939"
+    },
+    {
+      "fixture_index": 3,
+      "teams": {
+        "home": "Kindai University",
+        "away": "Cignal HD Spikers"
+      },
+      "scores": {
+        "home": "0-17",
+        "away": "1-18"
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "1",
+        "points_home": "17",
+        "points_away": "18"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+175"
+          },
+          "away": {
+            "odds": "-250"
+          }
+        },
+        "handicap": {
+          "home": {
+            "odds": "+125"
+          },
+          "away": {
+            "odds": "-175"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "47.5",
+            "odds": "-138"
+          },
+          "under": {
+            "line": "47.5",
+            "odds": "+100"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Volleyball",
+      "sport_code": "B91",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614941"
+    },
+    {
+      "fixture_index": 1,
+      "teams": {
+        "home": "Vasyl Verbianyi",
+        "away": "Nazar Danyliuk"
+      },
+      "scores": {
+        "home": "2-0",
+        "away": "2-0"
+      },
+      "sets_scores": {
+        "home": "2",
+        "away": "2",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+137"
+          },
+          "away": {
+            "odds": "-188"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "18.5",
+            "odds": "-120"
+          },
+          "under": {
+            "line": "18.5",
+            "odds": "-120"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Table Tennis",
+      "sport_code": "B92",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614943"
+    },
+    {
+      "fixture_index": 2,
+      "teams": {
+        "home": "Viktor Kodola",
+        "away": "Anatolii Nikolenko"
+      },
+      "scores": {
+        "home": "6",
+        "away": "3"
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "6",
+        "points_away": "3"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "-700"
+          },
+          "away": {
+            "odds": "+400"
+          }
+        },
+        "handicap": {
+          "home": {
+            "odds": "-900"
+          },
+          "away": {
+            "odds": "+500"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "17.5",
+            "odds": "-138"
+          },
+          "under": {
+            "line": "17.5",
+            "odds": "+100"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Table Tennis",
+      "sport_code": "B92",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614944"
+    },
+    {
+      "fixture_index": 3,
+      "teams": {
+        "home": "Oleksii Shyndel",
+        "away": "Oleksii Krutko"
+      },
+      "scores": {
+        "home": "1-1",
+        "away": "1-5"
+      },
+      "sets_scores": {
+        "home": "1",
+        "away": "1",
+        "points_home": "1",
+        "points_away": "5"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+110"
+          },
+          "away": {
+            "odds": "-150"
+          }
+        },
+        "handicap": {
+          "home": {
+            "odds": "+300"
+          },
+          "away": {
+            "odds": "-450"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "17.5",
+            "odds": "-138"
+          },
+          "under": {
+            "line": "17.5",
+            "odds": "+100"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Table Tennis",
+      "sport_code": "B92",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614945"
+    },
+    {
+      "fixture_index": 4,
+      "teams": {
+        "home": "Krzysztof Wloczko",
+        "away": "Miroslav Sklensky"
+      },
+      "scores": {
+        "home": "0",
+        "away": "0"
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "+110"
+          },
+          "away": {
+            "odds": "-150"
+          }
+        },
+        "handicap": {
+          "home": {
+            "odds": "+100"
+          },
+          "away": {
+            "odds": "-138"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "18.5",
+            "odds": "-120"
+          },
+          "under": {
+            "line": "18.5",
+            "odds": "-120"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Table Tennis",
+      "sport_code": "B92",
+      "last_updated": "2025-11-25T12:00:03.614946",
+      "first_seen": "2025-11-25T12:00:03.614946"
+    },
+    {
+      "fixture_index": 5,
+      "teams": {
+        "home": "Adrian Wiecek",
+        "away": "Maksymilian Miastowski"
+      },
+      "scores": {
+        "home": "2-10",
+        "away": "0-10"
+      },
+      "sets_scores": {
+        "home": "2",
+        "away": "0",
+        "points_home": "10",
+        "points_away": "10"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "moneyline": {
+          "home": {
+            "odds": "-1400"
+          },
+          "away": {
+            "odds": "+650"
+          }
+        },
+        "handicap": {
+          "home": {
+            "odds": "-138"
+          },
+          "away": {
+            "odds": "+100"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Table Tennis",
+      "sport_code": "B92",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614949"
+    },
+    {
+      "fixture_index": 1,
+      "teams": {
+        "home": "Arizona State",
+        "away": "Texas"
+      },
+      "scores": {
+        "home": "39",
+        "away": "34"
+      },
+      "time": "20:00",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "+1.5",
+            "odds": "-130"
+          },
+          "away": {
+            "line": "-1.5",
+            "odds": "+100"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "153.5",
+            "odds": "-115"
+          },
+          "under": {
+            "line": "153.5",
+            "odds": "-115"
+          }
+        },
+        "moneyline": {
+          "home": {
+            "odds": "-115"
+          },
+          "away": {
+            "odds": "-115"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "20:00",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B18",
+      "last_updated": "2025-11-25T12:00:03.614951",
+      "first_seen": "2025-11-25T12:00:03.614952"
+    },
+    {
+      "fixture_index": 2,
+      "teams": {
+        "home": "UNLV",
+        "away": "Maryland"
+      },
+      "scores": {
+        "home": "19",
+        "away": "20"
+      },
+      "time": "04:12",
+      "status": "Live",
+      "period": "",
+      "markets": {
+        "spread": {
+          "home": {
+            "line": "+3.5",
+            "odds": "-115"
+          },
+          "away": {
+            "line": "-3.5",
+            "odds": "-115"
+          }
+        },
+        "total": {
+          "over": {
+            "line": "149.5",
+            "odds": "-115"
+          },
+          "under": {
+            "line": "149.5",
+            "odds": "-115"
+          }
+        },
+        "moneyline": {
+          "home": {
+            "odds": "+145"
+          },
+          "away": {
+            "odds": "-180"
+          }
+        }
+      },
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "04:12",
+        "match_status": "Live"
+      },
+      "has_odds": true,
+      "sport": "Basketball",
+      "sport_code": "B18",
+      "last_updated": "2025-11-25T12:00:03.622414",
+      "first_seen": "2025-11-25T12:00:03.614953"
+    },
+    {
+      "fixture_index": 1,
+      "teams": {
+        "home": "Nikita Bilozertsev",
+        "away": "Saba Purtseladze"
+      },
+      "scores": {
+        "home": "1-0 (0-0) [A-40]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614963",
+      "first_seen": "2025-11-25T12:00:03.614964"
+    },
+    {
+      "fixture_index": 2,
+      "teams": {
+        "home": "Preston Brown",
+        "away": "Dragos N Cazacu"
+      },
+      "scores": {
+        "home": "0-0 (5-6) [0-0]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614965",
+      "first_seen": "2025-11-25T12:00:03.614965"
+    },
+    {
+      "fixture_index": 3,
+      "teams": {
+        "home": "Samir Iftikhar",
+        "away": "Mert Alkaya"
+      },
+      "scores": {
+        "home": "0-1 (0-0) [0-40]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614966",
+      "first_seen": "2025-11-25T12:00:03.614967"
+    },
+    {
+      "fixture_index": 4,
+      "teams": {
+        "home": "Finn Bass",
+        "away": "Dane Sweeny"
+      },
+      "scores": {
+        "home": "1-0 (0-0) [0-0]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614967",
+      "first_seen": "2025-11-25T12:00:03.614968"
+    },
+    {
+      "fixture_index": 5,
+      "teams": {
+        "home": "Hayato Matsuoka",
+        "away": "Marc Polmans"
+      },
+      "scores": {
+        "home": "1-0 (1-1) [30-15]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614969",
+      "first_seen": "2025-11-25T12:00:03.614969"
+    },
+    {
+      "fixture_index": 6,
+      "teams": {
+        "home": "Aryan Lakshmanan",
+        "away": "Abhinav Sanjeev Shanmugam"
+      },
+      "scores": {
+        "home": "0-1 (0-0) [0-0]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614970",
+      "first_seen": "2025-11-25T12:00:03.614971"
+    },
+    {
+      "fixture_index": 7,
+      "teams": {
+        "home": "Vishnu Vardhan",
+        "away": "Udit Kamboj"
+      },
+      "scores": {
+        "home": "0-0 (3-5) [40-A]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614971",
+      "first_seen": "2025-11-25T12:00:03.614972"
+    },
+    {
+      "fixture_index": 8,
+      "teams": {
+        "home": "Sam Ryan Ziegann",
+        "away": "Naufal Siddiq Kamaruzzaman"
+      },
+      "scores": {
+        "home": "1-0 (4-5) [A-40]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614972",
+      "first_seen": "2025-11-25T12:00:03.614973"
+    },
+    {
+      "fixture_index": 9,
+      "teams": {
+        "home": "Ena Koike",
+        "away": "Erika Sema"
+      },
+      "scores": {
+        "home": "1-0 (2-2) [0-0]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614974",
+      "first_seen": "2025-11-25T12:00:03.614974"
+    },
+    {
+      "fixture_index": 10,
+      "teams": {
+        "home": "Eric Tripathi",
+        "away": "Noah Brownrigg"
+      },
+      "scores": {
+        "home": "0-1 (2-1) [15-40]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614975",
+      "first_seen": "2025-11-25T12:00:03.614976"
+    },
+    {
+      "fixture_index": 11,
+      "teams": {
+        "home": "Hazawa/Ichikawa",
+        "away": "Hulme/Pearson"
+      },
+      "scores": {
+        "home": "0-0 (1-3) [0-0]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614976",
+      "first_seen": "2025-11-25T12:00:03.614977"
+    },
+    {
+      "fixture_index": 12,
+      "teams": {
+        "home": "Ochi/Suzuki",
+        "away": "Chu/Kim"
+      },
+      "scores": {
+        "home": "0-1 (1-2) [40-30]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614978",
+      "first_seen": "2025-11-25T12:00:03.614978"
+    },
+    {
+      "fixture_index": 13,
+      "teams": {
+        "home": "Subasic/Thompson",
+        "away": "Barry/Ivanov"
+      },
+      "scores": {
+        "home": "1-1 (1-0) [0-0]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614979",
+      "first_seen": "2025-11-25T12:00:03.614979"
+    },
+    {
+      "fixture_index": 14,
+      "teams": {
+        "home": "Wei/Yamazaki",
+        "away": "Da Silva Fick/Osborne"
+      },
+      "scores": {
+        "home": "0-0 (4-1) [0-40]",
+        "away": ""
+      },
+      "sets_scores": {
+        "home": "0",
+        "away": "0",
+        "points_home": "0",
+        "points_away": "0"
+      },
+      "time": "Live",
+      "status": "Live",
+      "period": "",
+      "markets": {},
+      "live_fields": {
+        "is_live": true,
+        "time_remaining": "",
+        "match_status": "Live"
+      },
+      "sport": "Tennis",
+      "sport_code": "B13",
+      "has_odds": false,
+      "last_updated": "2025-11-25T12:00:03.614980",
+      "first_seen": "2025-11-25T12:00:03.614981"
+    }
+  ],
   "data_changes_log": [],
-  "sports_breakdown": {}
+  "sports_breakdown": {
+    "Basketball": 9,
+    "Soccer": 14,
+    "Esports": 6,
+    "Cricket": 3,
+    "Baseball": 1,
+    "Volleyball": 3,
+    "Table Tennis": 5,
+    "Tennis": 14
+  }
 }

@@ -128,10 +128,11 @@ def main():
         monitoring_script = base_dir / "monitoring_system.py"
         if monitoring_script.exists():
             try:
+                # For debugging, don't detach the process so we can see output
                 monitoring_process = subprocess.Popen(
                     [sys.executable, str(monitoring_script)],
-                    cwd=str(base_dir),
-                    creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == 'win32' else 0
+                    cwd=str(base_dir)
+                    # Removed creationflags to keep in same console for debugging
                 )
                 processes.append(monitoring_process)
                 print("✅ Monitoring system started (PID: {})".format(monitoring_process.pid))
@@ -150,13 +151,13 @@ def main():
     print("🔄 Starting Unified Odds Collection System...")
     if args.live_only:
         print("   - Mode: LIVE ONLY")
-        print("   - Collecting LIVE data from Bet365, FanDuel, and 1xBet")
+        print("   - Collecting LIVE data from Bet365, FanDuel (homepage-first), and 1xBet")
     elif args.pregame_only:
         print("   - Mode: PREGAME ONLY")
-        print("   - Collecting PREGAME data from Bet365, FanDuel, and 1xBet")
+        print("   - Collecting PREGAME data from Bet365, FanDuel (homepage-first), and 1xBet")
     else:
         print("   - Mode: PREGAME + LIVE (ALL MODULES)")
-        print("   - Collecting PREGAME data from Bet365, FanDuel, and 1xBet")
+        print("   - Collecting PREGAME data from Bet365, FanDuel (homepage-first), and 1xBet")
         print("   - Collecting LIVE data from all sources")
     print("   - Generating unified_odds.json with real-time updates")
     print()
@@ -185,12 +186,12 @@ def main():
         print(f"   Running command: {' '.join(cmd_args)}")
         print()
 
-        # Start unified system in background
-        # Don't capture stdout/stderr - let it run in its own console window
+        # Start unified system (for debugging, don't detach)
+        print("Starting unified system (not detached for debugging)...")
         unified_process = subprocess.Popen(
             cmd_args,
-            cwd=str(base_dir),
-            creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == 'win32' else 0
+            cwd=str(base_dir)
+            # Removed creationflags to keep in same console for debugging
         )
         processes.append(unified_process)
         print("✅ Unified collection system started (PID: {})".format(unified_process.pid))

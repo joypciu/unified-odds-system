@@ -163,8 +163,9 @@ fanduel/logs/
 bet365/logs/
 1xbet/logs/
 
-# Configuration (keep template)
-config.json
+# Configuration (sensitive data - DO NOT commit actual config)
+# config.json should be configured on VPS after deployment
+# Use config.json.template as reference
 
 # Browser automation data (Playwright/Chrome)
 .browser_cache/
@@ -184,6 +185,21 @@ secrets.json
 .env.local
 .env.production
 .env.staging
+
+# Bet365 live data and history
+bet365/bet365_live_current.json
+bet365/bet365_live_history.json
+bet365/bet365_current_pregame.json
+
+# FanDuel data files
+fanduel/fanduel_live.json
+fanduel/fanduel_pregame.json
+fanduel/fanduel_future.json
+
+# 1xBet data files
+1xbet/1xbet_live.json
+1xbet/1xbet_pregame.json
+1xbet/1xbet_statistics.json
 
 # Database files
 *.db

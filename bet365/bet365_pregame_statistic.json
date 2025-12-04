@@ -1,100 +1,96 @@
 {
   "monitoring_session": {
-    "timestamp": "2025-11-11T13:01:05.547355",
-    "session_id": "20251111_125659",
+    "timestamp": "2025-11-25T12:00:01.673146",
+    "session_id": "20251125_115250",
     "status": "active",
-    "uptime_seconds": 114.67
+    "uptime_seconds": 279.41
   },
   "cycle_statistics": {
-    "cycle_count": 239,
-    "total_active_games": 56,
+    "cycle_count": 481,
+    "total_active_games": 42,
     "recent_cycles": [
       {
-        "cycle": 230,
-        "duration": 0.275118350982666,
-        "timestamp": "2025-11-11T13:01:01.082299",
-        "sports_checked": 6
+        "cycle": 472,
+        "duration": 0.25472259521484375,
+        "timestamp": "2025-11-25T11:59:57.404157",
+        "sports_checked": 5
       },
       {
-        "cycle": 231,
-        "duration": 0.2738933563232422,
-        "timestamp": "2025-11-11T13:01:01.556818",
-        "sports_checked": 6
+        "cycle": 473,
+        "duration": 0.25893664360046387,
+        "timestamp": "2025-11-25T11:59:57.873990",
+        "sports_checked": 5
       },
       {
-        "cycle": 232,
-        "duration": 0.2693934440612793,
-        "timestamp": "2025-11-11T13:01:02.031307",
-        "sports_checked": 6
+        "cycle": 474,
+        "duration": 0.2561829090118408,
+        "timestamp": "2025-11-25T11:59:58.339263",
+        "sports_checked": 5
       },
       {
-        "cycle": 233,
-        "duration": 0.26788902282714844,
-        "timestamp": "2025-11-11T13:01:02.504343",
-        "sports_checked": 6
+        "cycle": 475,
+        "duration": 0.25936126708984375,
+        "timestamp": "2025-11-25T11:59:58.805478",
+        "sports_checked": 5
       },
       {
-        "cycle": 234,
-        "duration": 0.269425630569458,
-        "timestamp": "2025-11-11T13:01:02.981827",
-        "sports_checked": 6
+        "cycle": 476,
+        "duration": 0.27036356925964355,
+        "timestamp": "2025-11-25T11:59:59.282223",
+        "sports_checked": 5
       },
       {
-        "cycle": 235,
-        "duration": 0.2666177749633789,
-        "timestamp": "2025-11-11T13:01:03.458520",
-        "sports_checked": 6
+        "cycle": 477,
+        "duration": 0.26916027069091797,
+        "timestamp": "2025-11-25T11:59:59.757091",
+        "sports_checked": 5
       },
       {
-        "cycle": 236,
-        "duration": 0.2684199810028076,
-        "timestamp": "2025-11-11T13:01:03.934915",
-        "sports_checked": 6
+        "cycle": 478,
+        "duration": 0.27213597297668457,
+        "timestamp": "2025-11-25T12:00:00.236897",
+        "sports_checked": 5
       },
       {
-        "cycle": 237,
-        "duration": 0.269075870513916,
-        "timestamp": "2025-11-11T13:01:04.415173",
-        "sports_checked": 6
+        "cycle": 479,
+        "duration": 0.25602054595947266,
+        "timestamp": "2025-11-25T12:00:00.703880",
+        "sports_checked": 5
       },
       {
-        "cycle": 238,
-        "duration": 0.2665565013885498,
-        "timestamp": "2025-11-11T13:01:04.889017",
-        "sports_checked": 6
+        "cycle": 480,
+        "duration": 0.253467321395874,
+        "timestamp": "2025-11-25T12:00:01.164944",
+        "sports_checked": 5
       },
       {
-        "cycle": 239,
-        "duration": 0.268967866897583,
-        "timestamp": "2025-11-11T13:01:05.368134",
-        "sports_checked": 6
+        "cycle": 481,
+        "duration": 0.25397157669067383,
+        "timestamp": "2025-11-25T12:00:01.632566",
+        "sports_checked": 5
       }
     ]
   },
   "sport_statistics": {
-    "NFL": {
+    "NCAAF": {
       "update_count": 0,
-      "last_checked": "2025-11-11T13:01:05.547366"
+      "last_checked": "2025-11-25T12:00:01.673156"
     },
     "NHL": {
       "update_count": 0,
-      "last_checked": "2025-11-11T13:01:05.547367"
+      "last_checked": "2025-11-25T12:00:01.673157"
     },
-    "NCAAF": {
+    "UCL": {
       "update_count": 0,
-      "last_checked": "2025-11-11T13:01:05.547368"
+      "last_checked": "2025-11-25T12:00:01.673158"
     },
-    "Tennis": {
+    "NCAAB": {
       "update_count": 0,
-      "last_checked": "2025-11-11T13:01:05.547369"
+      "last_checked": "2025-11-25T12:00:01.673159"
     },
-    "PGA": {
+    "NFL": {
       "update_count": 0,
-      "last_checked": "2025-11-11T13:01:05.547370"
-    },
-    "NBA": {
-      "update_count": 0,
-      "last_checked": "2025-11-11T13:01:05.547370"
+      "last_checked": "2025-11-25T12:00:01.673160"
     }
   }
 }

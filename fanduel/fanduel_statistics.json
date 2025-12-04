@@ -1,0 +1,89 @@
+{
+  "session_id": "20251125_115254",
+  "timestamp": "2025-11-25T05:57:06.802068+00:00",
+  "total_api_calls": 32,
+  "total_events": 660,
+  "total_markets": 1048,
+  "total_pregame_matches": 621,
+  "total_live_matches": 0,
+  "total_futures": 0,
+  "total_history": 0,
+  "api_calls": [
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/application-context?dataEntries=POPULAR_BETTING,QUICK_LINKS,AZ_BETTING,EVENT_TYPES,TEASER_COMPS&_ak=FhMFpcPWXMeyZxOx",
+      "sport": "rugby-union",
+      "timestamp": "2025-11-25T05:55:55.264064+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/content-managed-page?page=SPORT&eventTypeId=4&_ak=FhMFpcPWXMeyZxOx&timezone=America%2FNew_York",
+      "sport": "cricket",
+      "timestamp": "2025-11-25T05:55:55.698472+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/content-managed-page?page=HOMEPAGE&prominentCard=false&pulseScalingEnable=false&_ak=FhMFpcPWXMeyZxOx&timezone=America%2FNew_York",
+      "sport": "soccer",
+      "timestamp": "2025-11-25T05:56:23.413259+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/application-context?dataEntries=POPULAR_BETTING,QUICK_LINKS,AZ_BETTING,EVENT_TYPES,TEASER_COMPS&_ak=FhMFpcPWXMeyZxOx",
+      "sport": "rugby-union",
+      "timestamp": "2025-11-25T05:56:24.992233+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/content-managed-page?page=SPORT&eventTypeId=3503&_ak=FhMFpcPWXMeyZxOx&timezone=America%2FNew_York",
+      "sport": "mma",
+      "timestamp": "2025-11-25T05:56:26.542677+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/application-context?dataEntries=POPULAR_BETTING,QUICK_LINKS,AZ_BETTING,EVENT_TYPES,TEASER_COMPS&_ak=FhMFpcPWXMeyZxOx",
+      "sport": "rugby-union",
+      "timestamp": "2025-11-25T05:56:41.139523+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/application-context?dataEntries=POPULAR_BETTING,QUICK_LINKS,AZ_BETTING,EVENT_TYPES,TEASER_COMPS&_ak=FhMFpcPWXMeyZxOx",
+      "sport": "rugby-union",
+      "timestamp": "2025-11-25T05:56:54.109788+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/content-managed-page?page=SPORT&eventTypeId=61420&_ak=FhMFpcPWXMeyZxOx&timezone=America%2FNew_York",
+      "sport": "table-tennis",
+      "timestamp": "2025-11-25T05:56:54.182443+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/application-context?dataEntries=POPULAR_BETTING,QUICK_LINKS,AZ_BETTING,EVENT_TYPES,TEASER_COMPS&_ak=FhMFpcPWXMeyZxOx",
+      "sport": "rugby-union",
+      "timestamp": "2025-11-25T05:57:06.643428+00:00"
+    },
+    {
+      "url": "https://api.sportsbook.fanduel.com/sbapi/content-managed-page?page=SPORT&eventTypeId=28608997&_ak=FhMFpcPWXMeyZxOx&timezone=America%2FNew_York",
+      "sport": "tennis",
+      "timestamp": "2025-11-25T05:57:06.793042+00:00"
+    }
+  ],
+  "sport_api_breakdown": {
+    "rugby-union": 14,
+    "soccer": 5,
+    "football": 2,
+    "basketball": 1,
+    "table-tennis": 3,
+    "darts": 1,
+    "tennis": 3,
+    "mma": 2,
+    "cricket": 1
+  },
+  "url_pattern_counts": {
+    "https://api.sportsbook.fanduel.com/sbapi/application-context": 14,
+    "https://api.sportsbook.fanduel.com/sbapi/content-managed-page": 16,
+    "https://boapi.sportsbook.fanduel.com/popular/home": 2
+  },
+  "sport_update_frequency_per_minute": {},
+  "most_active_sport": {
+    "sport": "rugby-union",
+    "api_calls": 14
+  },
+  "least_active_sport": {
+    "sport": "basketball",
+    "api_calls": 1
+  },
+  "session_duration_minutes": -355.79
+}

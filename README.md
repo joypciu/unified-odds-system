@@ -1,17 +1,17 @@
 # Unified Odds System
 
-A comprehensive Python-based system for collecting, merging, and monitoring betting odds from multiple sportsbooks (Bet365, FanDuel, and 1xBet). The system provides real-time unified odds data with automatic team name normalization, caching, and alerting capabilities.
+A comprehensive Python-based system for collecting, merging, and monitoring betting odds from multiple sportsbooks (Bet365, FanDuel, 1xBet, and BetLink). The system provides real-time unified odds data with automatic team name normalization, caching, and alerting capabilities through REST API endpoints.
 
 ## Features
 
-- **Multi-Bookmaker Support**: Collects odds from Bet365, FanDuel, and 1xBet
+- **Multi-Bookmaker Support**: Collects odds from Bet365, FanDuel, 1xBet, and BetLink
 - **Real-Time Monitoring**: Live odds updates with instant file change detection
 - **Intelligent Team Matching**: O(1) cache-based team name normalization with fuzzy fallback
 - **Unified Data Format**: Consistent odds structure across all bookmakers
 - **Email Alerting**: Automated notifications for system issues and failures
 - **Memory Optimization**: Efficient processing with garbage collection and streaming
 - **Web UI**: Clean interface for viewing odds data
-- **REST API**: Monitoring endpoints for system status
+- **REST API Endpoints**: Comprehensive API for odds data access and system monitoring
 - **Process Health Monitoring**: Automatic restart and memory usage tracking
 - **Cross-Platform**: Windows, Linux, and macOS support
 
@@ -21,6 +21,7 @@ A comprehensive Python-based system for collecting, merging, and monitoring bett
 ├── bet365/                 # Bet365 scrapers and data
 ├── fanduel/               # FanDuel scrapers and data
 ├── 1xbet/                 # 1xBet scrapers and data
+├── betlink/               # BetLink scrapers and data
 ├── config.json           # System configuration
 ├── requirements.txt      # Python dependencies
 ├── launch_odds_system.py # Main system runner
@@ -28,7 +29,8 @@ A comprehensive Python-based system for collecting, merging, and monitoring bett
 ├── dynamic_cache_manager.py # Team name caching
 ├── monitoring_system.py  # System monitoring
 ├── live_odds_viewer_clean.py # Web UI
-├── monitoring_status_api.py # REST API
+├── monitoring_status_api.py # REST API endpoints
+├── unified_odds.json     # Unified odds data output
 └── cache_data.json      # Team name mappings
 ```
 
@@ -83,7 +85,7 @@ Edit `config.json` to customize:
     "check_interval_seconds": 300,
     "data_stale_threshold_minutes": 60,
     "failure_threshold": 3,
-    "modules": ["bet365_pregame", "fanduel_pregame", "1xbet_pregame"]
+    "modules": ["bet365_pregame", "fanduel_pregame", "1xbet_pregame", "betlink_pregame"]
   },
   "cache": {
     "auto_update": true,
@@ -181,19 +183,46 @@ Features:
 - Multi-bookmaker comparison
 - Responsive design
 
-## REST API
+## REST API Endpoints
 
-Monitor system status via REST API:
+The system provides comprehensive REST API endpoints for accessing odds data and monitoring system status:
 
 ```bash
 python monitoring_status_api.py
 ```
 
-Endpoints:
-- `GET /status` - System health status
-- `GET /alerts` - Recent alerts
-- `GET /memory` - Memory usage statistics
-- `GET /processes` - Running process information
+### Odds Data Endpoints
+- `GET /odds` - Get all unified odds data (pregame + live)
+- `GET /odds/pregame` - Get pregame matches only
+- `GET /odds/live` - Get live matches only
+- `GET /odds/sport/{sport}` - Get odds for specific sport (basketball, soccer, football, etc.)
+- `GET /odds/bookmaker/{bookmaker}` - Get odds from specific bookmaker (bet365, fanduel, 1xbet, betlink)
+
+### System Monitoring Endpoints
+- `GET /status` - System health status and uptime
+- `GET /alerts` - Recent system alerts and notifications
+- `GET /memory` - Memory usage statistics for all processes
+- `GET /processes` - Running process information and PIDs
+- `GET /health` - Quick health check endpoint
+
+### Data Query Parameters
+- `?limit=50` - Limit number of results
+- `?sport=basketball` - Filter by sport
+- `?bookmaker=bet365` - Filter by bookmaker
+- `?live_only=true` - Show live matches only
+- `?min_odds=1.5` - Filter by minimum odds value
+
+### Example API Usage
+```bash
+# Get all live basketball odds
+curl "http://localhost:5000/odds/live?sport=basketball"
+
+# Get Bet365 odds for soccer
+curl "http://localhost:5000/odds/bookmaker/bet365?sport=soccer"
+
+# System health check
+curl "http://localhost:5000/health"
+```
 
 ## Monitoring & Alerting
 
@@ -217,10 +246,16 @@ The system generates `unified_odds.json` with the following structure:
 ```json
 {
   "metadata": {
-    "generated_at": "2025-11-11T04:48:00.000Z",
-    "sources": ["bet365", "fanduel", "1xbet"],
+    "generated_at": "2025-11-25T06:00:00.000Z",
+    "sources": ["bet365", "fanduel", "1xbet", "betlink"],
     "total_pregame_matches": 150,
-    "total_live_matches": 25
+    "total_live_matches": 25,
+    "api_endpoints": {
+      "odds": "http://localhost:5000/odds",
+      "pregame": "http://localhost:5000/odds/pregame",
+      "live": "http://localhost:5000/odds/live",
+      "health": "http://localhost:5000/health"
+    }
   },
   "pregame_matches": [...],
   "live_matches": [...]
@@ -228,10 +263,16 @@ The system generates `unified_odds.json` with the following structure:
 ```
 
 Each match includes:
-- Sport and teams
+- Sport and teams (with normalized names)
 - Date/time information
-- Odds from all available bookmakers
-- Live scores (for live matches)
+- Odds from all available bookmakers (bet365, fanduel, 1xbet, betlink)
+- Live scores and game status (for live matches)
+- Match IDs and fixture identifiers
+- League/competition information
+
+### API Response Format
+
+All API endpoints return data in the same unified JSON structure, making integration seamless for applications and services.
 
 ## Troubleshooting
 
@@ -338,12 +379,19 @@ For issues and questions:
 
 ## Changelog
 
+### v1.1.0
+- Added BetLink bookmaker support
+- Enhanced REST API with comprehensive odds endpoints
+- Improved homepage-first tab opening for FanDuel scraping
+- Added concurrent Bet365 live scraper integration
+- Expanded API endpoints for sport-specific and bookmaker-specific queries
+
 ### v1.0.0
 - Initial release
 - Support for Bet365, FanDuel, 1xBet
 - Real-time monitoring
 - Email alerting
 - Web UI
-- REST API
+- Basic REST API
 - Team name caching
 - Memory optimization

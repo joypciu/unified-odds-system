@@ -1,0 +1,22 @@
+[Unit]
+Description=Unified Odds Collection System (Bet365, FanDuel, 1xBet)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/services/unified-odds
+Environment="PATH=/home/ubuntu/services/unified-odds/venv/bin"
+Environment="DISPLAY=:99"
+ExecStart=/usr/bin/xvfb-run -a /home/ubuntu/services/unified-odds/venv/bin/python launch_odds_system.py --mode continuous --no-monitoring
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+# Resource limits
+MemoryMax=2G
+CPUQuota=150%
+
+[Install]
+WantedBy=multi-user.target

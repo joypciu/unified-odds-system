@@ -1450,6 +1450,34 @@ class UnifiedOddsCollector:
 
         # Load all data
         print("\nLoading data from all sources...")
+
+        # For live data, run the concurrent scraper to get fresh data
+        bet365_concurrent_script = os.path.join(self.base_dir, "bet365", "bet365_live_concurrent_scraper.py")
+        if os.path.exists(bet365_concurrent_script):
+            print("Running Bet365 concurrent live scraper for fresh live data...")
+            try:
+                import subprocess
+                import sys
+
+                result = subprocess.run([
+                    sys.executable, bet365_concurrent_script,
+                    "--mode", "single"  # Single extraction mode for fresh data
+                ], cwd=os.path.join(self.base_dir, "bet365"), capture_output=True, text=True, timeout=180)
+
+                if result.returncode == 0:
+                    print("✅ Bet365 concurrent scraper completed successfully")
+                else:
+                    print(f"⚠️  Bet365 concurrent scraper failed (exit code: {result.returncode})")
+                    print(f"   Error: {result.stderr[:300]}...")
+
+            except Exception as e:
+                if "TimeoutExpired" in str(type(e)):
+                    print("⚠️  Bet365 concurrent scraper timed out after 180 seconds")
+                else:
+                    print(f"⚠️  Error running Bet365 concurrent scraper: {e}")
+        else:
+            print("⚠️  Bet365 concurrent scraper not found, using existing data")
+
         bet365_pregame = self.load_bet365_pregame()
         bet365_live = self.load_bet365_live()
         fanduel_pregame = self.load_fanduel_pregame()

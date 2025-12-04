@@ -1,0 +1,677 @@
+{
+  "session_id": "20251125_115306",
+  "last_updated": "2025-11-25T05:57:05.419745+00:00",
+  "total_events": 33,
+  "api_urls": {
+    "34994400": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:35.469021+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=7522&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:36.695467+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34991286%2C34993361%2C34993241%2C34994396%2C34994398%2C34994400%2C34994407",
+        "timestamp": "2025-11-25T05:53:37.537324+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793397+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466725+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.497010+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815484+00:00"
+      }
+    ],
+    "34994407": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:35.469040+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=7522&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:36.695485+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34991286%2C34993361%2C34993241%2C34994396%2C34994398%2C34994400%2C34994407",
+        "timestamp": "2025-11-25T05:53:37.537339+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793429+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466777+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.497013+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815487+00:00"
+      }
+    ],
+    "34994411": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:35.469045+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=7522&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:36.695490+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:55:04.714815+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.497016+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815491+00:00"
+      }
+    ],
+    "34993361": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:35.469049+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=7522&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:36.695495+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34991286%2C34993361%2C34993241%2C34994396%2C34994398%2C34994400%2C34994407",
+        "timestamp": "2025-11-25T05:53:37.537343+00:00"
+      }
+    ],
+    "34991286": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:35.469052+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=7522&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:36.695659+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34991286%2C34993361%2C34993241%2C34994396%2C34994398%2C34994400%2C34994407",
+        "timestamp": "2025-11-25T05:53:37.537347+00:00"
+      }
+    ],
+    "34993241": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:35.469056+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=7522&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:36.695675+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34991286%2C34993361%2C34993241%2C34994396%2C34994398%2C34994400%2C34994407",
+        "timestamp": "2025-11-25T05:53:37.537351+00:00"
+      }
+    ],
+    "34994396": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:35.469059+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=7522&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:36.695680+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34991286%2C34993361%2C34993241%2C34994396%2C34994398%2C34994400%2C34994407",
+        "timestamp": "2025-11-25T05:53:37.537359+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793466+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466816+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.497002+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815476+00:00"
+      }
+    ],
+    "34994398": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:35.469062+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=7522&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:36.695684+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34991286%2C34993361%2C34993241%2C34994396%2C34994398%2C34994400%2C34994407",
+        "timestamp": "2025-11-25T05:53:37.537362+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793469+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466820+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.497006+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815480+00:00"
+      }
+    ],
+    "34995162": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641455+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847931+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793415+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466755+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496998+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815471+00:00"
+      }
+    ],
+    "34995365": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641472+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847946+00:00"
+      }
+    ],
+    "34988968": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641477+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847952+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793432+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466774+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496978+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815454+00:00"
+      }
+    ],
+    "34994288": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641482+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847959+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793447+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466795+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.497020+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815494+00:00"
+      }
+    ],
+    "34989008": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641485+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847955+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793444+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466792+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496985+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815461+00:00"
+      }
+    ],
+    "34995089": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641488+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847963+00:00"
+      }
+    ],
+    "34987251": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641495+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847966+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793450+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466799+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.497023+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815498+00:00"
+      }
+    ],
+    "34994964": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641499+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847969+00:00"
+      }
+    ],
+    "34995128": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641502+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847972+00:00"
+      }
+    ],
+    "34995095": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.641504+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847975+00:00"
+      }
+    ],
+    "34991320": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.646327+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847978+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793457+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466806+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496989+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815464+00:00"
+      }
+    ],
+    "34995161": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.646340+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847981+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793460+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466809+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496994+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815468+00:00"
+      }
+    ],
+    "34987450": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.646344+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847984+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793463+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466812+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496982+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815458+00:00"
+      }
+    ],
+    "34994395": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.646352+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847987+00:00"
+      }
+    ],
+    "34995132": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.646355+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847990+00:00"
+      }
+    ],
+    "34996157": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:53:50.646358+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34994395%2C34995162%2C34995161%2C34995365%2C34994964%2C34996157%2C34995128%2C34995132%2C34995095%2C34995089",
+        "timestamp": "2025-11-25T05:53:51.847993+00:00"
+      }
+    ],
+    "34994336": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=1&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:20.221658+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994336%2C34994338%2C34994195",
+        "timestamp": "2025-11-25T05:54:21.260954+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793421+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466761+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496966+00:00"
+      }
+    ],
+    "34994338": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=1&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:20.221676+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994336%2C34994338%2C34994195",
+        "timestamp": "2025-11-25T05:54:21.260969+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793425+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466766+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496970+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815445+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994338%2C34994195%2C34994196",
+        "timestamp": "2025-11-25T05:56:50.416239+00:00"
+      }
+    ],
+    "34994195": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=1&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:20.221682+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994336%2C34994338%2C34994195",
+        "timestamp": "2025-11-25T05:54:21.260974+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793453+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466803+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496956+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815436+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994338%2C34994195%2C34994196",
+        "timestamp": "2025-11-25T05:56:50.416255+00:00"
+      }
+    ],
+    "34994196": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=1&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:20.221686+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994338%2C34994195%2C34994196",
+        "timestamp": "2025-11-25T05:56:50.416260+00:00"
+      }
+    ],
+    "34997657": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2593174&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:26.193606+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:54:27.086725+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:55:04.714781+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496961+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815441+00:00"
+      }
+    ],
+    "34997514": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2593174&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:26.193668+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:54:27.086739+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793438+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466785+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496932+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815414+00:00"
+      }
+    ],
+    "34997515": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2593174&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:26.193675+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:54:27.086745+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793441+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466789+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496950+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815430+00:00"
+      }
+    ],
+    "34997415": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2593174&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:26.193679+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:54:27.086748+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=WATCH_LIVE&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:32.793435+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515",
+        "timestamp": "2025-11-25T05:54:33.466770+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994336%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:55:05.496974+00:00"
+      },
+      {
+        "url": "https://api.sportsbook.fanduel.com/ips/inplayservice/v1.0/livedata?channel=WEB&dataEntries=FULL_DETAILS%2CMEDIA_TYPES&_ak=FhMFpcPWXMeyZxOx&eventIds=34994396%2C34994398%2C34994400%2C34994407%2C34994411%2C34988968%2C34989008%2C34991320%2C34987450%2C34994288%2C34987251%2C34995162%2C34995161%2C34994338%2C34994195%2C34997415%2C34997514%2C34997515%2C34997657",
+        "timestamp": "2025-11-25T05:56:02.815449+00:00"
+      }
+    ],
+    "34997694": [
+      {
+        "url": "https://api.sportsbook.fanduel.com/sbapi/in-play?timezone=America%2FNew_York&eventTypeId=2593174&includeTabs=true&_ak=FhMFpcPWXMeyZxOx",
+        "timestamp": "2025-11-25T05:54:46.098783+00:00"
+      }
+    ]
+  }
+}

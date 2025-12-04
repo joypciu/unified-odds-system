@@ -1,0 +1,28 @@
+{
+  "session_id": "20251125_115306",
+  "last_updated": "2025-11-25T05:57:05.489178+00:00",
+  "total_matches": 32,
+  "matches_with_odds": 32,
+  "by_sport": {
+    "": {
+      "total_matches": 4,
+      "matches_with_odds": 4,
+      "percentage_with_odds": 100.0
+    },
+    "Basketball": {
+      "total_matches": 8,
+      "matches_with_odds": 8,
+      "percentage_with_odds": 100.0
+    },
+    "Table Tennis": {
+      "total_matches": 4,
+      "matches_with_odds": 4,
+      "percentage_with_odds": 100.0
+    },
+    "Tennis": {
+      "total_matches": 16,
+      "matches_with_odds": 16,
+      "percentage_with_odds": 100.0
+    }
+  }
+}

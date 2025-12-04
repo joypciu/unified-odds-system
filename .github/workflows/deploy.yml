@@ -1,0 +1,76 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to main branch
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        script: |
+          echo "🚀 Starting deployment of unified odds system..."
+          
+          # Navigate to project directory
+          cd /home/ubuntu/services/unified-odds
+          
+          # Pull latest changes
+          echo "📥 Pulling latest changes from GitHub..."
+          git pull origin main
+          
+          # Activate virtual environment
+          source venv/bin/activate
+          
+          # Install/update dependencies
+          echo "📦 Installing dependencies..."
+          pip install -r requirements.txt
+          
+          # Restart the service
+          echo "🔄 Restarting unified-odds service..."
+          sudo systemctl restart unified-odds
+          
+          # Wait a moment for service to start
+          sleep 3
+          
+          # Check service status
+          echo "✅ Checking service status..."
+          sudo systemctl status unified-odds --no-pager
+          
+          echo "🎉 Deployment complete!"
+          
+    - name: Verify Deployment
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        script: |
+          echo "🔍 Verifying deployment..."
+          
+          # Check if service is running
+          if sudo systemctl is-active --quiet unified-odds; then
+            echo "✅ Unified odds service is running"
+            
+            # Show last 10 log lines
+            echo "📋 Recent logs:"
+            sudo journalctl -u unified-odds -n 10 --no-pager
+          else
+            echo "❌ Unified odds service is not running!"
+            echo "📋 Error logs:"
+            sudo journalctl -u unified-odds -n 20 --no-pager
+            exit 1
+          fi

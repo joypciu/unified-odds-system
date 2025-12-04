@@ -42,6 +42,38 @@ class EmailAlert(BaseModel):
     email: EmailStr
     alert: Dict
 
+
+def format_betlink(*, betlink=None, sportsbook=None, state_info=None):
+    """Format betlink for different sportsbooks based on location"""
+    assert sportsbook is not None
+    if not betlink:
+        return None
+    if (not "{country}" in betlink) and (not "{state}" in betlink):
+        return betlink
+
+    if not state_info or state_info == "default":
+        return None
+
+    state_info = state_info.lower().strip()
+    if ',' not in state_info:
+        return None
+
+    try:
+        state, country = state_info.split(",")
+        state = state.strip()
+        country = country.strip()
+    except:
+        return None
+
+    sportsbook = sportsbook.lower()
+    if sportsbook in ['fanduel', '1xbet', 'bet365'] and country == 'ca':
+        betlink = betlink.format(country="ca", state='on')
+        betlink = betlink.replace(".com", ".ca")
+        return betlink
+
+    betlink = betlink.format(country=country, state=state)
+    return betlink
+
 # Files to monitor
 FILES = {
     'unified': BASE_DIR / "unified_odds.json",
@@ -436,6 +468,86 @@ async def get_matches():
     """API endpoint to get all matches"""
     data = load_unified_data()
     return data
+
+
+@app.get("/api/matches/sport/{sport}")
+async def get_matches_by_sport(sport: str):
+    """API endpoint to get matches for a specific sport"""
+    data = load_unified_data()
+    all_matches = data.get('pregame_matches', []) + data.get('live_matches', [])
+
+    # Filter matches by sport (case insensitive)
+    filtered_matches = [
+        match for match in all_matches
+        if match.get('sport', '').lower() == sport.lower()
+    ]
+
+    return {
+        'matches': filtered_matches,
+        'sport': sport,
+        'count': len(filtered_matches),
+        'metadata': data.get('metadata', {})
+    }
+
+
+@app.get("/api/matches/bookmaker/{bookmaker}")
+async def get_matches_by_bookmaker(bookmaker: str):
+    """API endpoint to get matches available on a specific bookmaker"""
+    data = load_unified_data()
+    all_matches = data.get('pregame_matches', []) + data.get('live_matches', [])
+
+    # Filter matches that have data for this bookmaker
+    filtered_matches = [
+        match for match in all_matches
+        if bookmaker.lower() in match and match[bookmaker.lower()].get('available', False)
+    ]
+
+    return {
+        'matches': filtered_matches,
+        'bookmaker': bookmaker,
+        'count': len(filtered_matches),
+        'metadata': data.get('metadata', {})
+    }
+
+
+@app.get("/api/matches/live")
+async def get_live_matches():
+    """API endpoint to get only live matches"""
+    data = load_unified_data()
+    live_matches = data.get('live_matches', [])
+
+    return {
+        'matches': live_matches,
+        'type': 'live',
+        'count': len(live_matches),
+        'metadata': data.get('metadata', {})
+    }
+
+
+@app.get("/api/matches/pregame")
+async def get_pregame_matches():
+    """API endpoint to get only pregame matches"""
+    data = load_unified_data()
+    pregame_matches = data.get('pregame_matches', [])
+
+    return {
+        'matches': pregame_matches,
+        'type': 'pregame',
+        'count': len(pregame_matches),
+        'metadata': data.get('metadata', {})
+    }
+
+
+@app.get("/api/betlink")
+async def get_formatted_betlink(betlink: str, sportsbook: str, state_info: str):
+    """API endpoint to format betlinks for different sportsbooks and locations"""
+    formatted_link = format_betlink(betlink=betlink, sportsbook=sportsbook, state_info=state_info)
+    return {
+        'original_betlink': betlink,
+        'sportsbook': sportsbook,
+        'state_info': state_info,
+        'formatted_betlink': formatted_link
+    }
 
 
 @app.get("/api/status")
