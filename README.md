@@ -8,9 +8,10 @@ A comprehensive Python-based system for collecting, merging, and monitoring bett
 - **Real-Time Monitoring**: Live odds updates with instant file change detection
 - **Intelligent Team Matching**: O(1) cache-based team name normalization with fuzzy fallback
 - **Unified Data Format**: Consistent odds structure across all bookmakers
+- **OpticOdds Format API**: RESTful endpoints returning industry-standard OpticOdds format
 - **Email Alerting**: Automated notifications for system issues and failures
 - **Memory Optimization**: Efficient processing with garbage collection and streaming
-- **Web UI**: Clean interface for viewing odds data
+- **Web UI**: Clean interface for viewing odds data with real-time updates
 - **REST API Endpoints**: Comprehensive API for odds data access and system monitoring
 - **Process Health Monitoring**: Automatic restart and memory usage tracking
 - **Cross-Platform**: Windows, Linux, and macOS support
@@ -169,7 +170,7 @@ See `EMAIL_SETUP_GUIDE.md` for detailed instructions including:
 
 ## Web Interface
 
-The system includes a clean web interface for viewing odds:
+The system includes a clean web interface for viewing odds with real-time updates:
 
 ```bash
 python live_odds_viewer_clean.py
@@ -178,51 +179,118 @@ python live_odds_viewer_clean.py
 Then open `http://localhost:8000` in your browser.
 
 Features:
-- Real-time odds display
-- Live match scores
+- Real-time odds display with WebSocket updates
+- Live match scores and status
 - Multi-bookmaker comparison
+- Sport filtering and search
 - Responsive design
+- Modal view for detailed odds
 
-## REST API Endpoints
+## OpticOdds Format API Endpoints
 
-The system provides comprehensive REST API endpoints for accessing odds data and monitoring system status:
+The system provides **OpticOdds-compatible REST API endpoints** for accessing odds data in industry-standard format:
 
-```bash
-python monitoring_status_api.py
+### 1xBet Endpoints
+- `GET /1xbet` - All 1xBet odds (pregame + live) in OpticOdds format
+- `GET /1xbet/pregame` - 1xBet pregame odds only
+- `GET /1xbet/live` - 1xBet live odds only
+
+### FanDuel Endpoints  
+- `GET /fanduel` - All FanDuel odds (pregame + live) in OpticOdds format
+- `GET /fanduel/pregame` - FanDuel pregame odds only
+- `GET /fanduel/live` - FanDuel live odds only
+
+### Bet365 Endpoints
+- `GET /bet365` - All Bet365 odds (pregame + live) in OpticOdds format
+- `GET /bet365/pregame` - Bet365 pregame odds only
+- `GET /bet365/live` - Bet365 live odds only
+- `GET /bet365/soccer` - Bet365 soccer odds only
+
+### Eternity Format Endpoints (Alternative Format)
+- `GET /eternity/1xbet` - 1xBet odds in Eternity format
+- `GET /eternity/fanduel` - FanDuel odds in Eternity format
+- `GET /eternity/bet365` - Bet365 odds in Eternity format
+
+### Legacy Endpoints (Unified Format)
+- `GET /api/matches` - All unified odds data (pregame + live)
+- `GET /api/matches/pregame` - Pregame matches only
+- `GET /api/matches/live` - Live matches only
+- `GET /api/matches/sport/{sport}` - Odds for specific sport
+- `GET /api/matches/bookmaker/{bookmaker}` - Odds from specific bookmaker
+- `GET /api/status` - File system status
+- `GET /api/monitoring` - Monitoring system status
+
+### OpticOdds Format Structure
+
+All `/1xbet`, `/fanduel`, and `/bet365` endpoints return data in OpticOdds format:
+
+```json
+{
+  "data": [
+    {
+      "id": "match_id",
+      "game_id": "sport-match_id",
+      "start_date": "2025-12-06T10:00:00Z",
+      "home_competitors": [{"id": null, "name": "Team A", "abbreviation": "TA"}],
+      "away_competitors": [{"id": null, "name": "Team B", "abbreviation": "TB"}],
+      "home_team_display": "Team A",
+      "away_team_display": "Team B",
+      "status": "unplayed",
+      "is_live": false,
+      "sport": {"id": "basketball", "name": "Basketball"},
+      "league": {"id": "nba", "name": "NBA"},
+      "tournament": null,
+      "odds": [
+        {
+          "id": "match_id:bet365:moneyline:home",
+          "sportsbook": "Bet365",
+          "market": "Moneyline",
+          "name": "Team A",
+          "is_main": true,
+          "selection": "Team A",
+          "normalized_selection": "team_a",
+          "market_id": "moneyline",
+          "selection_line": null,
+          "player_id": null,
+          "team_id": null,
+          "price": -110,
+          "timestamp": 1733472000.0,
+          "grouping_key": "default",
+          "points": null,
+          "betlink": "",
+          "limits": null
+        }
+      ]
+    }
+  ]
+}
 ```
-
-### Odds Data Endpoints
-- `GET /odds` - Get all unified odds data (pregame + live)
-- `GET /odds/pregame` - Get pregame matches only
-- `GET /odds/live` - Get live matches only
-- `GET /odds/sport/{sport}` - Get odds for specific sport (basketball, soccer, football, etc.)
-- `GET /odds/bookmaker/{bookmaker}` - Get odds from specific bookmaker (bet365, fanduel, 1xbet, betlink)
-
-### System Monitoring Endpoints
-- `GET /status` - System health status and uptime
-- `GET /alerts` - Recent system alerts and notifications
-- `GET /memory` - Memory usage statistics for all processes
-- `GET /processes` - Running process information and PIDs
-- `GET /health` - Quick health check endpoint
-
-### Data Query Parameters
-- `?limit=50` - Limit number of results
-- `?sport=basketball` - Filter by sport
-- `?bookmaker=bet365` - Filter by bookmaker
-- `?live_only=true` - Show live matches only
-- `?min_odds=1.5` - Filter by minimum odds value
 
 ### Example API Usage
+
 ```bash
-# Get all live basketball odds
-curl "http://localhost:5000/odds/live?sport=basketball"
+# Get all 1xBet pregame odds in OpticOdds format
+curl "http://142.44.160.36:8000/1xbet/pregame"
 
-# Get Bet365 odds for soccer
-curl "http://localhost:5000/odds/bookmaker/bet365?sport=soccer"
+# Get FanDuel live odds
+curl "http://142.44.160.36:8000/fanduel/live"
 
-# System health check
-curl "http://localhost:5000/health"
+# Get Bet365 soccer odds
+curl "http://142.44.160.36:8000/bet365/soccer"
+
+# Get all Bet365 odds
+curl "http://142.44.160.36:8000/bet365"
+
+# Legacy unified format
+curl "http://142.44.160.36:8000/api/matches/live"
 ```
+
+### Response Format
+
+- **OpticOdds endpoints**: Return `{"data": [...]}` with game objects containing odds arrays
+- **Market types**: Moneyline, Point Spread, Total Points
+- **Price format**: American odds (e.g., -110, +150)
+- **Timestamps**: ISO 8601 format with Unix timestamps
 
 ## Monitoring & Alerting
 
@@ -500,6 +568,23 @@ For issues and questions:
 - Verify configuration settings
 
 ## Changelog
+
+### v2.0.0 (December 2025)
+- **OpticOdds Format API**: Added industry-standard OpticOdds format endpoints
+  - `/1xbet`, `/1xbet/pregame`, `/1xbet/live`
+  - `/fanduel`, `/fanduel/pregame`, `/fanduel/live`
+  - `/bet365`, `/bet365/pregame`, `/bet365/live`, `/bet365/soccer`
+  - `/eternity/*` endpoints for alternative format
+- **Format Converters**: New `odds_format_converters.py` module
+  - OpticOdds format conversion
+  - Eternity format conversion
+  - Support for nested and flat odds structures
+- **UI Improvements**: Better handling of matches with null odds
+  - Shows informative message instead of blank modal
+  - Sport filter dynamically populated from data
+  - Real-time WebSocket updates
+- **1xBet Domain Fix**: Changed from dead 1xlite-707953.top to working 1xbet.com
+- **Enhanced Documentation**: Comprehensive API endpoint documentation with examples
 
 ### v1.1.0
 - Added BetLink bookmaker support
