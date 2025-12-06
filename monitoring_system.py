@@ -52,7 +52,7 @@ class ConfigManager:
                 'sender_email': os.getenv('SENDER_EMAIL', ''),
                 'sender_password': os.getenv('SENDER_PASSWORD', ''),
                 'admin_email': os.getenv('ADMIN_EMAIL', ''),
-                'alert_cooldown_minutes': int(os.getenv('ALERT_COOLDOWN', '30')),
+                'alert_cooldown_minutes': int(os.getenv('ALERT_COOLDOWN', '720')),
                 'enabled': os.getenv('EMAIL_ENABLED', 'true').lower() == 'true'
             },
             'monitoring': {

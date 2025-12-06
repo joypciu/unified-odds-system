@@ -1,11 +1,16 @@
 {
+  "enabled_scrapers": {
+    "1xbet": true,
+    "fanduel": true,
+    "bet365": false
+  },
   "email": {
     "smtp_server": "smtp.gmail.com",
     "smtp_port": 587,
     "sender_email": "ujoywork@gmail.com",
     "sender_password": "lywz budt zbyr dsny",
     "admin_email": "usmanjoycse@gmail.com",
-    "alert_cooldown_minutes": 30,
+    "alert_cooldown_minutes": 720,
     "enabled": true
   },
   "monitoring": {

@@ -226,7 +226,7 @@ class AlertSystem:
         # Alert tracking
         self.alert_history = []
         self.last_alert_time = {}
-        self.alert_cooldown = 300  # 5 minutes between similar alerts
+        self.alert_cooldown = 43200  # 12 hours between similar alerts
 
         # Memory monitoring
         self.memory_stats = {}
