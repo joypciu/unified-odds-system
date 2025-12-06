@@ -13,6 +13,7 @@ import argparse
 import psutil
 import atexit
 from pathlib import Path
+import json
 
 # Track processes
 processes = []
@@ -106,9 +107,20 @@ def main():
                        help='Disable automated monitoring system')
     args = parser.parse_args()
     
-    # Default behavior: run both pregame and live
-    if not args.live_only and not args.pregame_only:
-        args.include_live = True
+    # Default behavior: run pregame only (as configured in unified system)
+    has_pregame = True
+    has_live = False
+    
+    # Override with command line args if provided
+    if args.live_only:
+        has_pregame = False
+        has_live = True
+    elif args.pregame_only:
+        has_pregame = True
+        has_live = False
+    elif args.include_live:
+        has_pregame = True
+        has_live = True
     
     base_dir = Path(__file__).parent
     
@@ -149,16 +161,17 @@ def main():
     
     # Start the unified odds collection system
     print("🔄 Starting Unified Odds Collection System...")
-    if args.live_only:
+    
+    if args.live_only or (has_live and not has_pregame):
         print("   - Mode: LIVE ONLY")
-        print("   - Collecting LIVE data from Bet365, FanDuel (homepage-first), and 1xBet")
-    elif args.pregame_only:
-        print("   - Mode: PREGAME ONLY")
-        print("   - Collecting PREGAME data from Bet365, FanDuel (homepage-first), and 1xBet")
+        print("   - Collecting LIVE data from all sources")
+    elif args.pregame_only or (has_pregame and not has_live):
+        print("   - Mode: PREGAME ONLY (Default)")
+        print("   - Collecting PREGAME data from all sources")
     else:
         print("   - Mode: PREGAME + LIVE (ALL MODULES)")
-        print("   - Collecting PREGAME data from Bet365, FanDuel (homepage-first), and 1xBet")
-        print("   - Collecting LIVE data from all sources")
+        print("   - Collecting both PREGAME and LIVE data")
+        print("   - Collecting LIVE data from enabled sources")
     print("   - Generating unified_odds.json with real-time updates")
     print()
 
@@ -174,9 +187,9 @@ def main():
         if args.mode == 'once':
             cmd_args.extend(["--duration", str(args.duration)])
 
-        if args.live_only:
+        if args.live_only or (has_live and not has_pregame):
             cmd_args.append("--live-only")
-        elif args.pregame_only:
+        elif args.pregame_only or (has_pregame and not has_live):
             # Don't add any flag - default is pregame only in run_unified_system.py
             pass
         else:
@@ -242,10 +255,10 @@ def main():
     print("🔍 What's Running:")
     if not args.no_monitoring:
         print("   1. Monitoring System - Health checks & email alerts")
-        if args.live_only:
-            print("   2. Unified Odds Collector - LIVE ONLY fetching from all sources")
-        elif args.pregame_only:
-            print("   2. Unified Odds Collector - PREGAME ONLY fetching from all sources")
+        if args.live_only or (has_live and not has_pregame):
+            print("   2. Unified Odds Collector - LIVE ONLY fetching from enabled sources")
+        elif args.pregame_only or (has_pregame and not has_live):
+            print("   2. Unified Odds Collector - PREGAME ONLY fetching from enabled sources")
         else:
             print("   2. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
         print("   3. Web Viewer - Real-time dashboard with monitoring")

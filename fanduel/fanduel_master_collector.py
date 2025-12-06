@@ -92,11 +92,29 @@ class FanDuelMasterCollector:
         self.logger.info("="*80)
 
     def launch_chrome(self):
-        """Launch Chrome"""
-        chrome_exe = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
-
-        if not os.path.exists(chrome_exe):
-            raise Exception(f"Chrome not found at {chrome_exe}")
+        """Launch Chrome - works on both Windows and Linux"""
+        # Detect Chrome path based on OS
+        if os.name == 'nt':  # Windows
+            chrome_paths = [
+                r'C:\Program Files\Google\Chrome\Application\chrome.exe',
+                r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
+            ]
+        else:  # Linux/Ubuntu
+            chrome_paths = [
+                '/usr/bin/google-chrome',
+                '/usr/bin/google-chrome-stable',
+                '/usr/bin/chromium-browser',
+                '/usr/bin/chromium',
+            ]
+        
+        chrome_exe = None
+        for path in chrome_paths:
+            if os.path.exists(path):
+                chrome_exe = path
+                break
+        
+        if not chrome_exe:
+            raise Exception(f"Chrome not found in any of the expected locations: {chrome_paths}")
 
         profile_dir = os.path.join(tempfile.gettempdir(), f"fd_master_{self.session_id}")
         os.makedirs(profile_dir, exist_ok=True)
@@ -107,11 +125,19 @@ class FanDuelMasterCollector:
             f'--user-data-dir={profile_dir}',
             '--no-first-run',
             '--disable-blink-features=AutomationControlled',
-            '--start-maximized',
             '--disable-dev-shm-usage',
-            '--disable-gpu'
-            # Removed --no-sandbox which can cause connection issues
+            '--disable-gpu',
+            '--no-sandbox'  # Required for VPS/Docker environments
         ]
+        
+        # Add display-specific options for Linux
+        if os.name != 'nt':
+            cmd.extend([
+                '--disable-setuid-sandbox',
+                '--disable-software-rasterizer'
+            ])
+        else:
+            cmd.append('--start-maximized')
 
         self.logger.info("Launching Chrome...")
         self.logger.info(f"Debug port: {self.debug_port}")
