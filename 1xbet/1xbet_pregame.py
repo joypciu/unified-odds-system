@@ -394,7 +394,7 @@ class JsonDataManager:
 class XBetCollector:
     """Advanced 1xbet data collector"""
     
-    def __init__(self, base_url: str = "https://1xlite-707953.top"):
+    def __init__(self, base_url: str = "https://1xbet.com"):
         self.base_url = base_url
         self.db = JsonDataManager()
         self.session = None

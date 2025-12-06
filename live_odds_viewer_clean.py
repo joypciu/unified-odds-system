@@ -15,6 +15,9 @@ from typing import Dict, List, Optional
 from contextlib import asynccontextmanager
 import uvicorn
 
+# Import format converters
+from odds_format_converters import OpticOddsConverter, EternityFormatConverter, filter_by_bookmaker
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown events"""
@@ -594,6 +597,186 @@ async def get_monitoring_status():
             'summary': {'healthy': 0, 'warnings': 0, 'errors': 0, 'total': 0},
             'modules': {}
         }
+
+
+# ==================== OpticOdds Format API Endpoints ====================
+
+@app.get("/1xbet")
+async def get_1xbet_optic_odds():
+    """Get all 1xBet odds in OpticOdds format"""
+    data = load_unified_data()
+    filtered_data = filter_by_bookmaker(data, '1xbet')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/1xbet/pregame")
+async def get_1xbet_pregame_optic_odds():
+    """Get 1xBet pregame odds in OpticOdds format"""
+    data = load_unified_data()
+    
+    # Filter for only pregame matches
+    pregame_only = {
+        'metadata': data.get('metadata', {}),
+        'pregame_matches': data.get('pregame_matches', []),
+        'live_matches': []
+    }
+    
+    filtered_data = filter_by_bookmaker(pregame_only, '1xbet')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/1xbet/live")
+async def get_1xbet_live_optic_odds():
+    """Get 1xBet live odds in OpticOdds format"""
+    data = load_unified_data()
+    
+    # Filter for only live matches
+    live_only = {
+        'metadata': data.get('metadata', {}),
+        'pregame_matches': [],
+        'live_matches': data.get('live_matches', [])
+    }
+    
+    filtered_data = filter_by_bookmaker(live_only, '1xbet')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/fanduel")
+async def get_fanduel_optic_odds():
+    """Get all FanDuel odds in OpticOdds format"""
+    data = load_unified_data()
+    filtered_data = filter_by_bookmaker(data, 'fanduel')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/fanduel/pregame")
+async def get_fanduel_pregame_optic_odds():
+    """Get FanDuel pregame odds in OpticOdds format"""
+    data = load_unified_data()
+    
+    # Filter for only pregame matches
+    pregame_only = {
+        'metadata': data.get('metadata', {}),
+        'pregame_matches': data.get('pregame_matches', []),
+        'live_matches': []
+    }
+    
+    filtered_data = filter_by_bookmaker(pregame_only, 'fanduel')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/fanduel/live")
+async def get_fanduel_live_optic_odds():
+    """Get FanDuel live odds in OpticOdds format"""
+    data = load_unified_data()
+    
+    # Filter for only live matches
+    live_only = {
+        'metadata': data.get('metadata', {}),
+        'pregame_matches': [],
+        'live_matches': data.get('live_matches', [])
+    }
+    
+    filtered_data = filter_by_bookmaker(live_only, 'fanduel')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/bet365")
+async def get_bet365_optic_odds():
+    """Get all Bet365 odds in OpticOdds format"""
+    data = load_unified_data()
+    filtered_data = filter_by_bookmaker(data, 'bet365')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/bet365/pregame")
+async def get_bet365_pregame_optic_odds():
+    """Get Bet365 pregame odds in OpticOdds format"""
+    data = load_unified_data()
+    
+    # Filter for only pregame matches
+    pregame_only = {
+        'metadata': data.get('metadata', {}),
+        'pregame_matches': data.get('pregame_matches', []),
+        'live_matches': []
+    }
+    
+    filtered_data = filter_by_bookmaker(pregame_only, 'bet365')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/bet365/live")
+async def get_bet365_live_optic_odds():
+    """Get Bet365 live odds in OpticOdds format"""
+    data = load_unified_data()
+    
+    # Filter for only live matches
+    live_only = {
+        'metadata': data.get('metadata', {}),
+        'pregame_matches': [],
+        'live_matches': data.get('live_matches', [])
+    }
+    
+    filtered_data = filter_by_bookmaker(live_only, 'bet365')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+@app.get("/bet365/soccer")
+async def get_bet365_soccer_optic_odds():
+    """Get Bet365 soccer odds in OpticOdds format"""
+    data = load_unified_data()
+    
+    # Filter for only soccer matches
+    all_matches = data.get('pregame_matches', []) + data.get('live_matches', [])
+    soccer_matches = [m for m in all_matches if m.get('sport', '').lower() in ['soccer', 'football']]
+    
+    soccer_data = {
+        'metadata': data.get('metadata', {}),
+        'pregame_matches': [m for m in soccer_matches if m in data.get('pregame_matches', [])],
+        'live_matches': [m for m in soccer_matches if m in data.get('live_matches', [])]
+    }
+    
+    filtered_data = filter_by_bookmaker(soccer_data, 'bet365')
+    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
+    return optic_format
+
+
+# ==================== Eternity Format API Endpoints ====================
+
+@app.get("/eternity/1xbet")
+async def get_1xbet_eternity_format():
+    """Get all 1xBet odds in Eternity format"""
+    data = load_unified_data()
+    filtered_data = filter_by_bookmaker(data, '1xbet')
+    eternity_format = EternityFormatConverter.convert_unified_to_eternity(filtered_data)
+    return eternity_format
+
+
+@app.get("/eternity/fanduel")
+async def get_fanduel_eternity_format():
+    """Get all FanDuel odds in Eternity format"""
+    data = load_unified_data()
+    filtered_data = filter_by_bookmaker(data, 'fanduel')
+    eternity_format = EternityFormatConverter.convert_unified_to_eternity(filtered_data)
+    return eternity_format
+
+
+@app.get("/eternity/bet365")
+async def get_bet365_eternity_format():
+    """Get all Bet365 odds in Eternity format"""
+    data = load_unified_data()
+    filtered_data = filter_by_bookmaker(data, 'bet365')
+    eternity_format = EternityFormatConverter.convert_unified_to_eternity(filtered_data)
+    return eternity_format
 
 
 if __name__ == "__main__":

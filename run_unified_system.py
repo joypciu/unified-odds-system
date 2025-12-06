@@ -3,6 +3,10 @@
 Unified Odds System - Master Runner
 Runs scrapers and automatically merges data into unified database
 Supports real-time monitoring with instant updates
+
+TESTING MODE: Currently configured to run ONLY 1xBet (pregame + live) 
+to verify UI functionality and data collection on VPS.
+Bet365 and FanDuel are temporarily disabled.
 """
 
 import subprocess
@@ -702,17 +706,17 @@ class UnifiedSystemRunner:
             return False
     
     def check_json_files(self):
-        """Check if required JSON files exist"""
+        """Check if required JSON files exist - 1xBet only for testing"""
         files = {
-            'Bet365 Pregame': os.path.join(self.bet365_dir, 'bet365_current_pregame.json'),
-            'FanDuel Pregame': os.path.join(self.fanduel_dir, 'fanduel_pregame.json'),
+            # 'Bet365 Pregame': os.path.join(self.bet365_dir, 'bet365_current_pregame.json'),
+            # 'FanDuel Pregame': os.path.join(self.fanduel_dir, 'fanduel_pregame.json'),
             '1xBet Pregame': os.path.join(self.xbet_dir, '1xbet_pregame.json')
         }
 
         # Add live files if enabled
         if self.include_live:
-            files['Bet365 Live'] = os.path.join(self.bet365_dir, 'bet365_live_current.json')
-            files['FanDuel Live'] = os.path.join(self.fanduel_dir, 'live.json')
+            # files['Bet365 Live'] = os.path.join(self.bet365_dir, 'bet365_live_current.json')
+            # files['FanDuel Live'] = os.path.join(self.fanduel_dir, 'live.json')
             files['1xBet Live'] = os.path.join(self.xbet_dir, '1xbet_live.json')
 
         existing = {}
@@ -1087,28 +1091,29 @@ class UnifiedSystemRunner:
         xbet_pregame_started = True
         
         if not self.live_only:
-            # Bet365 Pregame
-            bet365_pregame_started = self.start_scraper(
-                'bet365_pregame_monitor.py',
-                self.bet365_dir,
-                'Bet365 Pregame',
-                args=['--headless']
-            )
+            # DISABLED: Bet365 Pregame - testing 1xBet only
+            # bet365_pregame_started = self.start_scraper(
+            #     'bet365_pregame_monitor.py',
+            #     self.bet365_dir,
+            #     'Bet365 Pregame',
+            #     args=['--headless']
+            # )
+            self.log(" [SKIP] Bet365 Pregame disabled for testing")
 
             time.sleep(2)
 
-            # FanDuel Pregame with 0 duration = infinite monitoring
-            # Note: FanDuel now opens homepage first, then sport tabs sequentially to avoid blocks
-            fanduel_pregame_started = self.start_scraper(
-                'fanduel_master_collector.py',
-                self.fanduel_dir,
-                'FanDuel Pregame (Homepage-First)',
-                args=['0']
-            )
+            # DISABLED: FanDuel Pregame - testing 1xBet only
+            # fanduel_pregame_started = self.start_scraper(
+            #     'fanduel_master_collector.py',
+            #     self.fanduel_dir,
+            #     'FanDuel Pregame (Homepage-First)',
+            #     args=['0']
+            # )
+            self.log(" [SKIP] FanDuel Pregame disabled for testing")
 
             time.sleep(2)
 
-            # 1xBet Pregame with continuous monitoring
+            # 1xBet Pregame with continuous monitoring - ENABLED
             xbet_pregame_started = self.start_scraper(
                 '1xbet_pregame.py',
                 self.xbet_dir,
@@ -1123,44 +1128,44 @@ class UnifiedSystemRunner:
         if self.include_live or self.live_only:
             time.sleep(2)
 
-            bet365_live_started = self.start_scraper(
-                'bet365_live_concurrent_scraper.py',
-                self.bet365_dir,
-                'Bet365 Live'
-            )
+            # DISABLED: Bet365 Live - testing 1xBet only
+            # bet365_live_started = self.start_scraper(
+            #     'bet365_live_concurrent_scraper.py',
+            #     self.bet365_dir,
+            #     'Bet365 Live'
+            # )
+            self.log(" [SKIP] Bet365 Live disabled for testing")
 
             time.sleep(2)
 
-            fanduel_live_started = self.start_scraper(
-                'fanduel_live_monitor.py',
-                self.fanduel_dir,
-                'FanDuel Live'
-            )
+            # DISABLED: FanDuel Live - testing 1xBet only
+            # fanduel_live_started = self.start_scraper(
+            #     'fanduel_live_monitor.py',
+            #     self.fanduel_dir,
+            #     'FanDuel Live'
+            # )
+            self.log(" [SKIP] FanDuel Live disabled for testing")
 
             time.sleep(2)
 
+            # 1xBet Live - ENABLED
             xbet_live_started = self.start_scraper(
                 '1xbet_live.py',
                 self.xbet_dir,
                 '1xBet Live'
             )
 
-        if not (fanduel_pregame_started and xbet_pregame_started and
-                bet365_live_started and fanduel_live_started and xbet_live_started):
-            self.log("\n Failed to start all scrapers!")
+        # Simplified check - only verify 1xBet started successfully
+        if not (xbet_pregame_started or xbet_live_started):
+            self.log("\n Failed to start 1xBet scrapers!")
             self.stop_all_scrapers()
             return
 
-        # Wait for browser initialization and initial data
-        self.log("\n Waiting for Bet365 browser to initialize (30 seconds)...")
+        # Wait for 1xBet initialization (reduced time for single scraper)
+        self.log("\n Waiting for 1xBet browser to initialize (30 seconds)...")
         time.sleep(30)
 
-        # FanDuel needs more time to open all its sport tabs
-        self.log("\n Waiting for FanDuel to open all sport tabs (45 seconds)...")
-        self.log("   (FanDuel opens multiple tabs for different sports)")
-        time.sleep(45)
-
-        self.log(" Collecting initial data (30 seconds)...")
+        self.log(" Collecting initial 1xBet data (30 seconds)...")
         time.sleep(30)
 
         # Start incremental merging in background
@@ -1259,27 +1264,28 @@ class UnifiedSystemRunner:
         xbet_pregame_started = True
         
         if not self.live_only:
-            # Bet365 Pregame (use monitor for continuous real-time updates)
-            bet365_pregame_started = self.start_scraper(
-                'bet365_pregame_monitor.py',
-                self.bet365_dir,
-                'Bet365 Pregame'
-            )
+            # DISABLED: Bet365 Pregame - testing 1xBet only
+            # bet365_pregame_started = self.start_scraper(
+            #     'bet365_pregame_monitor.py',
+            #     self.bet365_dir,
+            #     'Bet365 Pregame'
+            # )
+            self.log(" [SKIP] Bet365 Pregame disabled for testing")
 
             time.sleep(2)
 
-            # FanDuel Pregame with 0 duration = infinite monitoring
-            # Note: FanDuel now opens homepage first, then sport tabs sequentially to avoid blocks
-            fanduel_pregame_started = self.start_scraper(
-                'fanduel_master_collector.py',
-                self.fanduel_dir,
-                'FanDuel Pregame (Homepage-First)',
-                args=['0']  # 0 = infinite monitoring
-            )
+            # DISABLED: FanDuel Pregame - testing 1xBet only
+            # fanduel_pregame_started = self.start_scraper(
+            #     'fanduel_master_collector.py',
+            #     self.fanduel_dir,
+            #     'FanDuel Pregame (Homepage-First)',
+            #     args=['0']  # 0 = infinite monitoring
+            # )
+            self.log(" [SKIP] FanDuel Pregame disabled for testing")
 
             time.sleep(2)
 
-            # 1xBet Pregame with continuous monitoring
+            # 1xBet Pregame with continuous monitoring - ENABLED
             xbet_pregame_started = self.start_scraper(
                 '1xbet_pregame.py',
                 self.xbet_dir,
@@ -1294,32 +1300,37 @@ class UnifiedSystemRunner:
         xbet_live_started = True
 
         if self.include_live or self.live_only:
-            bet365_live_started = self.start_scraper(
-                'bet365_live_concurrent_scraper.py',
-                self.bet365_dir,
-                'Bet365 Live'
-            )
+            # DISABLED: Bet365 Live - testing 1xBet only
+            # bet365_live_started = self.start_scraper(
+            #     'bet365_live_concurrent_scraper.py',
+            #     self.bet365_dir,
+            #     'Bet365 Live'
+            # )
+            self.log(" [SKIP] Bet365 Live disabled for testing")
 
             time.sleep(2)
 
-            fanduel_live_started = self.start_scraper(
-                'fanduel_live_monitor.py',
-                self.fanduel_dir,
-                'FanDuel Live',
-                args=['0']  # 0 = infinite monitoring
-            )
+            # DISABLED: FanDuel Live - testing 1xBet only
+            # fanduel_live_started = self.start_scraper(
+            #     'fanduel_live_monitor.py',
+            #     self.fanduel_dir,
+            #     'FanDuel Live',
+            #     args=['0']  # 0 = infinite monitoring
+            # )
+            self.log(" [SKIP] FanDuel Live disabled for testing")
 
             time.sleep(2)
 
+            # 1xBet Live - ENABLED
             xbet_live_started = self.start_scraper(
                 '1xbet_live.py',
                 self.xbet_dir,
                 '1xBet Live'
             )
 
-        if not (bet365_pregame_started and fanduel_pregame_started and xbet_pregame_started and
-                bet365_live_started and fanduel_live_started and xbet_live_started):
-            self.log(" Failed to start all scrapers")
+        # Simplified check - only verify 1xBet started successfully
+        if not (xbet_pregame_started or xbet_live_started):
+            self.log(" Failed to start 1xBet scrapers")
             self.stop_all_scrapers()
             return
         

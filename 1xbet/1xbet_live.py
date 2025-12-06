@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class LiveCollector:
     """1xbet live matches collector"""
     
-    def __init__(self, base_url="https://1xlite-707953.top", data_dir: str = "."):
+    def __init__(self, base_url="https://1xbet.com", data_dir: str = "."):
         self.base_url = base_url
         self.data_dir = Path(data_dir)
         # Don't create subdirectory - save in current directory

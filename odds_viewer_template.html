@@ -2617,7 +2617,10 @@
             `;
 
             if (type === 'fanduel') {
+                let hasAnyOdds = false;
+                
                 if (odds.moneyline_home != null) {
+                    hasAnyOdds = true;
                     html += `
                         <div class="odds-type-card">
                             <div class="odds-type-label"><i class="fas fa-dollar-sign"></i> Moneyline</div>
@@ -2635,6 +2638,7 @@
                     `;
                 }
                 if (odds.spread_home_line != null) {
+                    hasAnyOdds = true;
                     html += `
                         <div class="odds-type-card">
                             <div class="odds-type-label"><i class="fas fa-chart-line"></i> Spread</div>
@@ -2652,6 +2656,7 @@
                     `;
                 }
                 if (odds.total_line != null) {
+                    hasAnyOdds = true;
                     html += `
                         <div class="odds-type-card">
                             <div class="odds-type-label"><i class="fas fa-bullseye"></i> Total</div>
@@ -2668,43 +2673,86 @@
                         </div>
                     `;
                 }
+                
+                // If no odds available, show a message
+                if (!hasAnyOdds) {
+                    html += `
+                        <div class="odds-type-card" style="text-align: center; padding: 24px; color: #94a3b8;">
+                            <i class="fas fa-info-circle" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+                            <div style="font-size: 14px;">Odds not yet available for this match</div>
+                            <div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">Match is listed but detailed odds are pending</div>
+                        </div>
+                    `;
+                }
             } else if (type === '1xbet') {
+                let hasAnyOdds = false;
+                
                 if (odds.moneyline_home || odds.moneyline_away) {
+                    hasAnyOdds = true;
                     html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-dollar-sign"></i> Moneyline</div><div class="odds-values-grid">
                         <div class="odds-value-row"><span class="odds-team-label">${match.home_team}</span><span class="odds-value">${odds.moneyline_home || 'N/A'}</span></div>
                         <div class="odds-value-row"><span class="odds-team-label">${match.away_team}</span><span class="odds-value">${odds.moneyline_away || 'N/A'}</span></div>
                     </div></div>`;
                 }
                 if (odds.spread_home || odds.spread_away) {
+                    hasAnyOdds = true;
                     html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-chart-line"></i> Handicap</div><div class="odds-values-grid">
                         <div class="odds-value-row"><span class="odds-team-label">${match.home_team}</span><span class="odds-value">${odds.spread_home || 'N/A'}</span></div>
                         <div class="odds-value-row"><span class="odds-team-label">${match.away_team}</span><span class="odds-value">${odds.spread_away || 'N/A'}</span></div>
                     </div></div>`;
                 }
                 if (odds.total_over || odds.total_under) {
+                    hasAnyOdds = true;
                     html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-bullseye"></i> Total</div><div class="odds-values-grid">
                         <div class="odds-value-row"><span class="odds-team-label">Over</span><span class="odds-value">${odds.total_over || 'N/A'}</span></div>
                         <div class="odds-value-row"><span class="odds-team-label">Under</span><span class="odds-value">${odds.total_under || 'N/A'}</span></div>
                     </div></div>`;
                 }
+                
+                // If no odds available, show a message
+                if (!hasAnyOdds) {
+                    html += `
+                        <div class="odds-type-card" style="text-align: center; padding: 24px; color: #94a3b8;">
+                            <i class="fas fa-info-circle" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+                            <div style="font-size: 14px;">Odds not yet available for this match</div>
+                            <div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">Match is listed but detailed odds are pending</div>
+                        </div>
+                    `;
+                }
             } else {
                 // Bet365
+                let hasAnyOdds = false;
+                
                 if (odds.moneyline?.length >= 2) {
+                    hasAnyOdds = true;
                     html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-dollar-sign"></i> Moneyline</div><div class="odds-values-grid">
                         <div class="odds-value-row"><span class="odds-team-label">${match.home_team}</span><span class="odds-value">${odds.moneyline[0]}</span></div>
                         <div class="odds-value-row"><span class="odds-team-label">${match.away_team}</span><span class="odds-value">${odds.moneyline[1]}</span></div>
                     </div></div>`;
                 }
                 if (odds.spread?.length >= 2) {
+                    hasAnyOdds = true;
                     html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-chart-line"></i> Spread</div><div class="odds-values-grid">
                         <div class="odds-value-row"><span class="odds-team-label">${match.home_team}</span><span class="odds-value">${odds.spread[0]}</span></div>
                         <div class="odds-value-row"><span class="odds-team-label">${match.away_team}</span><span class="odds-value">${odds.spread[1]}</span></div>
                     </div></div>`;
                 }
                 if (odds.total?.length >= 2) {
+                    hasAnyOdds = true;
                     html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-bullseye"></i> Total</div><div class="odds-values-grid">
                         <div class="odds-value-row"><span class="odds-team-label">Over/Under</span><span class="odds-value">${odds.total[0]} / ${odds.total[1]}</span></div>
                     </div></div>`;
+                }
+                
+                // If no odds available, show a message
+                if (!hasAnyOdds) {
+                    html += `
+                        <div class="odds-type-card" style="text-align: center; padding: 24px; color: #94a3b8;">
+                            <i class="fas fa-info-circle" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+                            <div style="font-size: 14px;">Odds not yet available for this match</div>
+                            <div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">Match is listed but detailed odds are pending</div>
+                        </div>
+                    `;
                 }
             }
 
