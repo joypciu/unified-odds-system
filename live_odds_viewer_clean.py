@@ -19,6 +19,7 @@ import uvicorn
 # Import format converters
 from odds_format_converters import OpticOddsConverter, EternityFormatConverter, filter_by_bookmaker
 from history_manager import HistoryManager
+from secure_config import SecureConfig
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,6 +37,26 @@ BASE_DIR = Path(__file__).parent
 
 # Initialize history manager
 history_manager = HistoryManager(str(BASE_DIR))
+
+# Load enabled scrapers from config
+def load_enabled_scrapers() -> Dict[str, bool]:
+    """Load enabled scrapers from encrypted config.json"""
+    try:
+        config_file = BASE_DIR / "config.json"
+        if config_file.exists():
+            secure_config = SecureConfig(str(config_file))
+            config = secure_config.load_config()
+            return config.get('enabled_scrapers', {
+                '1xbet': True,
+                'fanduel': True,
+                'bet365': False
+            })
+    except Exception as e:
+        print(f"⚠️  Error loading config, using defaults: {e}")
+    return {'1xbet': True, 'fanduel': True, 'bet365': False}
+
+ENABLED_SCRAPERS = load_enabled_scrapers()
+print(f"📋 Enabled scrapers: {ENABLED_SCRAPERS}")
 
 # Email configuration (can be set via environment variables)
 EMAIL_CONFIG = {
@@ -137,46 +158,51 @@ def load_individual_json(filepath: Path) -> Dict:
 
 
 def merge_individual_sources() -> Dict:
-    """Merge data from individual source JSON files when unified doesn't exist"""
-    print("📦 Loading data from individual source files...")
+    """Merge data from individual source JSON files (only from enabled scrapers)"""
+    print("📦 Loading data from enabled scrapers...")
+    print(f"   Enabled: {', '.join([k for k, v in ENABLED_SCRAPERS.items() if v])}")
     
     pregame_matches = []
     live_matches = []
     
-    # Load Bet365 Pregame - has nested structure: sports_data.{sport}.games[]
-    bet365_pregame = load_individual_json(FILES['bet365_pregame'])
-    if bet365_pregame and 'sports_data' in bet365_pregame:
-        for sport, sport_data in bet365_pregame['sports_data'].items():
-            if 'games' in sport_data:
-                for match in sport_data['games']:
-                    odds_data = match.get('odds', {})
-                    moneyline = odds_data.get('moneyline', [])
-                    
-                    pregame_matches.append({
-                        'match_id': f"bet365_pregame_{match.get('game_id', len(pregame_matches))}",
-                        'sport': match.get('sport', sport),
-                        'league': match.get('sport', sport),
-                        'home_team': match.get('team1', 'Unknown'),
-                        'away_team': match.get('team2', 'Unknown'),
-                        'match_time': f"{match.get('date', 'TBD')} {match.get('time', '')}",
-                        'bet365': {
-                            'available': True,
-                            'home_odds': moneyline[0] if len(moneyline) > 0 else None,
-                            'draw_odds': None,
-                            'away_odds': moneyline[1] if len(moneyline) > 1 else None
-                        }
-                    })
+    # Load Bet365 Pregame - only if enabled
+    if ENABLED_SCRAPERS.get('bet365', False):
+        bet365_pregame = load_individual_json(FILES['bet365_pregame'])
+        if bet365_pregame and 'sports_data' in bet365_pregame:
+            for sport, sport_data in bet365_pregame['sports_data'].items():
+                if 'games' in sport_data:
+                    for match in sport_data['games']:
+                        odds_data = match.get('odds', {})
+                        moneyline = odds_data.get('moneyline', [])
+                        
+                        pregame_matches.append({
+                            'match_id': f"bet365_pregame_{match.get('game_id', len(pregame_matches))}",
+                            'sport': match.get('sport', sport),
+                            'league': match.get('sport', sport),
+                            'home_team': match.get('team1', 'Unknown'),
+                            'away_team': match.get('team2', 'Unknown'),
+                            'match_time': f"{match.get('date', 'TBD')} {match.get('time', '')}",
+                            'bet365': {
+                                'available': True,
+                                'home_odds': moneyline[0] if len(moneyline) > 0 else None,
+                                'draw_odds': None,
+                                'away_odds': moneyline[1] if len(moneyline) > 1 else None
+                            }
+                        })
+    else:
+        print("   ⏭️  Skipping bet365 (disabled)")
     
-    # Load FanDuel Pregame - has structure: data.matches[]
-    fanduel_pregame = load_individual_json(FILES['fanduel_pregame'])
-    if fanduel_pregame and 'data' in fanduel_pregame and 'matches' in fanduel_pregame['data']:
-        for match in fanduel_pregame['data']['matches']:
-            odds = match.get('odds', {})
-            pregame_matches.append({
-                'match_id': f"fanduel_pregame_{match.get('match_id', len(pregame_matches))}",
-                'sport': match.get('sport', 'Unknown'),
-                'league': match.get('league', 'Unknown'),
-                'home_team': match.get('home_team', 'Unknown'),
+    # Load FanDuel Pregame - only if enabled
+    if ENABLED_SCRAPERS.get('fanduel', False):
+        fanduel_pregame = load_individual_json(FILES['fanduel_pregame'])
+        if fanduel_pregame and 'data' in fanduel_pregame and 'matches' in fanduel_pregame['data']:
+            for match in fanduel_pregame['data']['matches']:
+                odds = match.get('odds', {})
+                pregame_matches.append({
+                    'match_id': f"fanduel_pregame_{match.get('match_id', len(pregame_matches))}",
+                    'sport': match.get('sport', 'Unknown'),
+                    'league': match.get('league', 'Unknown'),
+                    'home_team': match.get('home_team', 'Unknown'),
                 'away_team': match.get('away_team', 'Unknown'),
                 'match_time': match.get('scheduled_time', 'TBD'),
                 'fanduel': {
@@ -186,42 +212,48 @@ def merge_individual_sources() -> Dict:
                     'away_odds': odds.get('moneyline_away')
                 }
             })
+    else:
+        print("   ⏭️  Skipping fanduel (disabled)")
     
-    # Load 1xBet Pregame - has structure: matches[]
-    xbet_pregame = load_individual_json(FILES['1xbet_pregame'])
-    if xbet_pregame and 'matches' in xbet_pregame:
-        for match in xbet_pregame['matches']:
-            odds = match.get('odds', {})
-            pregame_matches.append({
-                'match_id': f"1xbet_pregame_{match.get('match_id', len(pregame_matches))}",
-                'sport': match.get('sport', 'Unknown'),
-                'league': match.get('league', 'Unknown'),
-                'home_team': match.get('home_team', 'Unknown'),
-                'away_team': match.get('away_team', 'Unknown'),
-                'match_time': match.get('start_time', 'TBD'),
-                '1xbet': {
-                    'available': True,
-                    'home_odds': odds.get('home'),
-                    'draw_odds': odds.get('draw'),
-                    'away_odds': odds.get('away')
-                }
-            })
+    # Load 1xBet Pregame - only if enabled
+    if ENABLED_SCRAPERS.get('1xbet', False):
+        xbet_pregame = load_individual_json(FILES['1xbet_pregame'])
+        if xbet_pregame and 'matches' in xbet_pregame:
+            for match in xbet_pregame['matches']:
+                odds = match.get('odds', {})
+                pregame_matches.append({
+                    'match_id': f"1xbet_pregame_{match.get('match_id', len(pregame_matches))}",
+                    'sport': match.get('sport', 'Unknown'),
+                    'league': match.get('league', 'Unknown'),
+                    'home_team': match.get('home_team', 'Unknown'),
+                    'away_team': match.get('away_team', 'Unknown'),
+                    'match_time': match.get('start_time', 'TBD'),
+                    '1xbet': {
+                        'available': True,
+                        'home_odds': odds.get('home'),
+                        'draw_odds': odds.get('draw'),
+                        'away_odds': odds.get('away')
+                    }
+                })
+    else:
+        print("   ⏭️  Skipping 1xbet (disabled)")
     
-    # Load Bet365 Live - has structure: matches[] array (from bet365_live_concurrent_scraper.py)
-    bet365_live = load_individual_json(FILES['bet365_live'])
-    if bet365_live and 'matches' in bet365_live:
-        for match in bet365_live['matches']:
-            # bet365 live provides home_team/away_team directly
-            home_team = match.get('home_team', '') or match.get('teams', {}).get('home', '')
-            away_team = match.get('away_team', '') or match.get('teams', {}).get('away', '')
-            
-            odds_data = match.get('odds', {})
-            
-            live_matches.append({
-                'match_id': f"bet365_live_{match.get('match_id', len(live_matches))}",
-                'sport': match.get('sport', match.get('sport_name', 'Unknown')),
-                'league': match.get('sport', match.get('sport_name', 'Unknown')),
-                'home_team': home_team,
+    # Load Bet365 Live - only if enabled
+    if ENABLED_SCRAPERS.get('bet365', False):
+        bet365_live = load_individual_json(FILES['bet365_live'])
+        if bet365_live and 'matches' in bet365_live:
+            for match in bet365_live['matches']:
+                # bet365 live provides home_team/away_team directly
+                home_team = match.get('home_team', '') or match.get('teams', {}).get('home', '')
+                away_team = match.get('away_team', '') or match.get('teams', {}).get('away', '')
+                
+                odds_data = match.get('odds', {})
+                
+                live_matches.append({
+                    'match_id': f"bet365_live_{match.get('match_id', len(live_matches))}",
+                    'sport': match.get('sport', match.get('sport_name', 'Unknown')),
+                    'league': match.get('sport', match.get('sport_name', 'Unknown')),
+                    'home_team': home_team,
                 'away_team': away_team,
                 'match_time': 'LIVE',
                 'bet365': {
@@ -231,48 +263,57 @@ def merge_individual_sources() -> Dict:
                     'away_odds': odds_data.get('away') or odds_data.get('moneyline', [None, None])[1]
                 }
             })
+    else:
+        print("   ⏭️  Skipping bet365 live (disabled)")
     
-    # Load FanDuel Live - has structure: data.matches[]
-    fanduel_live = load_individual_json(FILES['fanduel_live'])
-    if fanduel_live and 'data' in fanduel_live and 'matches' in fanduel_live['data']:
-        for match in fanduel_live['data']['matches']:
-            odds = match.get('odds', {})
-            live_matches.append({
-                'match_id': f"fanduel_live_{match.get('match_id', len(live_matches))}",
-                'sport': match.get('sport', 'Unknown'),
-                'league': match.get('league', 'Unknown'),
-                'home_team': match.get('home_team', 'Unknown'),
-                'away_team': match.get('away_team', 'Unknown'),
-                'match_time': 'LIVE',
-                'fanduel': {
-                    'available': True,
-                    'home_odds': odds.get('moneyline_home'),
-                    'draw_odds': odds.get('moneyline_draw'),
-                    'away_odds': odds.get('moneyline_away')
-                }
-            })
+    # Load FanDuel Live - only if enabled
+    if ENABLED_SCRAPERS.get('fanduel', False):
+        fanduel_live = load_individual_json(FILES['fanduel_live'])
+        if fanduel_live and 'data' in fanduel_live and 'matches' in fanduel_live['data']:
+            for match in fanduel_live['data']['matches']:
+                odds = match.get('odds', {})
+                live_matches.append({
+                    'match_id': f"fanduel_live_{match.get('match_id', len(live_matches))}",
+                    'sport': match.get('sport', 'Unknown'),
+                    'league': match.get('league', 'Unknown'),
+                    'home_team': match.get('home_team', 'Unknown'),
+                    'away_team': match.get('away_team', 'Unknown'),
+                    'match_time': 'LIVE',
+                    'fanduel': {
+                        'available': True,
+                        'home_odds': odds.get('moneyline_home'),
+                        'draw_odds': odds.get('moneyline_draw'),
+                        'away_odds': odds.get('moneyline_away')
+                    }
+                })
+    else:
+        print("   ⏭️  Skipping fanduel live (disabled)")
     
-    # Load 1xBet Live - has structure: matches[]
-    xbet_live = load_individual_json(FILES['1xbet_live'])
-    if xbet_live and 'matches' in xbet_live:
-        for match in xbet_live['matches']:
-            odds = match.get('odds', {})
-            live_matches.append({
-                'match_id': f"1xbet_live_{match.get('match_id', len(live_matches))}",
-                'sport': match.get('sport', 'Unknown'),
-                'league': match.get('league', 'Unknown'),
-                'home_team': match.get('home_team', 'Unknown'),
-                'away_team': match.get('away_team', 'Unknown'),
-                'match_time': 'LIVE',
-                '1xbet': {
-                    'available': True,
-                    'home_odds': odds.get('home'),
-                    'draw_odds': odds.get('draw'),
-                    'away_odds': odds.get('away')
-                }
-            })
+    # Load 1xBet Live - only if enabled
+    if ENABLED_SCRAPERS.get('1xbet', False):
+        xbet_live = load_individual_json(FILES['1xbet_live'])
+        if xbet_live and 'matches' in xbet_live:
+            for match in xbet_live['matches']:
+                odds = match.get('odds', {})
+                live_matches.append({
+                    'match_id': f"1xbet_live_{match.get('match_id', len(live_matches))}",
+                    'sport': match.get('sport', 'Unknown'),
+                    'league': match.get('league', 'Unknown'),
+                    'home_team': match.get('home_team', 'Unknown'),
+                    'away_team': match.get('away_team', 'Unknown'),
+                    'match_time': 'LIVE',
+                    '1xbet': {
+                        'available': True,
+                        'home_odds': odds.get('home'),
+                        'draw_odds': odds.get('draw'),
+                        'away_odds': odds.get('away')
+                    }
+                })
+    else:
+        print("   ⏭️  Skipping 1xbet live (disabled)")
     
-    print(f"✅ Loaded {len(pregame_matches)} pregame matches and {len(live_matches)} live matches from individual sources")
+    enabled_list = ', '.join([k for k, v in ENABLED_SCRAPERS.items() if v])
+    print(f"✅ Loaded {len(pregame_matches)} pregame and {len(live_matches)} live matches from enabled scrapers: {enabled_list}")
     
     return {
         'pregame_matches': pregame_matches,
