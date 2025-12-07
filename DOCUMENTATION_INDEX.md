@@ -65,7 +65,7 @@ Welcome! This index helps you navigate all the documentation for GitHub-based VP
 
 | File | Description | Purpose |
 |------|-------------|---------|
-| **[.github/workflows/deploy.yml](./.github/workflows/deploy.yml)** | GitHub Actions workflow | Auto-deployment on push |
+| **[.github/workflows/deploy.yml](./.github/workflows/deploy.yml)** | 🚀 Auto-deploy workflow | Deploys & restarts VPS on push |
 | **[.gitignore](./.gitignore)** | Git ignore rules | Excludes sensitive data |
 
 ---

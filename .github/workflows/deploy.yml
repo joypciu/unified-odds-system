@@ -42,12 +42,17 @@ jobs:
           echo "🔄 Restarting unified-odds service..."
           sudo systemctl restart unified-odds
           
-          # Wait a moment for service to start
+          # Restart UI service if it exists
+          echo "🔄 Restarting unified-odds-ui service..."
+          sudo systemctl restart unified-odds-ui 2>/dev/null || echo "⚠️  unified-odds-ui service not found (skipping)"
+          
+          # Wait a moment for services to start
           sleep 3
           
           # Check service status
           echo "✅ Checking service status..."
           sudo systemctl status unified-odds --no-pager
+          sudo systemctl status unified-odds-ui --no-pager 2>/dev/null || true
           
           echo "🎉 Deployment complete!"
           
@@ -61,16 +66,27 @@ jobs:
         script: |
           echo "🔍 Verifying deployment..."
           
-          # Check if service is running
+          # Check if main service is running
           if sudo systemctl is-active --quiet unified-odds; then
             echo "✅ Unified odds service is running"
-            
-            # Show last 10 log lines
-            echo "📋 Recent logs:"
-            sudo journalctl -u unified-odds -n 10 --no-pager
           else
             echo "❌ Unified odds service is not running!"
-            echo "📋 Error logs:"
+          fi
+          
+          # Check if UI service is running
+          if sudo systemctl is-active --quiet unified-odds-ui; then
+            echo "✅ Unified odds UI service is running"
+          else
+            echo "⚠️  Unified odds UI service is not running"
+          fi
+          
+          # Show last 10 log lines from main service
+          echo "📋 Recent logs from unified-odds:"
+          sudo journalctl -u unified-odds -n 10 --no-pager
+          
+          # Exit with error if main service is not running
+          if ! sudo systemctl is-active --quiet unified-odds; then
+            echo "❌ Deployment failed - main service not running"
             sudo journalctl -u unified-odds -n 20 --no-pager
             exit 1
           fi
