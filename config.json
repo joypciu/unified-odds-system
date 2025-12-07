@@ -10,13 +10,13 @@
     "sender_email": "ujoywork@gmail.com",
     "sender_password": "lywz budt zbyr dsny",
     "admin_email": "usmanjoycse@gmail.com",
-    "alert_cooldown_minutes": 720,
+    "alert_cooldown_minutes": 1440,
     "enabled": true
   },
   "monitoring": {
-    "check_interval_seconds": 300,
-    "data_stale_threshold_minutes": 60,
-    "failure_threshold": 1,
+    "check_interval_seconds": 1200,
+    "data_stale_threshold_minutes": 120,
+    "failure_threshold": 2,
     "modules": [
       "bet365_pregame",
       "bet365_live",

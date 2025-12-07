@@ -152,6 +152,7 @@ monitoring_status.json
 unified_odds.json.bak
 unified_odds.json.tmp
 unified_odds.json.lock
+history.json
 
 # Cache backups
 cache_backups/
@@ -162,6 +163,23 @@ logs/
 fanduel/logs/
 bet365/logs/
 1xbet/logs/
+
+# Test files
+test_*.py
+*_test.py
+test_*.json
+*_test.json
+
+# Data directories with scraped content
+bet365/nba_data_*/
+bet365/ncaab_data_*/
+bet365/ncaaf_data_*/
+bet365/nfl_data_*/
+bet365/nhl_data_*/
+bet365/soccer_data_*/
+bet365/screenshots_chromium/
+fanduel/cache_data.json
+1xbet/cache_data.json
 
 # Configuration (sensitive data - DO NOT commit actual config)
 # config.json should be configured on VPS after deployment
@@ -200,6 +218,7 @@ fanduel/fanduel_future.json
 1xbet/1xbet_live.json
 1xbet/1xbet_pregame.json
 1xbet/1xbet_statistics.json
+1xbet/1xbet_live_history.json
 
 # Database files
 *.db
@@ -221,3 +240,21 @@ debug/
 *.bak
 *.backup
 *~
+
+# SSH keys and VPS credentials
+vps_ssh_key.txt
+*_ssh_key.txt
+*.pem
+*.key
+
+# Unnecessary documentation (keep only essential docs)
+QUICKSTART.md
+MANUAL_UPLOAD.md
+UPLOAD_STRUCTURE.md
+STEP_BY_STEP.md
+SSH_COMMANDS.md
+NORDVPN_SETUP.md
+UBUNTU_CHROME_SETUP.md
+DEPLOYMENT_STEPS.md
+DEPLOYMENT_COMPLETE_GUIDE.md
+PROJECT_SUMMARY.md

@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, EmailStr
 import json
 import asyncio
+import time
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -17,6 +18,7 @@ import uvicorn
 
 # Import format converters
 from odds_format_converters import OpticOddsConverter, EternityFormatConverter, filter_by_bookmaker
+from history_manager import HistoryManager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +33,9 @@ app = FastAPI(title="Live Odds Viewer", lifespan=lifespan)
 
 # Base directory
 BASE_DIR = Path(__file__).parent
+
+# Initialize history manager
+history_manager = HistoryManager(str(BASE_DIR))
 
 # Email configuration (can be set via environment variables)
 EMAIL_CONFIG = {
@@ -325,8 +330,24 @@ async def monitor_files():
     """Monitor files for changes and broadcast updates"""
     global last_modified
     
+    # Track last history cleanup time
+    last_cleanup_time = 0
+    cleanup_interval = 300  # Clean every 5 minutes
+    
     while True:
         try:
+            # Periodic history cleanup
+            current_time = time.time()
+            if current_time - last_cleanup_time > cleanup_interval:
+                try:
+                    results = history_manager.clean_all()
+                    total_moved = sum(results.values())
+                    if total_moved > 0:
+                        print(f"🧹 Cleaned {total_moved} old/completed matches")
+                except Exception as e:
+                    print(f"⚠ History cleanup error: {e}")
+                last_cleanup_time = current_time
+            
             # Check file statuses
             status = check_file_status()
             
@@ -599,11 +620,11 @@ async def get_monitoring_status():
         }
 
 
-# ==================== OpticOdds Format API Endpoints ====================
+# ==================== OpticOdds Format API Endpoints (Default) ====================
 
 @app.get("/1xbet")
 async def get_1xbet_optic_odds():
-    """Get all 1xBet odds in OpticOdds format"""
+    """Get all 1xBet odds in OpticOdds format (default)"""
     data = load_unified_data()
     filtered_data = filter_by_bookmaker(data, '1xbet')
     optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
@@ -612,7 +633,7 @@ async def get_1xbet_optic_odds():
 
 @app.get("/1xbet/pregame")
 async def get_1xbet_pregame_optic_odds():
-    """Get 1xBet pregame odds in OpticOdds format"""
+    """Get 1xBet pregame odds in OpticOdds format (default)"""
     data = load_unified_data()
     
     # Filter for only pregame matches
@@ -629,7 +650,7 @@ async def get_1xbet_pregame_optic_odds():
 
 @app.get("/1xbet/live")
 async def get_1xbet_live_optic_odds():
-    """Get 1xBet live odds in OpticOdds format"""
+    """Get 1xBet live odds in OpticOdds format (default)"""
     data = load_unified_data()
     
     # Filter for only live matches
@@ -646,7 +667,7 @@ async def get_1xbet_live_optic_odds():
 
 @app.get("/fanduel")
 async def get_fanduel_optic_odds():
-    """Get all FanDuel odds in OpticOdds format"""
+    """Get all FanDuel odds in OpticOdds format (default)"""
     data = load_unified_data()
     filtered_data = filter_by_bookmaker(data, 'fanduel')
     optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
@@ -655,7 +676,7 @@ async def get_fanduel_optic_odds():
 
 @app.get("/fanduel/pregame")
 async def get_fanduel_pregame_optic_odds():
-    """Get FanDuel pregame odds in OpticOdds format"""
+    """Get FanDuel pregame odds in OpticOdds format (default)"""
     data = load_unified_data()
     
     # Filter for only pregame matches
@@ -672,7 +693,7 @@ async def get_fanduel_pregame_optic_odds():
 
 @app.get("/fanduel/live")
 async def get_fanduel_live_optic_odds():
-    """Get FanDuel live odds in OpticOdds format"""
+    """Get FanDuel live odds in OpticOdds format (default)"""
     data = load_unified_data()
     
     # Filter for only live matches
@@ -689,7 +710,7 @@ async def get_fanduel_live_optic_odds():
 
 @app.get("/bet365")
 async def get_bet365_optic_odds():
-    """Get all Bet365 odds in OpticOdds format"""
+    """Get all Bet365 odds in OpticOdds format (default)"""
     data = load_unified_data()
     filtered_data = filter_by_bookmaker(data, 'bet365')
     optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
@@ -698,7 +719,7 @@ async def get_bet365_optic_odds():
 
 @app.get("/bet365/pregame")
 async def get_bet365_pregame_optic_odds():
-    """Get Bet365 pregame odds in OpticOdds format"""
+    """Get Bet365 pregame odds in OpticOdds format (default)"""
     data = load_unified_data()
     
     # Filter for only pregame matches
@@ -715,7 +736,7 @@ async def get_bet365_pregame_optic_odds():
 
 @app.get("/bet365/live")
 async def get_bet365_live_optic_odds():
-    """Get Bet365 live odds in OpticOdds format"""
+    """Get Bet365 live odds in OpticOdds format (default)"""
     data = load_unified_data()
     
     # Filter for only live matches
@@ -730,53 +751,91 @@ async def get_bet365_live_optic_odds():
     return optic_format
 
 
-@app.get("/bet365/soccer")
-async def get_bet365_soccer_optic_odds():
-    """Get Bet365 soccer odds in OpticOdds format"""
-    data = load_unified_data()
-    
-    # Filter for only soccer matches
-    all_matches = data.get('pregame_matches', []) + data.get('live_matches', [])
-    soccer_matches = [m for m in all_matches if m.get('sport', '').lower() in ['soccer', 'football']]
-    
-    soccer_data = {
-        'metadata': data.get('metadata', {}),
-        'pregame_matches': [m for m in soccer_matches if m in data.get('pregame_matches', [])],
-        'live_matches': [m for m in soccer_matches if m in data.get('live_matches', [])]
-    }
-    
-    filtered_data = filter_by_bookmaker(soccer_data, 'bet365')
-    optic_format = OpticOddsConverter.convert_unified_to_optic(filtered_data)
-    return optic_format
-
-
 # ==================== Eternity Format API Endpoints ====================
 
-@app.get("/eternity/1xbet")
+@app.get("/1xbet/eternity")
 async def get_1xbet_eternity_format():
-    """Get all 1xBet odds in Eternity format"""
+    """Get all 1xBet odds in EternityLabs format"""
     data = load_unified_data()
     filtered_data = filter_by_bookmaker(data, '1xbet')
     eternity_format = EternityFormatConverter.convert_unified_to_eternity(filtered_data)
     return eternity_format
 
 
-@app.get("/eternity/fanduel")
+@app.get("/fanduel/eternity")
 async def get_fanduel_eternity_format():
-    """Get all FanDuel odds in Eternity format"""
+    """Get all FanDuel odds in EternityLabs format"""
     data = load_unified_data()
     filtered_data = filter_by_bookmaker(data, 'fanduel')
     eternity_format = EternityFormatConverter.convert_unified_to_eternity(filtered_data)
     return eternity_format
 
 
-@app.get("/eternity/bet365")
+@app.get("/bet365/eternity")
 async def get_bet365_eternity_format():
-    """Get all Bet365 odds in Eternity format"""
+    """Get all Bet365 odds in EternityLabs format"""
     data = load_unified_data()
     filtered_data = filter_by_bookmaker(data, 'bet365')
     eternity_format = EternityFormatConverter.convert_unified_to_eternity(filtered_data)
     return eternity_format
+
+
+# Legacy endpoint for backwards compatibility
+@app.get("/eternity/1xbet")
+async def get_1xbet_eternity_format_legacy():
+    """Legacy: Get all 1xBet odds in Eternity format"""
+    return await get_1xbet_eternity_format()
+
+
+@app.get("/eternity/fanduel")
+async def get_fanduel_eternity_format_legacy():
+    """Legacy: Get all FanDuel odds in Eternity format"""
+    return await get_fanduel_eternity_format()
+
+
+@app.get("/eternity/bet365")
+async def get_bet365_eternity_format_legacy():
+    """Legacy: Get all Bet365 odds in Eternity format"""
+    return await get_bet365_eternity_format()
+
+
+# ==================== History API Endpoint ====================
+
+@app.get("/history")
+async def get_history():
+    """Get all completed/historical matches from all bookmakers"""
+    history = history_manager.load_history()
+    return history
+
+
+@app.get("/history/{bookmaker}")
+async def get_history_by_bookmaker(bookmaker: str):
+    """Get historical matches for a specific bookmaker"""
+    bookmaker = bookmaker.lower()
+    if bookmaker not in ['1xbet', 'fanduel', 'bet365']:
+        raise HTTPException(status_code=404, detail=f"Bookmaker '{bookmaker}' not found")
+    
+    history = history_manager.load_history()
+    return {
+        'metadata': history.get('metadata', {}),
+        'bookmaker': bookmaker,
+        'matches': history['matches'].get(bookmaker, {'pregame': [], 'live': []})
+    }
+
+
+@app.post("/api/clean-history")
+async def clean_history_now():
+    """Manually trigger history cleanup"""
+    try:
+        results = history_manager.clean_all()
+        total_moved = sum(results.values())
+        return {
+            'success': True,
+            'message': f'Moved {total_moved} matches to history',
+            'details': results
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
