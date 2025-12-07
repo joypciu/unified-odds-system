@@ -1,83 +1,217 @@
-# ✅ Auto-Deployment Setup Complete!
+# ✅ Auto-Deployment Setup Complete & Working!
 
-## What Was Done
+## Current Status
 
-1. ✅ **SSH Key Generated** on VPS for GitHub Actions
-2. ✅ **SSH Key Added** to VPS authorized_keys
-3. ✅ **Deploy Workflow Updated** (`.github/workflows/deploy.yml`)
-   - Now pulls from `eternity` remote (Eternity-Labs-BD)
-   - Kills port 8000 processes before UI restart
-   - Properly handles both services
+🎉 **AUTO-DEPLOYMENT IS LIVE AND WORKING!**
 
-## Quick Setup (3 Steps)
+- ✅ GitHub Actions configured and tested
+- ✅ Both services auto-restart on every push
+- ✅ Deployment completes in ~5-10 seconds
+- ✅ No manual intervention needed
 
-### Step 1: Add GitHub Secrets
+## Quick Reference
 
-Go to: **https://github.com/Eternity-Labs-BD/unified-odds-system/settings/secrets/actions**
-
-Click "New repository secret" and add these 4 secrets:
-
-1. **VPS_HOST** = `142.44.160.36`
-2. **VPS_USERNAME** = `ubuntu`  
-3. **VPS_PORT** = `22`
-4. **VPS_SSH_KEY** = Copy from `VPS_GITHUB_DEPLOY_KEY.txt` file (entire key including BEGIN/END lines)
-
-### Step 2: Test Deployment
+### Deploy Changes (3 Steps)
 
 ```bash
-# Make a small change
-echo "# Test auto-deploy" >> README.md
+# 1. Make changes to your code
+vim unified_odds_collector.py
 
-# Commit and push
+# 2. Commit and push
 git add .
-git commit -m "Test: Auto-deployment setup"
+git commit -m "Your change description"
 git push origin main
+
+# 3. Done! Watch it deploy
 ```
 
-### Step 3: Watch It Deploy
+View deployment: **https://github.com/joypciu/unified-odds-system/actions**
 
-Go to: **https://github.com/Eternity-Labs-BD/unified-odds-system/actions**
+### Access Your System
 
-You'll see the deployment running in real-time!
-
----
-
-## How It Works Now
-
-### When You Push to GitHub:
-1. **GitHub Actions** triggers automatically
-2. **Connects** to your VPS via SSH
-3. **Pulls** latest code from `eternity/main` branch
-4. **Installs** any new dependencies
-5. **Restarts** both services:
-   - `unified-odds` (data collector)
-   - `unified-odds-ui` (web interface on port 8000)
-6. **Verifies** everything is running
-
-### Services Restarted:
-- ✅ `unified-odds` - Always restarts
-- ✅ `unified-odds-ui` - Kills port 8000 blockers, then restarts
+- **Web UI**: http://142.44.160.36:8000
+- **VPS SSH**: `ssh ubuntu@142.44.160.36`
+- **Service Status**: `sudo systemctl status unified-odds unified-odds-ui`
+- **Logs**: `sudo journalctl -u unified-odds -f`
 
 ---
 
-## Files You Have
+## What Was Configured
 
-1. **`VPS_GITHUB_DEPLOY_KEY.txt`** - Private SSH key (add to GitHub Secrets)
-2. **`.github/workflows/deploy.yml`** - Deployment workflow (already configured)
-3. **`GITHUB_ACTIONS_SETUP.md`** - Detailed guide (existing, more info)
+### 1. SSH Authentication
+- Generated ed25519 key pair on VPS
+- Private key added to GitHub Secrets as `VPS_SSH_KEY`
+- Public key added to VPS `~/.ssh/authorized_keys`
+
+### 2. Passwordless Sudo
+Created `/etc/sudoers.d/github-actions`:
+```
+ubuntu ALL=(ALL) NOPASSWD: /bin/systemctl
+ubuntu ALL=(ALL) NOPASSWD: /usr/bin/pkill
+ubuntu ALL=(ALL) NOPASSWD: /bin/fuser
+```
+
+### 3. GitHub Secrets
+Repository: https://github.com/joypciu/unified-odds-system
+
+Secrets configured:
+- `VPS_HOST` = 142.44.160.36
+- `VPS_USERNAME` = ubuntu
+- `VPS_PORT` = 22
+- `VPS_SSH_KEY` = (ed25519 private key)
+
+### 4. Deployment Workflows
+
+**Auto-deploy on push** (`.github/workflows/deploy.yml`):
+```yaml
+- Triggers on push to main branch
+- Pulls latest code
+- Kills port 8000 processes
+- Restarts both services with --no-block
+- Completes in ~10 seconds
+```
+
+**Manual deploy with deps** (`.github/workflows/deploy-with-deps.yml`):
+```yaml
+- Manual trigger only
+- Includes pip install -r requirements.txt
+- Use when you update dependencies
+- Takes ~2 minutes
+```
 
 ---
 
-## What to Do Now
+## How It Works
 
-1. ✅ **Add the 4 GitHub Secrets** (see Step 1 above)
-2. ✅ **Push a test change** to verify auto-deployment works
-3. ✅ **Check GitHub Actions tab** to see deployment progress
-4. ✅ Start coding! Every push to `main` will auto-deploy 🚀
+### Deployment Flow
+
+1. **You push code** to GitHub main branch
+2. **GitHub Actions triggers** deploy.yml workflow
+3. **SSH connects** to VPS using ed25519 key
+4. **Pulls latest code**: `git reset --hard origin/main`
+5. **Kills port conflicts**: `sudo fuser -k 8000/tcp`
+6. **Restarts services**: `sudo systemctl restart --no-block`
+7. **Services start** in background (~2-3 seconds)
+8. **Deployment completes** ✅
+
+### Services Running
+
+- **unified-odds** (Data Collector)
+  - Location: `/home/ubuntu/services/unified-odds`
+  - Service: `/etc/systemd/system/unified-odds.service`
+  - Command: `xvfb-run -a python launch_odds_system.py`
+  - Auto-restart: Yes (on-failure)
+
+- **unified-odds-ui** (Web Interface)
+  - Location: `/home/ubuntu/services/unified-odds`
+  - Service: `/etc/systemd/system/unified-odds-ui.service`
+  - Command: `python live_odds_viewer_clean.py`
+  - Port: 8000
+  - Auto-restart: Yes (on-failure)
 
 ---
 
-## Quick Commands
+## Troubleshooting
+
+### Deployment Issues
+
+**GitHub Actions shows error:**
+```bash
+# Check the Actions tab for detailed logs
+# Common issues:
+# - SSH key mismatch (re-add VPS_SSH_KEY secret)
+# - Port 8000 in use (manually kill: sudo fuser -k 8000/tcp)
+# - Service crash (check logs: sudo journalctl -u unified-odds-ui -n 50)
+```
+
+**Services not running after deployment:**
+```bash
+# SSH to VPS
+ssh ubuntu@142.44.160.36
+
+# Check service status
+sudo systemctl status unified-odds unified-odds-ui
+
+# View recent logs
+sudo journalctl -u unified-odds -n 50
+sudo journalctl -u unified-odds-ui -n 50
+
+# Restart manually if needed
+sudo fuser -k 8000/tcp
+sudo systemctl restart unified-odds unified-odds-ui
+```
+
+**Need to update dependencies:**
+```bash
+# Go to GitHub Actions page
+# Run "Deploy to VPS (with dependencies update)" workflow manually
+# This includes pip install -r requirements.txt
+```
+
+### Common Fixes
+
+**Port 8000 conflict:**
+```bash
+sudo fuser -k 8000/tcp
+sudo systemctl restart unified-odds-ui
+```
+
+**Service crashed:**
+```bash
+sudo systemctl restart unified-odds
+sudo systemctl restart unified-odds-ui
+```
+
+**Git pull conflicts:**
+```bash
+cd /home/ubuntu/services/unified-odds
+git reset --hard origin/main
+git clean -fd
+```
+
+---
+
+## Files Reference
+
+### On VPS
+- `/home/ubuntu/services/unified-odds/` - Project directory
+- `/home/ubuntu/services/unified-odds/venv/` - Python virtual environment
+- `/home/ubuntu/.ssh/github_deploy` - Private key (used by GitHub Actions)
+- `/home/ubuntu/.ssh/github_deploy.pub` - Public key
+- `/etc/systemd/system/unified-odds.service` - Main service
+- `/etc/systemd/system/unified-odds-ui.service` - UI service
+- `/etc/sudoers.d/github-actions` - Passwordless sudo rules
+
+### In Repository
+- `.github/workflows/deploy.yml` - Auto-deployment (on push)
+- `.github/workflows/deploy-with-deps.yml` - Manual deployment with pip install
+- `VPS_GITHUB_DEPLOY_KEY.txt` - Backup of SSH private key (local only)
+
+---
+
+## What's Next?
+
+Your deployment pipeline is fully operational! Just code and push:
+
+```bash
+# Example workflow
+git checkout -b feature/new-scraper
+# ... make changes ...
+git add .
+git commit -m "Added new scraper"
+git push origin feature/new-scraper
+# ... create PR, merge to main ...
+# → Automatically deploys to VPS!
+```
+
+---
+
+## Need Help?
+
+- **View logs**: `ssh ubuntu@142.44.160.36 "sudo journalctl -u unified-odds -f"`
+- **Check status**: `ssh ubuntu@142.44.160.36 "sudo systemctl status unified-odds unified-odds-ui"`
+- **Restart services**: `ssh ubuntu@142.44.160.36 "sudo systemctl restart unified-odds unified-odds-ui"`
+- **Watch deployment**: https://github.com/joypciu/unified-odds-system/actions
 
 ### View VPS Services Status
 ```bash

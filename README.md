@@ -2,6 +2,15 @@
 
 A comprehensive Python-based system for collecting, merging, and monitoring betting odds from multiple sportsbooks (Bet365, FanDuel, 1xBet, and BetLink). The system provides real-time unified odds data with automatic team name normalization, caching, and alerting capabilities through REST API endpoints.
 
+## 🚀 Quick Start
+
+**Production deployment with automatic CI/CD:**
+1. Push code to GitHub → Automatically deploys to VPS
+2. Access UI: `http://142.44.160.36:8000`
+3. Services auto-restart on every push to `main` branch
+
+See [GitHub Actions Deployment](#-production-deployment) below for details.
+
 ## Features
 
 - **Multi-Bookmaker Support**: Collects odds from Bet365, FanDuel, 1xBet, and BetLink
@@ -15,6 +24,7 @@ A comprehensive Python-based system for collecting, merging, and monitoring bett
 - **REST API Endpoints**: Comprehensive API for odds data access and system monitoring
 - **Process Health Monitoring**: Automatic restart and memory usage tracking
 - **Cross-Platform**: Windows, Linux, and macOS support
+- **Automatic CI/CD**: GitHub Actions integration for instant deployment
 
 ## Project Structure
 
@@ -580,6 +590,168 @@ For issues and questions:
 - Review logs for error details
 - Test individual components
 - Verify configuration settings
+
+---
+
+## 🚀 Production Deployment
+
+### Current Production Setup
+
+- **VPS**: 142.44.160.36 (OVH Montreal, Ubuntu 25.04, 12C/48GB/300GB)
+- **Services**: 
+  - `unified-odds` - Data collector (auto-restart enabled)
+  - `unified-odds-ui` - Web interface on port 8000 (auto-restart enabled)
+- **Access**: `http://142.44.160.36:8000` (UI) | Port 22 (SSH)
+- **Auto-Deployment**: Enabled via GitHub Actions
+- **Deployment Time**: ~5-10 seconds per push
+
+### How to Deploy Changes
+
+```bash
+# 1. Make your changes
+vim unified_odds_collector.py
+
+# 2. Commit and push
+git add .
+git commit -m "Updated odds collection logic"
+git push origin main
+
+# 3. Done! Auto-deploys in ~10 seconds
+```
+
+**Watch deployment**: https://github.com/joypciu/unified-odds-system/actions
+
+### What Happens on Push
+
+1. ✅ GitHub Actions triggers on push to `main`
+2. ✅ Connects to VPS via SSH (ed25519 key)
+3. ✅ Pulls latest code: `git reset --hard origin/main`
+4. ✅ Kills port 8000 processes: `sudo fuser -k 8000/tcp`
+5. ✅ Restarts services: `sudo systemctl restart unified-odds unified-odds-ui --no-block`
+6. ✅ Services start in background (~2-3 seconds)
+
+### Manual Deployment (Emergency)
+
+```bash
+# SSH to VPS
+ssh ubuntu@142.44.160.36
+
+# Navigate and pull
+cd /home/ubuntu/services/unified-odds
+git pull origin main
+
+# Restart services
+sudo fuser -k 8000/tcp
+sudo systemctl restart unified-odds unified-odds-ui
+
+# Check status
+sudo systemctl status unified-odds unified-odds-ui
+```
+
+### Deployment Configuration
+
+**GitHub Secrets** (already configured):
+- `VPS_HOST` = 142.44.160.36
+- `VPS_USERNAME` = ubuntu
+- `VPS_SSH_KEY` = ed25519 private key
+- `VPS_PORT` = 22
+
+**Workflows**:
+- `.github/workflows/deploy.yml` - Auto-deploy on push (no pip install)
+- `.github/workflows/deploy-with-deps.yml` - Manual deploy with dependency updates
+
+**Systemd Services**:
+```bash
+# Service files location
+/etc/systemd/system/unified-odds.service
+/etc/systemd/system/unified-odds-ui.service
+
+# Passwordless sudo rules
+/etc/sudoers.d/github-actions
+
+# SSH key for GitHub Actions
+/home/ubuntu/.ssh/github_deploy (private key)
+/home/ubuntu/.ssh/github_deploy.pub (public key)
+```
+
+### Updating Dependencies
+
+When you update `requirements.txt`:
+
+1. Go to: https://github.com/joypciu/unified-odds-system/actions
+2. Click "Deploy to VPS (with dependencies update)"
+3. Click "Run workflow" → "Run workflow"
+4. Waits for completion (~2 minutes with pip install)
+
+### Monitoring Deployment
+
+```bash
+# View deployment logs in real-time
+ssh ubuntu@142.44.160.36 "sudo journalctl -u unified-odds -f"
+
+# Check service status
+ssh ubuntu@142.44.160.36 "sudo systemctl status unified-odds unified-odds-ui"
+
+# Check what's using port 8000
+ssh ubuntu@142.44.160.36 "sudo ss -tlnp | grep :8000"
+
+# View recent errors
+ssh ubuntu@142.44.160.36 "sudo journalctl -u unified-odds-ui -n 50"
+```
+
+### Troubleshooting Deployment
+
+**Services not restarting after push:**
+```bash
+# Check GitHub Actions logs first
+# Then SSH and check service logs
+sudo journalctl -u unified-odds -n 100
+sudo journalctl -u unified-odds-ui -n 100
+```
+
+**Port 8000 still in use:**
+```bash
+# Kill manually
+sudo fuser -k 8000/tcp
+sudo systemctl restart unified-odds-ui
+```
+
+**GitHub Actions timeout (Status 137):**
+- This was fixed by using `--no-block` flag on systemctl restart
+- Services restart in background, no waiting needed
+- If you see this, workflow file may need updating
+
+**Permission errors on VPS:**
+```bash
+# Verify passwordless sudo is configured
+sudo -l  # Should show systemctl, fuser, pkill
+
+# Re-apply sudoers if needed
+cat > /tmp/sudoers_temp << 'EOF'
+ubuntu ALL=(ALL) NOPASSWD: /bin/systemctl
+ubuntu ALL=(ALL) NOPASSWD: /usr/bin/pkill
+ubuntu ALL=(ALL) NOPASSWD: /bin/fuser
+EOF
+sudo visudo -cf /tmp/sudoers_temp
+sudo cp /tmp/sudoers_temp /etc/sudoers.d/github-actions
+sudo chmod 440 /etc/sudoers.d/github-actions
+```
+
+### First-Time Setup Reference
+
+The following was completed during initial deployment (for reference only):
+
+1. ✅ Generated SSH key: `ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N ''`
+2. ✅ Added to authorized_keys: `cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys`
+3. ✅ Configured GitHub Secrets with VPS credentials and SSH key
+4. ✅ Created passwordless sudo rules for deployment commands
+5. ✅ Installed Python 3.13, Chrome, dependencies in virtual environment
+6. ✅ Created systemd service files with auto-restart
+7. ✅ Configured nginx reverse proxy with SSL certificates
+8. ✅ Opened firewall ports (22, 80, 443, 8000)
+9. ✅ Tested and verified auto-deployment workflow
+
+---
 
 ## Changelog
 
