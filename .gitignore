@@ -204,21 +204,36 @@ secrets.json
 .env.production
 .env.staging
 
-# Bet365 live data and history
+# All bookmaker data files (exclude from git)
+bet365/**/*.json
+fanduel/**/*.json
+1xbet/**/*.json
+unified_odds.json
+monitoring_status.json
+history.json
+
+# Specific data files (backup patterns)
 bet365/bet365_live_current.json
 bet365/bet365_live_history.json
 bet365/bet365_current_pregame.json
+bet365/bet365_pregame_statistic.json
+bet365/bet365_live_statistics.json
+bet365/pregame_history.json
 
 # FanDuel data files
 fanduel/fanduel_live.json
 fanduel/fanduel_pregame.json
 fanduel/fanduel_future.json
+fanduel/fanduel_statistics.json
+fanduel/fanduel_live_statistics.json
+fanduel/urls_with_ids.json
 
 # 1xBet data files
 1xbet/1xbet_live.json
 1xbet/1xbet_pregame.json
 1xbet/1xbet_statistics.json
 1xbet/1xbet_live_history.json
+1xbet/1xbet_pregame_history.json
 
 # Database files
 *.db
