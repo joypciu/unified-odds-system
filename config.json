@@ -28,6 +28,6 @@
   },
   "cache": {
     "auto_update": true,
-    "update_interval_minutes": 5
+    "update_interval_minutes": 60
   }
 }

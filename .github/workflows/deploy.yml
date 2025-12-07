@@ -27,9 +27,11 @@ jobs:
           # Navigate to project directory
           cd /home/ubuntu/services/unified-odds
           
-          # Pull latest changes
+          # Pull latest changes from origin (joypciu/unified-odds-system)
           echo "📥 Pulling latest changes from GitHub..."
-          git pull origin main
+          git fetch origin
+          git reset --hard origin/main
+          git clean -fd
           
           # Activate virtual environment
           source venv/bin/activate
@@ -42,8 +44,10 @@ jobs:
           echo "🔄 Restarting unified-odds service..."
           sudo systemctl restart unified-odds
           
-          # Restart UI service if it exists
+          # Kill any process blocking port 8000 and restart UI service
           echo "🔄 Restarting unified-odds-ui service..."
+          sudo pkill -9 -f 'live_odds_viewer_clean.py' 2>/dev/null || true
+          sleep 2
           sudo systemctl restart unified-odds-ui 2>/dev/null || echo "⚠️  unified-odds-ui service not found (skipping)"
           
           # Wait a moment for services to start

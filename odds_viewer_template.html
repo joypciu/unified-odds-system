@@ -2902,9 +2902,26 @@
             fetchMonitoringStatus();
         }, 15000); // Every 15 seconds - balance between real-time and performance
 
+        // Fetch initial data via HTTP (fallback if WebSocket doesn't immediately send data)
+        async function fetchInitialData() {
+            try {
+                const response = await fetch('/api/matches');
+                const data = await response.json();
+                handleDataUpdate(data);
+                console.log('Initial data loaded via HTTP:', {
+                    pregame: data.pregame_matches?.length || 0,
+                    live: data.live_matches?.length || 0
+                });
+            } catch (error) {
+                console.error('Failed to fetch initial data:', error);
+                addAlert('warning', 'Data Load Failed', 'Could not load initial match data. Waiting for WebSocket...');
+            }
+        }
+
         // Initialize
-        connect();
-        fetchMonitoringStatus(); // Fetch immediately on load
+        fetchInitialData(); // Load initial data immediately
+        connect(); // Then connect WebSocket for real-time updates
+        fetchMonitoringStatus(); // Fetch monitoring status
     </script>
 </body>
 </html>
