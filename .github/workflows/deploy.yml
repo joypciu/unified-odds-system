@@ -27,11 +27,13 @@ jobs:
           cd /home/ubuntu/services/unified-odds
           git fetch origin
           git reset --hard origin/main
-          source venv/bin/activate
+          sudo systemctl stop unified-odds-ui || true
+          sudo pkill -9 -f 'live_odds_viewer_clean.py' || true
+          sudo fuser -k 8000/tcp || true
+          sleep 1
           sudo systemctl restart unified-odds
-          sudo pkill -9 -f 'live_odds_viewer_clean.py' 2>/dev/null || true
           sleep 2
-          sudo systemctl restart unified-odds-ui
+          sudo systemctl start unified-odds-ui
           echo "Deployment complete"
           
     - name: Verify Deployment
