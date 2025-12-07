@@ -247,6 +247,9 @@ vps_ssh_key.txt
 *.pem
 *.key
 
+# Configuration encryption key (CRITICAL: Never commit this!)
+.config_key
+
 # Unnecessary documentation (keep only essential docs)
 QUICKSTART.md
 MANUAL_UPLOAD.md

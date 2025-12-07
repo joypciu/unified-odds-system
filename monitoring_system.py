@@ -22,6 +22,7 @@ from typing import Dict, List, Optional
 
 from dynamic_cache_manager import DynamicCacheManager
 from monitoring_status_api import update_monitoring_status
+from secure_config import SecureConfig
 
 
 class ConfigManager:
@@ -32,14 +33,14 @@ class ConfigManager:
         self.config = self.load_config()
     
     def load_config(self) -> Dict:
-        """Load config from file or environment variables"""
-        # Try loading from file
+        """Load config from encrypted file or environment variables"""
+        # Try loading from encrypted file
         if self.config_file.exists():
             try:
-                with open(self.config_file, 'r') as f:
-                    config = json.load(f)
-                    print(f"✓ Loaded config from {self.config_file}")
-                    return config
+                secure_config = SecureConfig(str(self.config_file))
+                config = secure_config.load_config()
+                print(f"✓ Loaded encrypted config from {self.config_file}")
+                return config
             except Exception as e:
                 print(f"⚠ Error loading config file: {e}")
         

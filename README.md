@@ -62,7 +62,14 @@ A comprehensive Python-based system for collecting, merging, and monitoring bett
    - Set up Gmail app password (see Email Setup Guide)
    - Configure monitoring settings
 
-4. **Build team cache** (optional, improves matching accuracy)
+4. **Encrypt sensitive configuration** (recommended for production)
+   ```bash
+   pip install cryptography
+   python encrypt_config.py
+   ```
+   See [SECURITY_CONFIG_GUIDE.md](./SECURITY_CONFIG_GUIDE.md) for details.
+
+5. **Build team cache** (optional, improves matching accuracy)
    ```bash
    python build_team_cache.py
    ```
@@ -71,15 +78,22 @@ A comprehensive Python-based system for collecting, merging, and monitoring bett
 
 Edit `config.json` to customize:
 
+> **🔐 Security Note**: Email credentials are encrypted automatically. Run `python encrypt_config.py` to encrypt sensitive data. See [SECURITY_CONFIG_GUIDE.md](./SECURITY_CONFIG_GUIDE.md) for details.
+
 ```json
 {
+  "enabled_scrapers": {
+    "1xbet": true,
+    "fanduel": true,
+    "bet365": false
+  },
   "email": {
     "smtp_server": "smtp.gmail.com",
     "smtp_port": 587,
-    "sender_email": "your-email@gmail.com",
-    "sender_password": "your-app-password",
+    "sender_email": "ENC:...",
+    "sender_password": "ENC:...",
     "admin_email": "admin@example.com",
-    "alert_cooldown_minutes": 30,
+    "alert_cooldown_minutes": 720,
     "enabled": true
   },
   "monitoring": {

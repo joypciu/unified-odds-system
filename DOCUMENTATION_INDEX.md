@@ -43,6 +43,7 @@ Welcome! This index helps you navigate all the documentation for GitHub-based VP
 | File | Description | When To Use |
 |------|-------------|-------------|
 | **[EMAIL_SETUP_GUIDE.md](./EMAIL_SETUP_GUIDE.md)** | Email alerts configuration | When setting up email notifications |
+| **[SECURITY_CONFIG_GUIDE.md](./SECURITY_CONFIG_GUIDE.md)** | 🔐 Encryption & security | Protecting email credentials |
 | **[config.json.template](./config.json.template)** | Configuration template | Reference for config.json |
 
 ### Tools & Scripts

@@ -26,6 +26,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from unified_odds_collector import UnifiedOddsCollector
+from secure_config import SecureConfig
 
 # Import monitoring system for integration
 try:
@@ -593,13 +594,13 @@ class UnifiedSystemRunner:
         atexit.register(self._cleanup)
     
     def _load_config(self):
-        """Load configuration from config.json"""
+        """Load encrypted configuration from config.json"""
         try:
             config_file = os.path.join(self.base_dir, 'config.json')
             if os.path.exists(config_file):
-                with open(config_file, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-                print(f"✓ Configuration loaded from config.json")
+                secure_config = SecureConfig(config_file)
+                config = secure_config.load_config()
+                print(f"✓ Encrypted configuration loaded from config.json")
                 enabled = config.get('enabled_scrapers', {})
                 print(f"  Enabled scrapers: 1xBet={enabled.get('1xbet', False)}, FanDuel={enabled.get('fanduel', False)}, Bet365={enabled.get('bet365', False)}")
                 return config
