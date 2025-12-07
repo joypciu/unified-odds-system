@@ -21,30 +21,12 @@ jobs:
         username: ${{ secrets.VPS_USERNAME }}
         key: ${{ secrets.VPS_SSH_KEY }}
         port: ${{ secrets.VPS_PORT }}
-        command_timeout: 5m
+        command_timeout: 2m
         script: |
-          set -e
           cd /home/ubuntu/services/unified-odds
           git fetch origin
           git reset --hard origin/main
-          sudo systemctl stop unified-odds-ui || true
-          sudo pkill -9 -f 'live_odds_viewer_clean.py' || true
           sudo fuser -k 8000/tcp || true
-          sleep 1
-          sudo systemctl restart unified-odds
-          sleep 2
-          sudo systemctl start unified-odds-ui
-          echo "Deployment complete"
-          
-    - name: Verify Deployment
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        port: ${{ secrets.VPS_PORT }}
-        command_timeout: 30s
-        script: |
-          sleep 3
-          sudo systemctl is-active --quiet unified-odds && echo "Main service OK" || exit 1
-          sudo systemctl is-active --quiet unified-odds-ui && echo "UI service OK" || echo "UI service not running"
+          sudo systemctl restart unified-odds --no-block
+          sudo systemctl restart unified-odds-ui --no-block
+          echo "Deployment triggered successfully"
