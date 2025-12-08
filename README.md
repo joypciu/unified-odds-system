@@ -2,10 +2,11 @@
 
 A comprehensive Python-based system for collecting, merging, and monitoring betting odds from multiple sportsbooks (Bet365, FanDuel, 1xBet, and BetLink). The system provides real-time unified odds data with automatic team name normalization, caching, and alerting capabilities through REST API endpoints.
 
-## ðŸš€ Quick Start
+## 🚀 Quick Start
 
 **Production deployment with automatic CI/CD:**
-1. Push code to GitHub â†’ Automatically deploys to VPS
+
+1. Push code to GitHub → Automatically deploys to VPS
 2. Access UI: `http://142.44.160.36:8000`
 3. Services auto-restart on every push to `main` branch
 
@@ -29,20 +30,20 @@ See [GitHub Actions Deployment](#-production-deployment) below for details.
 ## Project Structure
 
 ```
-â”œâ”€â”€ bet365/                 # Bet365 scrapers and data
-â”œâ”€â”€ fanduel/               # FanDuel scrapers and data
-â”œâ”€â”€ 1xbet/                 # 1xBet scrapers and data
-â”œâ”€â”€ betlink/               # BetLink scrapers and data
-â”œâ”€â”€ config.json           # System configuration
-â”œâ”€â”€ requirements.txt      # Python dependencies
-â”œâ”€â”€ launch_odds_system.py # Main system runner
-â”œâ”€â”€ unified_odds_collector.py # Data merging logic
-â”œâ”€â”€ dynamic_cache_manager.py # Team name caching
-â”œâ”€â”€ monitoring_system.py  # System monitoring
-â”œâ”€â”€ live_odds_viewer_clean.py # Web UI
-â”œâ”€â”€ monitoring_status_api.py # REST API endpoints
-â”œâ”€â”€ unified_odds.json     # Unified odds data output
-â””â”€â”€ cache_data.json      # Team name mappings
+├── bet365/                 # Bet365 scrapers and data
+├── fanduel/               # FanDuel scrapers and data
+├── 1xbet/                 # 1xBet scrapers and data
+├── betlink/               # BetLink scrapers and data
+├── config.json           # System configuration
+├── requirements.txt      # Python dependencies
+├── launch_odds_system.py # Main system runner
+├── unified_odds_collector.py # Data merging logic
+├── dynamic_cache_manager.py # Team name caching
+├── monitoring_system.py  # System monitoring
+├── live_odds_viewer_clean.py # Web UI
+├── monitoring_status_api.py # REST API endpoints
+├── unified_odds.json     # Unified odds data output
+└── cache_data.json      # Team name mappings
 ```
 
 ## Installation
@@ -56,6 +57,7 @@ See [GitHub Actions Deployment](#-production-deployment) below for details.
 ### Setup
 
 1. **Clone or download the project**
+
    ```bash
    # If using git
    git clone <repository-url>
@@ -63,20 +65,24 @@ See [GitHub Actions Deployment](#-production-deployment) below for details.
    ```
 
 2. **Install dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Configure email settings**
+
    - Copy `config.json.template` to `config.json`
    - Set up Gmail app password (see Email Setup Guide)
    - Configure monitoring settings
 
 4. **Encrypt sensitive configuration** (recommended for production)
+
    ```bash
    pip install cryptography
    python encrypt_config.py
    ```
+
    See [SECURITY_CONFIG_GUIDE.md](./SECURITY_CONFIG_GUIDE.md) for details.
 
 5. **Build team cache** (optional, improves matching accuracy)
@@ -88,7 +94,7 @@ See [GitHub Actions Deployment](#-production-deployment) below for details.
 
 Edit `config.json` to customize:
 
-> **ðŸ” Security Note**: Email credentials are encrypted automatically. Run `python encrypt_config.py` to encrypt sensitive data. See [SECURITY_CONFIG_GUIDE.md](./SECURITY_CONFIG_GUIDE.md) for details.
+> **🔐 Security Note**: Email credentials are encrypted automatically. Run `python encrypt_config.py` to encrypt sensitive data. See [SECURITY_CONFIG_GUIDE.md](./SECURITY_CONFIG_GUIDE.md) for details.
 
 ```json
 {
@@ -110,7 +116,12 @@ Edit `config.json` to customize:
     "check_interval_seconds": 300,
     "data_stale_threshold_minutes": 60,
     "failure_threshold": 3,
-    "modules": ["bet365_pregame", "fanduel_pregame", "1xbet_pregame", "betlink_pregame"]
+    "modules": [
+      "bet365_pregame",
+      "fanduel_pregame",
+      "1xbet_pregame",
+      "betlink_pregame"
+    ]
   },
   "cache": {
     "auto_update": true,
@@ -176,9 +187,9 @@ python build_team_cache.py
 
 ## Email Setup Guide
 
-For email alerts to work, you need to configure Gmail with 2-step verification and an app password. 
+For email alerts to work, you need to configure Gmail with 2-step verification and an app password.
 
-**âš ï¸ IMPORTANT: Email alerts do NOT work with VPN enabled** (NordVPN, ExpressVPN, etc.)
+**⚠️ IMPORTANT: Email alerts do NOT work with VPN enabled** (NordVPN, ExpressVPN, etc.)
 
 VPNs block SSL/TLS handshakes with Gmail's SMTP servers, causing timeouts. Solutions:
 
@@ -187,6 +198,7 @@ VPNs block SSL/TLS handshakes with Gmail's SMTP servers, causing timeouts. Solut
 3. **Disable email alerts** - Set `"enabled": false` in config.json
 
 See `EMAIL_SETUP_GUIDE.md` for detailed instructions including:
+
 - Gmail app password setup
 - VPN compatibility solutions
 - Firewall configuration
@@ -203,6 +215,7 @@ python live_odds_viewer_clean.py
 Then open `http://localhost:8000` in your browser.
 
 Features:
+
 - Real-time odds display with WebSocket updates
 - Live match scores and status
 - Multi-bookmaker comparison
@@ -215,27 +228,32 @@ Features:
 The system provides **OpticOdds-compatible REST API endpoints** for accessing odds data in industry-standard format:
 
 ### 1xBet Endpoints
+
 - `GET /1xbet` - All 1xBet odds (pregame + live) in OpticOdds format
 - `GET /1xbet/pregame` - 1xBet pregame odds only
 - `GET /1xbet/live` - 1xBet live odds only
 
-### FanDuel Endpoints  
+### FanDuel Endpoints
+
 - `GET /fanduel` - All FanDuel odds (pregame + live) in OpticOdds format
 - `GET /fanduel/pregame` - FanDuel pregame odds only
 - `GET /fanduel/live` - FanDuel live odds only
 
 ### Bet365 Endpoints
+
 - `GET /bet365` - All Bet365 odds (pregame + live) in OpticOdds format
 - `GET /bet365/pregame` - Bet365 pregame odds only
 - `GET /bet365/live` - Bet365 live odds only
 - `GET /bet365/soccer` - Bet365 soccer odds only
 
 ### Eternity Format Endpoints (Alternative Format)
+
 - `GET /eternity/1xbet` - 1xBet odds in Eternity format
 - `GET /eternity/fanduel` - FanDuel odds in Eternity format
 - `GET /eternity/bet365` - Bet365 odds in Eternity format
 
 ### Legacy Endpoints (Unified Format)
+
 - `GET /api/matches` - All unified odds data (pregame + live)
 - `GET /api/matches/pregame` - Pregame matches only
 - `GET /api/matches/live` - Live matches only
@@ -255,14 +273,18 @@ All `/1xbet`, `/fanduel`, and `/bet365` endpoints return data in OpticOdds forma
       "id": "match_id",
       "game_id": "sport-match_id",
       "start_date": "2025-12-06T10:00:00Z",
-      "home_competitors": [{"id": null, "name": "Team A", "abbreviation": "TA"}],
-      "away_competitors": [{"id": null, "name": "Team B", "abbreviation": "TB"}],
+      "home_competitors": [
+        { "id": null, "name": "Team A", "abbreviation": "TA" }
+      ],
+      "away_competitors": [
+        { "id": null, "name": "Team B", "abbreviation": "TB" }
+      ],
       "home_team_display": "Team A",
       "away_team_display": "Team B",
       "status": "unplayed",
       "is_live": false,
-      "sport": {"id": "basketball", "name": "Basketball"},
-      "league": {"id": "nba", "name": "NBA"},
+      "sport": { "id": "basketball", "name": "Basketball" },
+      "league": { "id": "nba", "name": "NBA" },
       "tournament": null,
       "odds": [
         {
@@ -326,6 +348,7 @@ The system automatically monitors:
 - **File Integrity**: Validates JSON data files
 
 Alerts are sent via email when:
+
 - Scrapers crash or fail to start
 - Memory usage exceeds thresholds
 - Data files become stale
@@ -355,6 +378,7 @@ The system generates `unified_odds.json` with the following structure:
 ```
 
 Each match includes:
+
 - Sport and teams (with normalized names)
 - Date/time information
 - Odds from all available bookmakers (bet365, fanduel, 1xbet, betlink)
@@ -371,17 +395,21 @@ All API endpoints return data in the same unified JSON structure, making integra
 ### Common Issues
 
 **Chrome not found**
+
 ```
 Error: Chrome browser not detected
 ```
+
 - Install Google Chrome
 - Ensure Chrome is in PATH
 - Check if Chrome is running with admin privileges
 
 **Email alerts not working**
+
 ```
 Email alert failed: Authentication failed
 ```
+
 - Verify Gmail credentials in `config.json`
 - Ensure 2-step verification is enabled
 - Generate new app password
@@ -389,17 +417,21 @@ Email alert failed: Authentication failed
 - Check firewall settings
 
 **Memory issues**
+
 ```
 Process memory usage: 450 MB (threshold: 400 MB)
 ```
+
 - Reduce concurrent scrapers
 - Increase memory threshold in config
 - Restart system to clear memory
 
 **Data not updating**
+
 ```
 Data file not updated for 15 minutes
 ```
+
 - Check if scrapers are running
 - Verify internet connection
 - Check browser automation (may need reCAPTCHA solving)
@@ -407,6 +439,7 @@ Data file not updated for 15 minutes
 ### Logs
 
 Check logs in each bookmaker directory:
+
 - `bet365/logs/`
 - `fanduel/logs/`
 - `1xbet/` (check console output)
@@ -442,6 +475,7 @@ python test_all.py
 ```
 
 Tests cover:
+
 - Module imports
 - Caching functionality
 - Data merging logic
@@ -468,6 +502,7 @@ The system supports automatic deployment to VPS servers using GitHub Actions. Ev
 ### Quick Setup Guide
 
 1. **Push your code to GitHub**
+
    ```bash
    git init
    git add .
@@ -477,79 +512,85 @@ The system supports automatic deployment to VPS servers using GitHub Actions. Ev
    ```
 
 2. **Configure GitHub Secrets**
-   
+
    Go to: `https://github.com/YOUR_USERNAME/unified-odds-system/settings/secrets/actions`
-   
+
    Add these 4 secrets:
-   
-   | Secret Name | Value | Description |
-   |------------|-------|-------------|
-   | `VPS_HOST` | Your VPS IP address | e.g., `142.44.160.36` |
-   | `VPS_USERNAME` | VPS SSH username | Usually `ubuntu` or `root` |
-   | `VPS_PORT` | SSH port | Usually `22` |
-   | `VPS_SSH_KEY` | SSH private key | See below |
+
+   | Secret Name    | Value               | Description                |
+   | -------------- | ------------------- | -------------------------- |
+   | `VPS_HOST`     | Your VPS IP address | e.g., `142.44.160.36`      |
+   | `VPS_USERNAME` | VPS SSH username    | Usually `ubuntu` or `root` |
+   | `VPS_PORT`     | SSH port            | Usually `22`               |
+   | `VPS_SSH_KEY`  | SSH private key     | See below                  |
 
 3. **Get Your SSH Private Key**
-   
+
    On your VPS, run:
+
    ```bash
    cat ~/.ssh/id_ed25519
    ```
-   
+
    Copy the **entire output** including the BEGIN and END lines:
+
    ```
    -----BEGIN OPENSSH PRIVATE KEY-----
    ...key content...
    -----END OPENSSH PRIVATE KEY-----
    ```
-   
+
    If the key doesn't exist, create one:
+
    ```bash
    ssh-keygen -t ed25519 -C "your-email@example.com" -f ~/.ssh/id_ed25519
    ```
 
 4. **Add Public Key to authorized_keys**
-   
+
    **CRITICAL STEP**: The public key must be in `~/.ssh/authorized_keys` on your VPS:
-   
+
    ```bash
    # Display your public key
    cat ~/.ssh/id_ed25519.pub
-   
+
    # Add it to authorized_keys
    cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
-   
+
    # Set correct permissions
    chmod 600 ~/.ssh/authorized_keys
    chmod 700 ~/.ssh
    ```
 
 5. **Run the automated deployment script**
-   
+
    On your VPS:
+
    ```bash
    cd ~
    wget https://raw.githubusercontent.com/YOUR_USERNAME/unified-odds-system/main/deploy_unified_odds_auto.sh
    chmod +x deploy_unified_odds_auto.sh
    ./deploy_unified_odds_auto.sh
    ```
-   
+
    This will:
+
    - Install all dependencies (Chrome, xvfb, Python packages)
    - Clone your repository
    - Set up systemd service
    - Configure automatic startup
 
 6. **Test the deployment**
-   
+
    Make a small change and push:
+
    ```bash
    echo "# Test" >> README.md
    git add README.md
    git commit -m "Test auto-deployment"
    git push origin main
    ```
-   
+
    Check the Actions tab on GitHub to see the deployment: `https://github.com/YOUR_USERNAME/unified-odds-system/actions`
 
 ### How It Works
@@ -562,23 +603,28 @@ The system supports automatic deployment to VPS servers using GitHub Actions. Ev
 ### Troubleshooting GitHub Actions
 
 **Error: `ssh: unable to authenticate`**
+
 - Solution: Make sure the SSH **public key** is in `~/.ssh/authorized_keys` on VPS
 - Verify: `cat ~/.ssh/authorized_keys` should show your public key
 
 **Error: `Permission denied (publickey)`**
+
 - Check that VPS_SSH_KEY secret contains the **entire private key** with BEGIN/END lines
 - Ensure no extra spaces or line breaks when pasting into GitHub
 
 **Deployment not triggering**
+
 - Check the `.github/workflows/deploy.yml` file exists in your repository
 - Verify you're pushing to the `main` branch (not `master` or other)
 
 **Service fails to start**
+
 - SSH into VPS and check logs: `sudo journalctl -u unified-odds -n 50`
 - Verify config.json is properly configured
 - Check Chrome installation: `google-chrome --version`
 
 For detailed deployment guides, see:
+
 - `GITHUB_DEPLOYMENT_GUIDE.md` - Complete deployment documentation
 - `AUTOMATED_DEPLOYMENT_GUIDE.md` - Using the automated setup script
 - `QUICKSTART_GITHUB_DEPLOY.md` - 3-step quick setup
@@ -586,6 +632,7 @@ For detailed deployment guides, see:
 ## Support
 
 For issues and questions:
+
 - Check the troubleshooting section
 - Review logs for error details
 - Test individual components
@@ -593,12 +640,12 @@ For issues and questions:
 
 ---
 
-## ðŸš€ Production Deployment
+## 🚀 Production Deployment
 
 ### Current Production Setup
 
 - **VPS**: 142.44.160.36 (OVH Montreal, Ubuntu 25.04, 12C/48GB/300GB)
-- **Services**: 
+- **Services**:
   - `unified-odds` - Data collector (auto-restart enabled)
   - `unified-odds-ui` - Web interface on port 8000 (auto-restart enabled)
 - **Access**: `http://142.44.160.36:8000` (UI) | Port 22 (SSH)
@@ -623,12 +670,12 @@ git push origin main
 
 ### What Happens on Push
 
-1. âœ… GitHub Actions triggers on push to `main`
-2. âœ… Connects to VPS via SSH (ed25519 key)
-3. âœ… Pulls latest code: `git reset --hard origin/main`
-4. âœ… Kills port 8000 processes: `sudo fuser -k 8000/tcp`
-5. âœ… Restarts services: `sudo systemctl restart unified-odds unified-odds-ui --no-block`
-6. âœ… Services start in background (~2-3 seconds)
+1. ✅ GitHub Actions triggers on push to `main`
+2. ✅ Connects to VPS via SSH (ed25519 key)
+3. ✅ Pulls latest code: `git reset --hard origin/main`
+4. ✅ Kills port 8000 processes: `sudo fuser -k 8000/tcp`
+5. ✅ Restarts services: `sudo systemctl restart unified-odds unified-odds-ui --no-block`
+6. ✅ Services start in background (~2-3 seconds)
 
 ### Manual Deployment (Emergency)
 
@@ -651,16 +698,19 @@ sudo systemctl status unified-odds unified-odds-ui
 ### Deployment Configuration
 
 **GitHub Secrets** (already configured):
+
 - `VPS_HOST` = 142.44.160.36
 - `VPS_USERNAME` = ubuntu
 - `VPS_SSH_KEY` = ed25519 private key
 - `VPS_PORT` = 22
 
 **Workflows**:
+
 - `.github/workflows/deploy.yml` - Auto-deploy on push (no pip install)
 - `.github/workflows/deploy-with-deps.yml` - Manual deploy with dependency updates
 
 **Systemd Services**:
+
 ```bash
 # Service files location
 /etc/systemd/system/unified-odds.service
@@ -680,7 +730,7 @@ When you update `requirements.txt`:
 
 1. Go to: https://github.com/joypciu/unified-odds-system/actions
 2. Click "Deploy to VPS (with dependencies update)"
-3. Click "Run workflow" â†’ "Run workflow"
+3. Click "Run workflow" → "Run workflow"
 4. Waits for completion (~2 minutes with pip install)
 
 ### Monitoring Deployment
@@ -702,6 +752,7 @@ ssh ubuntu@142.44.160.36 "sudo journalctl -u unified-odds-ui -n 50"
 ### Troubleshooting Deployment
 
 **Services not restarting after push:**
+
 ```bash
 # Check GitHub Actions logs first
 # Then SSH and check service logs
@@ -710,6 +761,7 @@ sudo journalctl -u unified-odds-ui -n 100
 ```
 
 **Port 8000 still in use:**
+
 ```bash
 # Kill manually
 sudo fuser -k 8000/tcp
@@ -717,11 +769,13 @@ sudo systemctl restart unified-odds-ui
 ```
 
 **GitHub Actions timeout (Status 137):**
+
 - This was fixed by using `--no-block` flag on systemctl restart
 - Services restart in background, no waiting needed
 - If you see this, workflow file may need updating
 
 **Permission errors on VPS:**
+
 ```bash
 # Verify passwordless sudo is configured
 sudo -l  # Should show systemctl, fuser, pkill
@@ -741,21 +795,22 @@ sudo chmod 440 /etc/sudoers.d/github-actions
 
 The following was completed during initial deployment (for reference only):
 
-1. âœ… Generated SSH key: `ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N ''`
-2. âœ… Added to authorized_keys: `cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys`
-3. âœ… Configured GitHub Secrets with VPS credentials and SSH key
-4. âœ… Created passwordless sudo rules for deployment commands
-5. âœ… Installed Python 3.13, Chrome, dependencies in virtual environment
-6. âœ… Created systemd service files with auto-restart
-7. âœ… Configured nginx reverse proxy with SSL certificates
-8. âœ… Opened firewall ports (22, 80, 443, 8000)
-9. âœ… Tested and verified auto-deployment workflow
+1. ✅ Generated SSH key: `ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N ''`
+2. ✅ Added to authorized_keys: `cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys`
+3. ✅ Configured GitHub Secrets with VPS credentials and SSH key
+4. ✅ Created passwordless sudo rules for deployment commands
+5. ✅ Installed Python 3.13, Chrome, dependencies in virtual environment
+6. ✅ Created systemd service files with auto-restart
+7. ✅ Configured nginx reverse proxy with SSL certificates
+8. ✅ Opened firewall ports (22, 80, 443, 8000)
+9. ✅ Tested and verified auto-deployment workflow
 
 ---
 
 ## Changelog
 
 ### v2.0.0 (December 2025)
+
 - **OpticOdds Format API**: Added industry-standard OpticOdds format endpoints
   - `/1xbet`, `/1xbet/pregame`, `/1xbet/live`
   - `/fanduel`, `/fanduel/pregame`, `/fanduel/live`
@@ -773,6 +828,7 @@ The following was completed during initial deployment (for reference only):
 - **Enhanced Documentation**: Comprehensive API endpoint documentation with examples
 
 ### v1.1.0
+
 - Added BetLink bookmaker support
 - Enhanced REST API with comprehensive odds endpoints
 - Improved homepage-first tab opening for FanDuel scraping
@@ -780,6 +836,7 @@ The following was completed during initial deployment (for reference only):
 - Expanded API endpoints for sport-specific and bookmaker-specific queries
 
 ### v1.0.0
+
 - Initial release
 - Support for Bet365, FanDuel, 1xBet
 - Real-time monitoring
@@ -791,4 +848,4 @@ The following was completed during initial deployment (for reference only):
 
 ---
 
-**Made with  for sports betting analytics**
+**Made with for sports betting analytics**
