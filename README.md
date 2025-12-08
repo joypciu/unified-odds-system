@@ -1,11 +1,11 @@
-# Unified Odds System
+﻿# Unified Odds System
 
 A comprehensive Python-based system for collecting, merging, and monitoring betting odds from multiple sportsbooks (Bet365, FanDuel, 1xBet, and BetLink). The system provides real-time unified odds data with automatic team name normalization, caching, and alerting capabilities through REST API endpoints.
 
-## 🚀 Quick Start
+## ðŸš€ Quick Start
 
 **Production deployment with automatic CI/CD:**
-1. Push code to GitHub → Automatically deploys to VPS
+1. Push code to GitHub â†’ Automatically deploys to VPS
 2. Access UI: `http://142.44.160.36:8000`
 3. Services auto-restart on every push to `main` branch
 
@@ -29,20 +29,20 @@ See [GitHub Actions Deployment](#-production-deployment) below for details.
 ## Project Structure
 
 ```
-├── bet365/                 # Bet365 scrapers and data
-├── fanduel/               # FanDuel scrapers and data
-├── 1xbet/                 # 1xBet scrapers and data
-├── betlink/               # BetLink scrapers and data
-├── config.json           # System configuration
-├── requirements.txt      # Python dependencies
-├── launch_odds_system.py # Main system runner
-├── unified_odds_collector.py # Data merging logic
-├── dynamic_cache_manager.py # Team name caching
-├── monitoring_system.py  # System monitoring
-├── live_odds_viewer_clean.py # Web UI
-├── monitoring_status_api.py # REST API endpoints
-├── unified_odds.json     # Unified odds data output
-└── cache_data.json      # Team name mappings
+â”œâ”€â”€ bet365/                 # Bet365 scrapers and data
+â”œâ”€â”€ fanduel/               # FanDuel scrapers and data
+â”œâ”€â”€ 1xbet/                 # 1xBet scrapers and data
+â”œâ”€â”€ betlink/               # BetLink scrapers and data
+â”œâ”€â”€ config.json           # System configuration
+â”œâ”€â”€ requirements.txt      # Python dependencies
+â”œâ”€â”€ launch_odds_system.py # Main system runner
+â”œâ”€â”€ unified_odds_collector.py # Data merging logic
+â”œâ”€â”€ dynamic_cache_manager.py # Team name caching
+â”œâ”€â”€ monitoring_system.py  # System monitoring
+â”œâ”€â”€ live_odds_viewer_clean.py # Web UI
+â”œâ”€â”€ monitoring_status_api.py # REST API endpoints
+â”œâ”€â”€ unified_odds.json     # Unified odds data output
+â””â”€â”€ cache_data.json      # Team name mappings
 ```
 
 ## Installation
@@ -88,7 +88,7 @@ See [GitHub Actions Deployment](#-production-deployment) below for details.
 
 Edit `config.json` to customize:
 
-> **🔐 Security Note**: Email credentials are encrypted automatically. Run `python encrypt_config.py` to encrypt sensitive data. See [SECURITY_CONFIG_GUIDE.md](./SECURITY_CONFIG_GUIDE.md) for details.
+> **ðŸ” Security Note**: Email credentials are encrypted automatically. Run `python encrypt_config.py` to encrypt sensitive data. See [SECURITY_CONFIG_GUIDE.md](./SECURITY_CONFIG_GUIDE.md) for details.
 
 ```json
 {
@@ -178,7 +178,7 @@ python build_team_cache.py
 
 For email alerts to work, you need to configure Gmail with 2-step verification and an app password. 
 
-**⚠️ IMPORTANT: Email alerts do NOT work with VPN enabled** (NordVPN, ExpressVPN, etc.)
+**âš ï¸ IMPORTANT: Email alerts do NOT work with VPN enabled** (NordVPN, ExpressVPN, etc.)
 
 VPNs block SSL/TLS handshakes with Gmail's SMTP servers, causing timeouts. Solutions:
 
@@ -593,7 +593,7 @@ For issues and questions:
 
 ---
 
-## 🚀 Production Deployment
+## ðŸš€ Production Deployment
 
 ### Current Production Setup
 
@@ -623,12 +623,12 @@ git push origin main
 
 ### What Happens on Push
 
-1. ✅ GitHub Actions triggers on push to `main`
-2. ✅ Connects to VPS via SSH (ed25519 key)
-3. ✅ Pulls latest code: `git reset --hard origin/main`
-4. ✅ Kills port 8000 processes: `sudo fuser -k 8000/tcp`
-5. ✅ Restarts services: `sudo systemctl restart unified-odds unified-odds-ui --no-block`
-6. ✅ Services start in background (~2-3 seconds)
+1. âœ… GitHub Actions triggers on push to `main`
+2. âœ… Connects to VPS via SSH (ed25519 key)
+3. âœ… Pulls latest code: `git reset --hard origin/main`
+4. âœ… Kills port 8000 processes: `sudo fuser -k 8000/tcp`
+5. âœ… Restarts services: `sudo systemctl restart unified-odds unified-odds-ui --no-block`
+6. âœ… Services start in background (~2-3 seconds)
 
 ### Manual Deployment (Emergency)
 
@@ -680,7 +680,7 @@ When you update `requirements.txt`:
 
 1. Go to: https://github.com/joypciu/unified-odds-system/actions
 2. Click "Deploy to VPS (with dependencies update)"
-3. Click "Run workflow" → "Run workflow"
+3. Click "Run workflow" â†’ "Run workflow"
 4. Waits for completion (~2 minutes with pip install)
 
 ### Monitoring Deployment
@@ -741,15 +741,15 @@ sudo chmod 440 /etc/sudoers.d/github-actions
 
 The following was completed during initial deployment (for reference only):
 
-1. ✅ Generated SSH key: `ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N ''`
-2. ✅ Added to authorized_keys: `cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys`
-3. ✅ Configured GitHub Secrets with VPS credentials and SSH key
-4. ✅ Created passwordless sudo rules for deployment commands
-5. ✅ Installed Python 3.13, Chrome, dependencies in virtual environment
-6. ✅ Created systemd service files with auto-restart
-7. ✅ Configured nginx reverse proxy with SSL certificates
-8. ✅ Opened firewall ports (22, 80, 443, 8000)
-9. ✅ Tested and verified auto-deployment workflow
+1. âœ… Generated SSH key: `ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N ''`
+2. âœ… Added to authorized_keys: `cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys`
+3. âœ… Configured GitHub Secrets with VPS credentials and SSH key
+4. âœ… Created passwordless sudo rules for deployment commands
+5. âœ… Installed Python 3.13, Chrome, dependencies in virtual environment
+6. âœ… Created systemd service files with auto-restart
+7. âœ… Configured nginx reverse proxy with SSL certificates
+8. âœ… Opened firewall ports (22, 80, 443, 8000)
+9. âœ… Tested and verified auto-deployment workflow
 
 ---
 
@@ -787,10 +787,8 @@ The following was completed during initial deployment (for reference only):
 - Web UI
 - Basic REST API
 - Team name caching
-- Memory optimization#   T e s t   d e p l o y m e n t 
- 
- #   T e s t   2 
- 
- #   T e s t   3   -   S S H   k e y   f i x e d 
- 
- 
+- Memory optimization
+
+---
+
+**Made with  for sports betting analytics**
