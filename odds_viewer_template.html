@@ -2154,7 +2154,8 @@
             `;
 
             // Extract and display selections/odds - for futures with multiple selections
-            let oddsDisplay = '';\n            if (match.selections && match.selections.length > 0) {
+            let oddsDisplay = '';
+            if (match.selections && match.selections.length > 0) {
                 // Display selections (teams/players) with their odds
                 const selectionsHtml = match.selections.slice(0, 8).map(sel => `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #14141f; border-radius: 6px; border-left: 3px solid #3b82f6;">
