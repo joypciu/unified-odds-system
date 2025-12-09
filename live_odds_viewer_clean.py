@@ -661,6 +661,63 @@ async def get_monitoring_status():
         }
 
 
+@app.get("/api/history")
+async def get_history():
+    """Get historical/completed matches from all sources"""
+    try:
+        history_matches = []
+        
+        # Load 1xBet history
+        xbet_history_file = BASE_DIR / "1xbet" / "1xbet_history.json"
+        if xbet_history_file.exists():
+            with open(xbet_history_file, 'r', encoding='utf-8') as f:
+                xbet_data = json.load(f)
+                for match in xbet_data.get('pregame', [])[:100]:  # Limit to 100 recent
+                    history_matches.append({
+                        'match_id': f"1xbet_{match.get('match_id')}",
+                        'sport': match.get('sport_name', ''),
+                        'league': match.get('league_name', ''),
+                        'home_team': match.get('team1', ''),
+                        'away_team': match.get('team2', ''),
+                        'start_time': match.get('start_time'),
+                        'removed_at': match.get('removed_at'),
+                        'bookmakers': ['1xbet']
+                    })
+        
+        return {'matches': history_matches, 'total': len(history_matches)}
+    except Exception as e:
+        return {'matches': [], 'total': 0, 'error': str(e)}
+
+
+@app.get("/api/futures")
+async def get_futures():
+    """Get futures/long-term betting events"""
+    try:
+        futures_matches = []
+        
+        # Load 1xBet futures
+        xbet_futures_file = BASE_DIR / "1xbet" / "1xbet_futures.json"
+        if xbet_futures_file.exists():
+            with open(xbet_futures_file, 'r', encoding='utf-8') as f:
+                xbet_data = json.load(f)
+                for match in xbet_data.get('data', {}).get('matches', []):
+                    futures_matches.append({
+                        'match_id': f"1xbet_{match.get('match_id')}",
+                        'sport': match.get('sport_name', ''),
+                        'league': match.get('league_name', ''),
+                        'home_team': match.get('team1', ''),
+                        'away_team': match.get('team2', ''),
+                        'start_time': match.get('start_time'),
+                        'country': match.get('country', ''),
+                        'odds': match.get('odds_data', {}),
+                        'bookmakers': ['1xbet']
+                    })
+        
+        return {'matches': futures_matches, 'total': len(futures_matches)}
+    except Exception as e:
+        return {'matches': [], 'total': 0, 'error': str(e)}
+
+
 # ==================== OpticOdds Format API Endpoints (Default) ====================
 
 @app.get("/1xbet")
