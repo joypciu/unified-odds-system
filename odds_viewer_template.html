@@ -705,14 +705,14 @@
         }
 
         .match-info {
-            font-size: 11px;
+            font-size: 10px;
             color: #6b7280;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 8px 12px;
+            gap: 10px;
+            padding: 6px 10px;
             background: #1a1a27;
-            border-radius: 6px;
+            border-radius: 5px;
         }
 
         .match-info span {
@@ -727,7 +727,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-top: 8px;
+            padding-top: 6px;
+            margin-top: 2px;
             border-top: 1px solid #1f1f2e;
         }
 
@@ -738,12 +739,12 @@
         }
 
         .bookmaker-badge {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 9px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
         }
 
         .badge-bet365 { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
@@ -1902,13 +1903,15 @@
         let historyCurrentPage = 1;
         let historyPageSize = 24;
         let historyTotalPages = 1;
+        let historyDataLoaded = false; // Cache flag
 
         // Futures Pagination
         let futuresCurrentPage = 1;
         let futuresPageSize = 24;
         let futuresTotalPages = 1;
+        let futuresDataLoaded = false; // Cache flag
 
-        // Tab Switching
+        // Tab Switching - optimized with caching
         function switchTab(tabName) {
             currentTab = tabName;
             
@@ -1924,25 +1927,30 @@
             });
             document.getElementById('content-' + tabName).classList.add('active');
             
-            // Load data for the selected tab
-            if (tabName === 'history') {
+            // Load data for the selected tab (with caching)
+            if (tabName === 'history' && !historyDataLoaded) {
                 loadHistoryData();
-            } else if (tabName === 'futures') {
+            } else if (tabName === 'futures' && !futuresDataLoaded) {
                 loadFuturesData();
             }
         }
 
-        // Load History Data
+        // Load History Data - with caching
         function loadHistoryData() {
+            const grid = document.getElementById('historyGrid');
+            grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;"><i class="fas fa-spinner fa-spin"></i> Loading history...</div>';
+            
             fetch('/api/history')
                 .then(response => response.json())
                 .then(data => {
                     historyMatches = data.matches || [];
+                    historyDataLoaded = true;
                     renderHistoryMatches();
+                    console.log(`✓ Loaded ${historyMatches.length} history matches`);
                 })
                 .catch(error => {
                     console.error('Error loading history:', error);
-                    document.getElementById('historyGrid').innerHTML = `
+                    grid.innerHTML = `
                         <div class="no-data">
                             <i class="fas fa-exclamation-triangle"></i>
                             <h3>Error loading history</h3>
@@ -1952,17 +1960,22 @@
                 });
         }
 
-        // Load Futures Data
+        // Load Futures Data - with caching
         function loadFuturesData() {
+            const grid = document.getElementById('futuresGrid');
+            grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;"><i class="fas fa-spinner fa-spin"></i> Loading futures...</div>';
+            
             fetch('/api/futures')
                 .then(response => response.json())
                 .then(data => {
                     futuresMatches = data.matches || [];
+                    futuresDataLoaded = true;
                     renderFuturesMatches();
+                    console.log(`✓ Loaded ${futuresMatches.length} futures matches`);
                 })
                 .catch(error => {
                     console.error('Error loading futures:', error);
-                    document.getElementById('futuresGrid').innerHTML = `
+                    grid.innerHTML = `
                         <div class="no-data">
                             <i class="fas fa-exclamation-triangle"></i>
                             <h3>Error loading futures</h3>
@@ -1972,7 +1985,7 @@
                 });
         }
 
-        // Create Match Card for History and Futures
+        // Create Match Card for History and Futures - Optimized with odds display
         function createMatchCard(match, isHistory = false) {
             const badges = [];
             if (match.bookmakers) {
@@ -1984,18 +1997,34 @@
             }
 
             const startTime = match.start_time ? new Date(match.start_time * 1000) : null;
-            const dateStr = startTime ? startTime.toLocaleDateString() : 'TBD';
-            const timeStr = startTime ? startTime.toLocaleTimeString() : 'TBD';
+            const dateStr = startTime ? startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
+            const timeStr = startTime ? startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'TBD';
+            
+            // Time ago for history
+            let timeAgo = '';
+            if (isHistory && match.removed_at) {
+                const removedTime = new Date(match.removed_at * 1000);
+                const diffMs = Date.now() - removedTime;
+                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffDays > 0) {
+                    timeAgo = `${diffDays}d ago`;
+                } else if (diffHours > 0) {
+                    timeAgo = `${diffHours}h ago`;
+                } else {
+                    timeAgo = `< 1h ago`;
+                }
+            }
             
             const statusBadge = isHistory 
-                ? '<span class="live-indicator" style="background: #6b7280;"><i class="fas fa-check"></i> Completed</span>'
-                : '<span class="live-indicator" style="background: #8b5cf6;"><i class="fas fa-calendar-alt"></i> Future</span>';
+                ? `<span class="live-indicator" style="background: #6b7280;"><i class="fas fa-check"></i> Ended ${timeAgo}</span>`
+                : '<span class="live-indicator" style="background: #8b5cf6;"><i class="fas fa-calendar-alt"></i> Upcoming</span>';
 
             // Handle futures/long-term bets that don't have away_team
             const isSingleOutcome = !match.away_team || match.away_team.trim() === '';
             const teamsDisplay = isSingleOutcome ? `
-                <div class="match-teams" style="justify-content: center;">
-                    <div class="team" style="text-align: center; font-size: 1.1em;">${match.home_team}</div>
+                <div class="match-teams" style="justify-content: center; padding: 16px 20px;">
+                    <div class="team" style="text-align: center; font-size: 1.05em; font-weight: 600; color: #f3f4f6;">${match.home_team}</div>
                 </div>
             ` : `
                 <div class="match-teams">
@@ -2005,27 +2034,59 @@
                 </div>
             `;
 
+            // Extract and display odds if available
+            let oddsDisplay = '';
+            if (match.odds && typeof match.odds === 'object' && Object.keys(match.odds).length > 0) {
+                const oddsItems = [];
+                
+                // Moneyline odds
+                if (match.odds.moneyline_home || match.odds.moneyline_away) {
+                    const homeOdds = match.odds.moneyline_home || 'N/A';
+                    const awayOdds = match.odds.moneyline_away || 'N/A';
+                    const drawOdds = match.odds.moneyline_draw;
+                    if (isSingleOutcome) {
+                        oddsItems.push(`<div style="display: flex; align-items: center; gap: 4px;"><span style="color: #9ca3af; font-size: 0.8em;">Odds:</span><span style="font-weight: 600; color: #10b981;">${homeOdds}</span></div>`);
+                    } else {
+                        oddsItems.push(`<div style="display: flex; gap: 8px;"><span style="color: #9ca3af; font-size: 0.8em;">ML:</span><span style="font-weight: 600; color: #10b981;">${homeOdds}</span>${drawOdds ? `<span style="color: #f59e0b;">${drawOdds}</span>` : ''}<span style="font-weight: 600; color: #ef4444;">${awayOdds}</span></div>`);
+                    }
+                }
+                
+                // Spread odds
+                if (match.odds.spread_home || match.odds.spread_away) {
+                    oddsItems.push(`<div style="display: flex; align-items: center; gap: 4px;"><span style="color: #9ca3af; font-size: 0.8em;">Spread:</span><span style="font-size: 0.9em;">${match.odds.spread_home || match.odds.spread_away || 'N/A'}</span></div>`);
+                }
+                
+                // Total odds
+                if (match.odds.total_over || match.odds.total_under) {
+                    oddsItems.push(`<div style="display: flex; align-items: center; gap: 4px;"><span style="color: #9ca3af; font-size: 0.8em;">Total:</span><span style="font-size: 0.9em;">${match.odds.total_over || match.odds.total_under || 'N/A'}</span></div>`);
+                }
+                
+                if (oddsItems.length > 0) {
+                    oddsDisplay = `
+                        <div style="padding: 8px 16px; background: #1a1a27; border-radius: 6px; margin: 8px 0; display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.85em;">
+                            ${oddsItems.join('')}
+                        </div>
+                    `;
+                }
+            }
+
             return `
-                <div class="match-card" data-match-id="${match.match_id}">
+                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default;">
                     <div class="match-card-header">
                         <span class="sport-badge">${match.sport}</span>
                         ${statusBadge}
                     </div>
                     ${teamsDisplay}
-                    <div class="match-info">
-                        <span><i class="fas fa-trophy"></i> ${match.league || 'Unknown League'}</span>
+                    <div class="match-info" style="flex-direction: column; gap: 4px;">
+                        <span style="font-weight: 600; color: #d1d5db;"><i class="fas fa-trophy"></i> ${match.league || 'Unknown League'}</span>
+                        ${match.country ? `<span style="font-size: 0.85em; color: #9ca3af;"><i class="fas fa-map-marker-alt"></i> ${match.country}</span>` : ''}
                     </div>
-                    ${match.country ? `<div class="match-info"><span><i class="fas fa-globe"></i> ${match.country}</span></div>` : ''}
-                    <div class="match-info">
-                        <span><i class="fas fa-calendar"></i> ${dateStr}</span>
-                        <span><i class="fas fa-clock"></i> ${timeStr}</span>
+                    <div class="match-info" style="padding: 8px 16px; background: #14141f; border-radius: 6px; margin: 8px 0;">
+                        <span style="font-size: 0.9em;"><i class="fas fa-calendar"></i> ${dateStr}</span>
+                        <span style="font-size: 0.9em;"><i class="fas fa-clock"></i> ${timeStr}</span>
                     </div>
-                    ${isHistory && match.removed_at ? `
-                        <div class="match-info">
-                            <span style="color: #9ca3af;"><i class="fas fa-info-circle"></i> Removed: ${new Date(match.removed_at * 1000).toLocaleString()}</span>
-                        </div>
-                    ` : ''}
-                    <div class="match-footer">
+                    ${oddsDisplay}
+                    <div class="match-footer" style="margin-top: auto;">
                         <div class="bookmaker-badges">${badges.join('')}</div>
                         <div class="sources-count">
                             <i class="fas fa-database"></i> ${badges.length} ${badges.length === 1 ? 'source' : 'sources'}
@@ -2374,8 +2435,9 @@
 
         // Connect to WebSocket with retry limit
         let reconnectAttempts = 0;
-        const maxReconnectAttempts = 3;
+        const maxReconnectAttempts = 5; // Increased from 3 for better reliability
         let reconnectTimeout = null;
+        let reconnectAttempts = 0;
 
         function connect() {
             // Cancel any pending reconnection
@@ -2399,9 +2461,11 @@
                 
                 // Only show alert and reconnect if we haven't exceeded max attempts
                 if (reconnectAttempts < maxReconnectAttempts) {
-                    addAlert('warning', 'WebSocket Disconnected', `Attempting to reconnect (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
+                    // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
+                    const delay = Math.min(500 * Math.pow(2, reconnectAttempts), 10000);
+                    addAlert('warning', 'WebSocket Disconnected', `Reconnecting in ${delay/1000}s (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
                     reconnectAttempts++;
-                    reconnectTimeout = setTimeout(connect, 3000);
+                    reconnectTimeout = setTimeout(connect, delay);
                 } else {
                     // Stop trying - system is offline
                     addAlert('info', 'System Offline', 'UI is running in offline mode. Start the backend to enable real-time updates.');
@@ -2435,10 +2499,18 @@
         }
 
         function handleDataUpdate(data) {
+            console.log('🔄 handleDataUpdate called', {
+                pregame: data.pregame_matches?.length || 0,
+                live: data.live_matches?.length || 0,
+                dataKeys: Object.keys(data)
+            });
+            
             allMatches = [
                 ...(data.pregame_matches || []),
                 ...(data.live_matches || [])
             ];
+            
+            console.log('✅ allMatches updated:', allMatches.length, 'total matches');
 
             updateCount++;
             document.getElementById('updateCount').textContent = updateCount;
@@ -2493,6 +2565,7 @@
             updateStats(data);
             extractSports();
             applyFilters();
+            console.log('📊 Stats updated, filters applied, displaying matches...');
         }
 
         function updateFetchingStatus(type, isActive, isStale = false) {
@@ -2770,6 +2843,12 @@
         }
 
         function displayMatches() {
+            console.log('🖼️ displayMatches called', {
+                filteredCount: filteredMatches.length,
+                currentPage,
+                pageSize
+            });
+            
             const container = document.getElementById('matchesGrid');
             
             // Pagination
@@ -3332,29 +3411,37 @@
 
         // Auto-refresh monitoring status (lightweight check)
         setInterval(() => {
-            fetchMonitoringStatus();
-        }, 15000); // Every 15 seconds - balance between real-time and performance
+            if (document.getElementById('monitoringContent').classList.contains('show')) {
+                fetchMonitoringStatus(); // Only refresh if monitoring panel is open
+            }
+        }, 20000); // Every 20 seconds when open
 
-        // Fetch initial data via HTTP (fallback if WebSocket doesn't immediately send data)
+        // Optimized initial data loading with parallel fetches
         async function fetchInitialData() {
             try {
-                const response = await fetch('/api/matches');
-                const data = await response.json();
-                handleDataUpdate(data);
-                console.log('Initial data loaded via HTTP:', {
-                    pregame: data.pregame_matches?.length || 0,
-                    live: data.live_matches?.length || 0
-                });
+                // Start WebSocket connection immediately (don't wait for HTTP)
+                connect();
+                
+                // Fetch initial data in parallel for faster startup
+                const [matchesData] = await Promise.all([
+                    fetch('/api/matches').then(r => r.json()).catch(() => null)
+                ]);
+                
+                if (matchesData) {
+                    handleDataUpdate(matchesData);
+                    console.log('✓ Initial data loaded:', {
+                        pregame: matchesData.pregame_matches?.length || 0,
+                        live: matchesData.live_matches?.length || 0
+                    });
+                }
             } catch (error) {
                 console.error('Failed to fetch initial data:', error);
-                addAlert('warning', 'Data Load Failed', 'Could not load initial match data. Waiting for WebSocket...');
+                // Don't show error alert immediately - WebSocket may handle it
             }
         }
 
-        // Initialize
-        fetchInitialData(); // Load initial data immediately
-        connect(); // Then connect WebSocket for real-time updates
-        fetchMonitoringStatus(); // Fetch monitoring status
+        // Initialize - optimized startup sequence
+        fetchInitialData(); // Parallel load of data and WebSocket connection
     </script>
 </body>
 </html>
