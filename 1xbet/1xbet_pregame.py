@@ -522,6 +522,9 @@ class XBetCollector:
         try:
             logger.debug(f"Decompressing data, length: {len(data)}")
             
+            # Show first 200 bytes for debugging
+            logger.debug(f"First 200 bytes: {data[:200]}")
+            
             # Try zstd first (1xBet uses zstd compression)
             if HAS_ZSTD:
                 try:
@@ -552,8 +555,10 @@ class XBetCollector:
                 return result
             except Exception as je:
                 logger.debug(f"Direct JSON decode failed: {je}")
+                logger.debug(f"Raw data preview: {data[:500]}")
             
             logger.error("All decompression methods failed")
+            logger.error(f"Response preview: {data[:500]}")
             return {}
         except Exception as e:
             logger.error(f"Decompression error: {e}")
@@ -572,9 +577,13 @@ class XBetCollector:
             try:
                 logger.info(f"Fetching pregame sports list from {url}")
                 async with self.session.get(url, params=params) as response:
+                    logger.info(f"Response status: {response.status}")
+                    logger.info(f"Response headers: {dict(response.headers)}")
+                    
                     if response.status == 200:
                         # Read raw bytes and manually decompress
                         raw_data = await response.read()
+                        logger.info(f"Received {len(raw_data)} bytes")
                         data = self.decompress_response(raw_data)
                         
                         if data.get('Success') and data.get('Value'):
@@ -587,6 +596,7 @@ class XBetCollector:
                             return pregame_sports
                         else:
                             logger.error(f"API returned Success=False: {data.get('Error', 'Unknown error')}")
+                            logger.error(f"Full response data: {data}")
                     else:
                         logger.warning(f"HTTP {response.status} for sports list")
             except Exception as e:
