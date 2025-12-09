@@ -1037,6 +1037,19 @@ class UnifiedSystemRunner:
             else:
                 self.log("⏭️ 1xBet Live - DISABLED in config.json")
 
+        # Start 1xBet Futures scraper - runs once to collect long-term bets
+        xbet_futures_started = True
+        if self.enabled_scrapers.get('1xbet', False):
+            self.log("\n📊 Starting 1xBet Futures/Outrights scraper...")
+            time.sleep(2)
+            xbet_futures_started = self.start_scraper(
+                '1xbet_futures_scraper.py',
+                self.xbet_dir,
+                '1xBet Futures/Outrights'
+            )
+        else:
+            self.log("⏭️ 1xBet Futures - DISABLED in config.json")
+
         if not (fanduel_pregame_started and xbet_pregame_started and
                 bet365_live_started and fanduel_live_started and xbet_live_started):
             self.log("\n Failed to start all scrapers!")

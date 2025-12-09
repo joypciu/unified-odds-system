@@ -2153,9 +2153,35 @@
                 </div>
             `;
 
-            // Extract and display odds - prominent for futures
-            let oddsDisplay = '';
-            if (match.odds && typeof match.odds === 'object' && Object.keys(match.odds).length > 0) {
+            // Extract and display selections/odds - for futures with multiple selections
+            let oddsDisplay = '';\n            if (match.selections && match.selections.length > 0) {
+                // Display selections (teams/players) with their odds
+                const selectionsHtml = match.selections.slice(0, 8).map(sel => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #14141f; border-radius: 6px; border-left: 3px solid #3b82f6;">
+                        <span style="color: #d1d5db; font-size: 0.9em; flex: 1;">${sel.selection_name}</span>
+                        <span style="font-weight: 700; color: #3b82f6; font-size: 1.1em; min-width: 60px; text-align: right;">${sel.american_odds || sel.coefficient}</span>
+                    </div>
+                `).join('');
+                
+                const moreSelections = match.total_selections > 8 ? `
+                    <div style="text-align: center; padding: 8px; color: #9ca3af; font-size: 0.85em;">
+                        +${match.total_selections - 8} more selections available
+                    </div>
+                ` : '';
+                
+                oddsDisplay = `
+                    <div style="padding: 16px; background: #1a1a27; border: 2px solid #3b82f6; border-radius: 12px; margin: 12px 0;">
+                        <div style="font-size: 0.75em; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <span>${match.market_type || 'Selections'}</span>
+                            <span style="color: #3b82f6; font-weight: 600;">${match.total_selections} Total</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${selectionsHtml}
+                        </div>
+                        ${moreSelections}
+                    </div>
+                `;
+            } else if (match.odds && typeof match.odds === 'object' && Object.keys(match.odds).length > 0) {
                 const oddsItems = [];
                 
                 // Moneyline odds - make them prominent for futures

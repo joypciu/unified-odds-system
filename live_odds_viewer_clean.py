@@ -701,35 +701,61 @@ async def get_history():
 
 @app.get("/api/futures")
 async def get_futures():
-    """Get futures/long-term betting events"""
+    """Get futures/long-term betting events with selections"""
     try:
         futures_matches = []
         
-        # Load 1xBet futures
-        xbet_futures_file = BASE_DIR / "1xbet" / "1xbet_futures.json"
+        # Load 1xBet futures from the proper scraper output
+        xbet_futures_file = BASE_DIR / "1xbet" / "1xbet_future.json"
         if xbet_futures_file.exists():
             with open(xbet_futures_file, 'r', encoding='utf-8') as f:
                 xbet_data = json.load(f)
-                for match in xbet_data.get('data', {}).get('matches', []):
-                    # Parse odds_data if it's a string
-                    odds_data = match.get('odds_data', '{}')
-                    if isinstance(odds_data, str):
-                        try:
-                            odds_data = json.loads(odds_data)
-                        except:
-                            odds_data = {}
+                
+                # This file has events with selections
+                for event in xbet_data.get('data', {}).get('events', []):
+                    # Extract selections for display
+                    selections = event.get('selections', [])
                     
+                    # Format for UI display
                     futures_matches.append({
-                        'match_id': f"1xbet_{match.get('match_id')}",
-                        'sport': match.get('sport_name', ''),
-                        'league': match.get('league_name', ''),
-                        'home_team': match.get('team1', ''),
-                        'away_team': match.get('team2', ''),
-                        'start_time': match.get('start_time'),
-                        'country': match.get('country', ''),
-                        'odds': odds_data,
+                        'match_id': f"1xbet_{event.get('event_id')}",
+                        'sport': event.get('sport_name', 'Long-term bets'),
+                        'league': event.get('league_name', ''),
+                        'event_name': event.get('event_name', ''),
+                        'home_team': event.get('event_name', ''),  # Event name as title
+                        'away_team': '',  # Futures don't have away team
+                        'start_time': event.get('start_time'),
+                        'country': event.get('country', ''),
+                        'market_type': event.get('market_type', 'Winner'),
+                        'selections': selections[:10],  # Limit to top 10 for display
+                        'total_selections': event.get('total_selections', len(selections)),
                         'bookmakers': ['1xbet']
                     })
+        else:
+            # Fallback to old format if new file doesn't exist
+            xbet_futures_old = BASE_DIR / "1xbet" / "1xbet_futures.json"
+            if xbet_futures_old.exists():
+                with open(xbet_futures_old, 'r', encoding='utf-8') as f:
+                    xbet_data = json.load(f)
+                    for match in xbet_data.get('data', {}).get('matches', []):
+                        odds_data = match.get('odds_data', '{}')
+                        if isinstance(odds_data, str):
+                            try:
+                                odds_data = json.loads(odds_data)
+                            except:
+                                odds_data = {}
+                        
+                        futures_matches.append({
+                            'match_id': f"1xbet_{match.get('match_id')}",
+                            'sport': match.get('sport_name', ''),
+                            'league': match.get('league_name', ''),
+                            'home_team': match.get('team1', ''),
+                            'away_team': match.get('team2', ''),
+                            'start_time': match.get('start_time'),
+                            'country': match.get('country', ''),
+                            'odds': odds_data,
+                            'bookmakers': ['1xbet']
+                        })
         
         return {'matches': futures_matches, 'total': len(futures_matches)}
     except Exception as e:
