@@ -2061,6 +2061,31 @@
                 `;
             }
 
+            // Display odds if available
+            let oddsDisplay = '';
+            if (match.odds && typeof match.odds === 'object' && Object.keys(match.odds).length > 0) {
+                const odds = match.odds;
+                const oddsItems = [];
+                
+                if (odds.moneyline_home || odds.moneyline_away) {
+                    oddsItems.push(`
+                        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #14141f; border-radius: 6px;">
+                            <span style="color: #9ca3af; font-size: 0.85em;">Opening Odds</span>
+                            <span style="font-weight: 600; color: #d1d5db;">${odds.moneyline_home || 'N/A'} / ${odds.moneyline_away || 'N/A'}</span>
+                        </div>
+                    `);
+                }
+                
+                if (oddsItems.length > 0) {
+                    oddsDisplay = `
+                        <div style="padding: 12px; background: #1a1a27; border-radius: 8px; margin: 12px 0;">
+                            <div style="font-size: 0.75em; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Betting Lines</div>
+                            ${oddsItems.join('')}
+                        </div>
+                    `;
+                }
+            }
+
             return `
                 <div class="match-card" data-match-id="${match.match_id}" style="cursor: default;">
                     <div class="match-card-header">
@@ -2073,6 +2098,7 @@
                         <div class="team ${awayClass}" style="${awayClass === 'winner' ? 'color: #10b981; font-weight: 700;' : ''}">${match.away_team}</div>
                     </div>
                     ${scoreDisplay}
+                    ${oddsDisplay}
                     ${winnerBadge ? `<div style="text-align: center; margin: 8px 0;">${winnerBadge}</div>` : ''}
                     <div class="match-info" style="flex-direction: column; gap: 4px;">
                         <span style="font-weight: 600; color: #d1d5db;"><i class="fas fa-trophy"></i> ${match.league || 'Unknown League'}</span>
@@ -2112,12 +2138,12 @@
             
             // Special design for futures
             const teamsDisplay = isSingleOutcome ? `
-                <div style="padding: 24px 20px; text-align: center; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-radius: 12px; margin: 12px 0;">
+                <div style="padding: 24px 20px; text-align: center; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; margin: 12px 0;">
                     <div style="font-size: 0.75em; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Outcome</div>
                     <div style="font-size: 1.15em; font-weight: 700; color: white; line-height: 1.4;">${match.home_team}</div>
                 </div>
             ` : `
-                <div style="padding: 20px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-radius: 12px; margin: 12px 0;">
+                <div style="padding: 20px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; margin: 12px 0;">
                     <div style="font-size: 0.75em; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">Match-up</div>
                     <div style="display: flex; align-items: center; justify-content: space-around; gap: 12px;">
                         <div style="flex: 1; text-align: center; font-size: 1.05em; font-weight: 600; color: white;">${match.home_team}</div>
@@ -2140,15 +2166,15 @@
                     if (isSingleOutcome) {
                         // Large centered odds for single outcome
                         oddsDisplay = `
-                            <div style="padding: 20px; background: #1a1a27; border: 2px solid #8b5cf6; border-radius: 12px; margin: 12px 0; text-align: center;">
+                            <div style="padding: 20px; background: #1a1a27; border: 2px solid #3b82f6; border-radius: 12px; margin: 12px 0; text-align: center;">
                                 <div style="font-size: 0.75em; color: #9ca3af; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Odds</div>
-                                <div style="font-size: 2.2em; font-weight: 700; color: #8b5cf6;">${homeOdds}</div>
+                                <div style="font-size: 2.2em; font-weight: 700; color: #3b82f6;">${homeOdds}</div>
                             </div>
                         `;
                     } else {
                         // Side-by-side odds for matchup
                         oddsDisplay = `
-                            <div style="padding: 16px; background: #1a1a27; border: 2px solid #8b5cf6; border-radius: 12px; margin: 12px 0;">
+                            <div style="padding: 16px; background: #1a1a27; border: 2px solid #3b82f6; border-radius: 12px; margin: 12px 0;">
                                 <div style="font-size: 0.75em; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">Odds</div>
                                 <div style="display: flex; justify-content: space-around; align-items: center; gap: 16px;">
                                     <div style="text-align: center; flex: 1;">
@@ -2173,10 +2199,10 @@
             }
 
             return `
-                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default; border: 2px solid #8b5cf6;">
+                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default; border: 2px solid #3b82f6;">
                     <div class="match-card-header">
-                        <span class="sport-badge" style="background: #8b5cf6;">${match.sport}</span>
-                        <span class="live-indicator" style="background: #8b5cf6;"><i class="fas fa-calendar-alt"></i> Future Event</span>
+                        <span class="sport-badge" style="background: #3b82f6;">${match.sport}</span>
+                        <span class="live-indicator" style="background: #3b82f6;"><i class="fas fa-calendar-alt"></i> Future Event</span>
                     </div>
                     ${teamsDisplay}
                     ${oddsDisplay}

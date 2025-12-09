@@ -673,6 +673,14 @@ async def get_history():
             with open(xbet_history_file, 'r', encoding='utf-8') as f:
                 xbet_data = json.load(f)
                 for match in xbet_data.get('pregame', [])[:100]:  # Limit to 100 recent
+                    # Parse odds_data if it's a string
+                    odds_data = match.get('odds_data', {})
+                    if isinstance(odds_data, str):
+                        try:
+                            odds_data = json.loads(odds_data)
+                        except:
+                            odds_data = {}
+                    
                     history_matches.append({
                         'match_id': f"1xbet_{match.get('match_id')}",
                         'sport': match.get('sport_name', ''),
@@ -681,6 +689,8 @@ async def get_history():
                         'away_team': match.get('team2', ''),
                         'start_time': match.get('start_time'),
                         'removed_at': match.get('removed_at'),
+                        'odds': odds_data,
+                        'country': match.get('country', ''),
                         'bookmakers': ['1xbet']
                     })
         
