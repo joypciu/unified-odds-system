@@ -2657,37 +2657,37 @@
             lastUpdateTime = Date.now();
 
             // Track pregame and live updates separately
-            const now = Date.now();
+            const nowTimestamp = Date.now();
             const hasNewPregame = (data.pregame_matches || []).length > 0;
             const hasNewLive = (data.live_matches || []).length > 0;
 
             // Update pregame fetching status
             if (hasNewPregame) {
-                lastPregameUpdate = now;
+                lastPregameUpdate = nowTimestamp;
                 updateFetchingStatus('pregame', true);
             } else {
                 // Check if data is stale
-                const pregameStale = lastPregameUpdate && (now - lastPregameUpdate > 60000); // 1 min
+                const pregameStale = lastPregameUpdate && (nowTimestamp - lastPregameUpdate > 60000); // 1 min
                 updateFetchingStatus('pregame', false, pregameStale);
             }
 
             // Update live fetching status
             if (hasNewLive) {
-                lastLiveUpdate = now;
+                lastLiveUpdate = nowTimestamp;
                 updateFetchingStatus('live', true);
             } else {
                 // Check if data is stale
-                const liveStale = lastLiveUpdate && (now - lastLiveUpdate > 60000); // 1 min
+                const liveStale = lastLiveUpdate && (nowTimestamp - lastLiveUpdate > 60000); // 1 min
                 updateFetchingStatus('live', false, liveStale);
             }
 
             // Throttle alerts - only show data quality issues every 5 minutes
-            const timeSinceLastAlert = now - (window.lastDataQualityAlert || 0);
+            const timeSinceLastAlert = nowTimestamp - (window.lastDataQualityAlert || 0);
             if (timeSinceLastAlert > 300000) { // 5 minutes
                 // Check for data quality issues
                 if (allMatches.length === 0 && updateCount > 5) {
                     addAlert('warning', 'No Matches Available', 'All data sources are returning empty results');
-                    window.lastDataQualityAlert = now;
+                    window.lastDataQualityAlert = nowTimestamp;
                 }
 
                 // Check if any matches have missing odds
@@ -2698,7 +2698,7 @@
 
                 if (matchesWithIssues.length > 0 && updateCount > 3) {
                     addAlert('warning', 'Data Quality Issue', `${matchesWithIssues.length} matches have no odds from any source`);
-                    window.lastDataQualityAlert = now;
+                    window.lastDataQualityAlert = nowTimestamp;
                 }
             }
 
