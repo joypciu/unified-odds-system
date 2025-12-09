@@ -1972,6 +1972,58 @@
                 });
         }
 
+        // Create Match Card for History and Futures
+        function createMatchCard(match, isHistory = false) {
+            const badges = [];
+            if (match.bookmakers) {
+                match.bookmakers.forEach(bm => {
+                    if (bm === 'bet365') badges.push('<span class="badge bet365">Bet365</span>');
+                    if (bm === 'fanduel') badges.push('<span class="badge fanduel">FanDuel</span>');
+                    if (bm === '1xbet') badges.push('<span class="badge xbet">1xBet</span>');
+                });
+            }
+
+            const startTime = match.start_time ? new Date(match.start_time * 1000) : null;
+            const dateStr = startTime ? startTime.toLocaleDateString() : 'TBD';
+            const timeStr = startTime ? startTime.toLocaleTimeString() : 'TBD';
+            
+            const statusBadge = isHistory 
+                ? '<span class="live-indicator" style="background: #6b7280;"><i class="fas fa-check"></i> Completed</span>'
+                : '<span class="live-indicator" style="background: #8b5cf6;"><i class="fas fa-calendar-alt"></i> Future</span>';
+
+            return `
+                <div class="match-card" data-match-id="${match.match_id}">
+                    <div class="match-card-header">
+                        <span class="sport-badge">${match.sport}</span>
+                        ${statusBadge}
+                    </div>
+                    <div class="match-teams">
+                        <div class="team">${match.home_team}</div>
+                        <div class="vs-divider">VS</div>
+                        <div class="team">${match.away_team}</div>
+                    </div>
+                    <div class="match-info">
+                        <span><i class="fas fa-trophy"></i> ${match.league || 'Unknown League'}</span>
+                    </div>
+                    <div class="match-info">
+                        <span><i class="fas fa-calendar"></i> ${dateStr}</span>
+                        <span><i class="fas fa-clock"></i> ${timeStr}</span>
+                    </div>
+                    ${isHistory && match.removed_at ? `
+                        <div class="match-info">
+                            <span style="color: #9ca3af;"><i class="fas fa-info-circle"></i> Removed: ${new Date(match.removed_at * 1000).toLocaleString()}</span>
+                        </div>
+                    ` : ''}
+                    <div class="match-footer">
+                        <div class="bookmaker-badges">${badges.join('')}</div>
+                        <div class="sources-count">
+                            <i class="fas fa-database"></i> ${badges.length} ${badges.length === 1 ? 'source' : 'sources'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         // Render History Matches
         function renderHistoryMatches() {
             const grid = document.getElementById('historyGrid');
