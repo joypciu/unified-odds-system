@@ -701,6 +701,14 @@ async def get_futures():
             with open(xbet_futures_file, 'r', encoding='utf-8') as f:
                 xbet_data = json.load(f)
                 for match in xbet_data.get('data', {}).get('matches', []):
+                    # Parse odds_data if it's a string
+                    odds_data = match.get('odds_data', '{}')
+                    if isinstance(odds_data, str):
+                        try:
+                            odds_data = json.loads(odds_data)
+                        except:
+                            odds_data = {}
+                    
                     futures_matches.append({
                         'match_id': f"1xbet_{match.get('match_id')}",
                         'sport': match.get('sport_name', ''),
@@ -709,7 +717,7 @@ async def get_futures():
                         'away_team': match.get('team2', ''),
                         'start_time': match.get('start_time'),
                         'country': match.get('country', ''),
-                        'odds': match.get('odds_data', {}),
+                        'odds': odds_data,
                         'bookmakers': ['1xbet']
                     })
         

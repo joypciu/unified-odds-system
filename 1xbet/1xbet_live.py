@@ -68,11 +68,22 @@ class LiveCollector:
             await self.session.close()
     
     def decompress(self, data: bytes) -> Dict:
-        """Decompress VZip response with zstd support"""
+        """Decompress VZip response with gzip/zstd support"""
         try:
             logger.debug(f"Decompressing data, length: {len(data)}, first 20 bytes: {data[:20]}")
             
-            # Try zstd first (1xBet uses zstd compression)
+            # Check for gzip magic number (1f 8b) - 1xBet API returns gzip compressed data
+            if len(data) >= 2 and data[0] == 0x1f and data[1] == 0x8b:
+                try:
+                    # Use zlib with gzip header (MAX_WBITS | 16)
+                    decompressed = zlib.decompress(data, zlib.MAX_WBITS | 16)
+                    result = json.loads(decompressed.decode('utf-8'))
+                    logger.info("✓ Successfully decompressed with gzip")
+                    return result
+                except Exception as ge:
+                    logger.debug(f"gzip decompression failed: {ge}")
+            
+            # Try zstd (in case API changes back)
             if HAS_ZSTD:
                 try:
                     dctx = zstandard.ZstdDecompressor()
@@ -87,9 +98,9 @@ class LiveCollector:
                 except Exception as ze:
                     logger.debug(f"zstd decompression failed: {ze}")
             else:
-                logger.warning("zstandard not available")
+                logger.debug("zstandard not available")
             
-            # Fallback to zlib
+            # Fallback to raw zlib
             try:
                 decompressed = zlib.decompress(data)
                 result = json.loads(decompressed.decode('utf-8'))
