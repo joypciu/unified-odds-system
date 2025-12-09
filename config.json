@@ -1,7 +1,7 @@
 {
   "enabled_scrapers": {
     "1xbet": true,
-    "fanduel": true,
+    "fanduel": false,
     "bet365": false
   },
   "email": {
