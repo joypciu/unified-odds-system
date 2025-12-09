@@ -518,14 +518,21 @@ class XBetCollector:
             await self.session.close()
     
     def decompress_response(self, data: bytes) -> Dict:
-        """Decompress VZip response with zstd support"""
+        """Decompress VZip response with support for gzip, zstd, and zlib"""
         try:
             logger.debug(f"Decompressing data, length: {len(data)}")
             
-            # Show first 200 bytes for debugging
-            logger.debug(f"First 200 bytes: {data[:200]}")
+            # Check for gzip magic number (1f 8b)
+            if len(data) >= 2 and data[0] == 0x1f and data[1] == 0x8b:
+                try:
+                    decompressed = zlib.decompress(data, zlib.MAX_WBITS | 16)  # 16 for gzip
+                    result = json.loads(decompressed.decode('utf-8'))
+                    logger.debug("✓ Successfully decompressed with gzip")
+                    return result
+                except Exception as ge:
+                    logger.debug(f"gzip decompression failed: {ge}")
             
-            # Try zstd first (1xBet uses zstd compression)
+            # Try zstd (1xBet sometimes uses zstd compression)
             if HAS_ZSTD:
                 try:
                     dctx = zstandard.ZstdDecompressor()
@@ -539,7 +546,7 @@ class XBetCollector:
                 except Exception as ze:
                     logger.debug(f"zstd decompression failed: {ze}")
             
-            # Fallback to zlib
+            # Fallback to zlib (raw deflate)
             try:
                 decompressed = zlib.decompress(data)
                 result = json.loads(decompressed.decode('utf-8'))
@@ -555,10 +562,8 @@ class XBetCollector:
                 return result
             except Exception as je:
                 logger.debug(f"Direct JSON decode failed: {je}")
-                logger.debug(f"Raw data preview: {data[:500]}")
             
             logger.error("All decompression methods failed")
-            logger.error(f"Response preview: {data[:500]}")
             return {}
         except Exception as e:
             logger.error(f"Decompression error: {e}")
@@ -577,13 +582,9 @@ class XBetCollector:
             try:
                 logger.info(f"Fetching pregame sports list from {url}")
                 async with self.session.get(url, params=params) as response:
-                    logger.info(f"Response status: {response.status}")
-                    logger.info(f"Response headers: {dict(response.headers)}")
-                    
                     if response.status == 200:
                         # Read raw bytes and manually decompress
                         raw_data = await response.read()
-                        logger.info(f"Received {len(raw_data)} bytes")
                         data = self.decompress_response(raw_data)
                         
                         if data.get('Success') and data.get('Value'):
@@ -596,7 +597,6 @@ class XBetCollector:
                             return pregame_sports
                         else:
                             logger.error(f"API returned Success=False: {data.get('Error', 'Unknown error')}")
-                            logger.error(f"Full response data: {data}")
                     else:
                         logger.warning(f"HTTP {response.status} for sports list")
             except Exception as e:
