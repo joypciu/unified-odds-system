@@ -1163,7 +1163,8 @@ class UnifiedSystemRunner:
                 xbet_pregame_started = self.start_scraper(
                     '1xbet_pregame.py',
                     self.xbet_dir,
-                    '1xBet Pregame'
+                    '1xBet Pregame',
+                    args=['--monitor']  # Add --monitor flag for continuous collection
                 )
             else:
                 self.log("⏭️ 1xBet Pregame - DISABLED in config.json")
@@ -1345,7 +1346,8 @@ class UnifiedSystemRunner:
                 xbet_pregame_started = self.start_scraper(
                     '1xbet_pregame.py',
                     self.xbet_dir,
-                    '1xBet Pregame'
+                    '1xBet Pregame',
+                    args=['--monitor']  # Add --monitor flag for continuous collection
                 )
                 time.sleep(2)
             else:
