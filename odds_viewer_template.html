@@ -183,6 +183,59 @@
 
         .clear-btn:hover { background: #dc2626; transform: scale(1.02); }
 
+        /* Tab Navigation */
+        .tab-navigation {
+            background: #14141f;
+            border: 1px solid #1f1f2e;
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab-btn:hover {
+            background: #1a1a27;
+            color: #3b82f6;
+        }
+
+        .tab-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .tab-btn i {
+            font-size: 16px;
+        }
+
+        /* Tab Content Sections */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .filters-wrapper {
             display: flex;
             flex-direction: column;
@@ -1506,6 +1559,19 @@
             </div>
         </div>
 
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTab('current')" id="tab-current">
+                <i class="fas fa-futbol"></i> Current Matches
+            </button>
+            <button class="tab-btn" onclick="switchTab('history')" id="tab-history">
+                <i class="fas fa-history"></i> Match History
+            </button>
+            <button class="tab-btn" onclick="switchTab('futures')" id="tab-futures">
+                <i class="fas fa-calendar-alt"></i> Futures & Long-term
+            </button>
+        </div>
+
         <!-- Search and Filters -->
         <div class="controls">
             <div class="search-bar">
@@ -1598,20 +1664,22 @@
             <div class="last-update" id="lastUpdate">Last update: --</div>
         </div>
 
-        <!-- Matches Grid -->
-        <div class="matches-grid" id="matchesGrid">
-            <div class="no-data">
-                <i class="fas fa-clock"></i>
-                <h3>Waiting for data...</h3>
-                <p>Monitoring odds files for updates</p>
+        <!-- Tab Content: Current Matches -->
+        <div class="tab-content active" id="content-current">
+            <!-- Matches Grid -->
+            <div class="matches-grid" id="matchesGrid">
+                <div class="no-data">
+                    <i class="fas fa-clock"></i>
+                    <h3>Waiting for data...</h3>
+                    <p>Monitoring odds files for updates</p>
+                </div>
             </div>
-        </div>
 
-        <!-- Pagination -->
-        <div class="pagination-wrapper" id="paginationWrapper" style="display: none;">
-            <div class="pagination-info">
-                Showing <strong id="pageStart">0</strong> to <strong id="pageEnd">0</strong> of <strong id="pageTotal">0</strong> matches
-            </div>
+            <!-- Pagination -->
+            <div class="pagination-wrapper" id="paginationWrapper" style="display: none;">
+                <div class="pagination-info">
+                    Showing <strong id="pageStart">0</strong> to <strong id="pageEnd">0</strong> of <strong id="pageTotal">0</strong> matches
+                </div>
             <div class="pagination-controls">
                 <button class="page-btn" id="prevPage" onclick="changePage(-1)">
                     <i class="fas fa-chevron-left"></i>
@@ -1630,6 +1698,93 @@
                     <option value="48">48</option>
                     <option value="999999">All</option>
                 </select>
+            </div>
+        </div>
+        </div>
+
+        <!-- Tab Content: Match History -->
+        <div class="tab-content" id="content-history">
+            <div class="matches-grid" id="historyGrid">
+                <div class="no-data">
+                    <i class="fas fa-history"></i>
+                    <h3>Loading match history...</h3>
+                    <p>Fetching completed matches from all bookmakers</p>
+                </div>
+            </div>
+            
+            <!-- History Pagination -->
+            <div class="pagination-wrapper" id="historyPaginationWrapper" style="display: none;">
+                <div class="pagination-info">
+                    Showing <strong id="historyPageStart">0</strong> to <strong id="historyPageEnd">0</strong> of <strong id="historyPageTotal">0</strong> matches
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn" id="historyFirstPage" onclick="goToHistoryPage(1)" disabled>
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="page-btn" id="historyPrevPage" onclick="changeHistoryPage(-1)" disabled>
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <div class="page-numbers" id="historyPageNumbers"></div>
+                    <button class="page-btn" id="historyNextPage" onclick="changeHistoryPage(1)">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="page-btn" id="historyLastPage" onclick="goToHistoryLastPage()">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+                <div class="page-size-selector">
+                    <span style="font-size: 13px; color: #9ca3af;">Per page:</span>
+                    <select class="page-size-select" id="historyPageSize" onchange="changeHistoryPageSize()">
+                        <option value="12">12</option>
+                        <option value="24" selected>24</option>
+                        <option value="36">36</option>
+                        <option value="48">48</option>
+                        <option value="999999">All</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Futures & Long-term -->
+        <div class="tab-content" id="content-futures">
+            <div class="matches-grid" id="futuresGrid">
+                <div class="no-data">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Loading futures & long-term bets...</h3>
+                    <p>Fetching future events from all bookmakers</p>
+                </div>
+            </div>
+            
+            <!-- Futures Pagination -->
+            <div class="pagination-wrapper" id="futuresPaginationWrapper" style="display: none;">
+                <div class="pagination-info">
+                    Showing <strong id="futuresPageStart">0</strong> to <strong id="futuresPageEnd">0</strong> of <strong id="futuresPageTotal">0</strong> matches
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn" id="futuresFirstPage" onclick="goToFuturesPage(1)" disabled>
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="page-btn" id="futuresPrevPage" onclick="changeFuturesPage(-1)" disabled>
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <div class="page-numbers" id="futuresPageNumbers"></div>
+                    <button class="page-btn" id="futuresNextPage" onclick="changeFuturesPage(1)">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="page-btn" id="futuresLastPage" onclick="goToFuturesLastPage()">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+                <div class="page-size-selector">
+                    <span style="font-size: 13px; color: #9ca3af;">Per page:</span>
+                    <select class="page-size-select" id="futuresPageSize" onchange="changeFuturesPageSize()">
+                        <option value="12">12</option>
+                        <option value="24" selected>24</option>
+                        <option value="36">36</option>
+                        <option value="48">48</option>
+                        <option value="999999">All</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -1727,6 +1882,8 @@
     <script>
         let ws = null;
         let allMatches = [];
+        let historyMatches = [];
+        let futuresMatches = [];
         let filteredMatches = [];
         let currentSourceFilter = 'all';
         let currentSportFilter = 'all';
@@ -1734,11 +1891,224 @@
         let searchQuery = '';
         let availableSports = new Set();
         let lastDataString = '';
+        let currentTab = 'current';
         
         // Pagination
         let currentPage = 1;
         let pageSize = 24;
         let totalPages = 1;
+
+        // History Pagination
+        let historyCurrentPage = 1;
+        let historyPageSize = 24;
+        let historyTotalPages = 1;
+
+        // Futures Pagination
+        let futuresCurrentPage = 1;
+        let futuresPageSize = 24;
+        let futuresTotalPages = 1;
+
+        // Tab Switching
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + tabName).classList.add('active');
+            
+            // Load data for the selected tab
+            if (tabName === 'history') {
+                loadHistoryData();
+            } else if (tabName === 'futures') {
+                loadFuturesData();
+            }
+        }
+
+        // Load History Data
+        function loadHistoryData() {
+            fetch('/api/history')
+                .then(response => response.json())
+                .then(data => {
+                    historyMatches = data.matches || [];
+                    renderHistoryMatches();
+                })
+                .catch(error => {
+                    console.error('Error loading history:', error);
+                    document.getElementById('historyGrid').innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Error loading history</h3>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        // Load Futures Data
+        function loadFuturesData() {
+            fetch('/api/futures')
+                .then(response => response.json())
+                .then(data => {
+                    futuresMatches = data.matches || [];
+                    renderFuturesMatches();
+                })
+                .catch(error => {
+                    console.error('Error loading futures:', error);
+                    document.getElementById('futuresGrid').innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Error loading futures</h3>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        // Render History Matches
+        function renderHistoryMatches() {
+            const grid = document.getElementById('historyGrid');
+            
+            if (historyMatches.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-history"></i>
+                        <h3>No match history available</h3>
+                        <p>Completed matches will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Apply pagination
+            historyTotalPages = Math.ceil(historyMatches.length / historyPageSize);
+            const start = (historyCurrentPage - 1) * historyPageSize;
+            const end = Math.min(start + historyPageSize, historyMatches.length);
+            const paginatedMatches = historyMatches.slice(start, end);
+
+            grid.innerHTML = paginatedMatches.map(match => createMatchCard(match, true)).join('');
+            
+            updateHistoryPagination();
+        }
+
+        // Render Futures Matches
+        function renderFuturesMatches() {
+            const grid = document.getElementById('futuresGrid');
+            
+            if (futuresMatches.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>No futures available</h3>
+                        <p>Long-term bets will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Apply pagination
+            futuresTotalPages = Math.ceil(futuresMatches.length / futuresPageSize);
+            const start = (futuresCurrentPage - 1) * futuresPageSize;
+            const end = Math.min(start + futuresPageSize, futuresMatches.length);
+            const paginatedMatches = futuresMatches.slice(start, end);
+
+            grid.innerHTML = paginatedMatches.map(match => createMatchCard(match, false)).join('');
+            
+            updateFuturesPagination();
+        }
+
+        // History Pagination Functions
+        function updateHistoryPagination() {
+            const wrapper = document.getElementById('historyPaginationWrapper');
+            if (historyMatches.length === 0) {
+                wrapper.style.display = 'none';
+                return;
+            }
+            
+            wrapper.style.display = 'flex';
+            const start = (historyCurrentPage - 1) * historyPageSize + 1;
+            const end = Math.min(historyCurrentPage * historyPageSize, historyMatches.length);
+            
+            document.getElementById('historyPageStart').textContent = start;
+            document.getElementById('historyPageEnd').textContent = end;
+            document.getElementById('historyPageTotal').textContent = historyMatches.length;
+            
+            document.getElementById('historyFirstPage').disabled = historyCurrentPage === 1;
+            document.getElementById('historyPrevPage').disabled = historyCurrentPage === 1;
+            document.getElementById('historyNextPage').disabled = historyCurrentPage === historyTotalPages;
+            document.getElementById('historyLastPage').disabled = historyCurrentPage === historyTotalPages;
+        }
+
+        function changeHistoryPage(delta) {
+            historyCurrentPage = Math.max(1, Math.min(historyTotalPages, historyCurrentPage + delta));
+            renderHistoryMatches();
+        }
+
+        function goToHistoryPage(page) {
+            historyCurrentPage = page;
+            renderHistoryMatches();
+        }
+
+        function goToHistoryLastPage() {
+            historyCurrentPage = historyTotalPages;
+            renderHistoryMatches();
+        }
+
+        function changeHistoryPageSize() {
+            historyPageSize = parseInt(document.getElementById('historyPageSize').value);
+            historyCurrentPage = 1;
+            renderHistoryMatches();
+        }
+
+        // Futures Pagination Functions
+        function updateFuturesPagination() {
+            const wrapper = document.getElementById('futuresPaginationWrapper');
+            if (futuresMatches.length === 0) {
+                wrapper.style.display = 'none';
+                return;
+            }
+            
+            wrapper.style.display = 'flex';
+            const start = (futuresCurrentPage - 1) * futuresPageSize + 1;
+            const end = Math.min(futuresCurrentPage * futuresPageSize, futuresMatches.length);
+            
+            document.getElementById('futuresPageStart').textContent = start;
+            document.getElementById('futuresPageEnd').textContent = end;
+            document.getElementById('futuresPageTotal').textContent = futuresMatches.length;
+            
+            document.getElementById('futuresFirstPage').disabled = futuresCurrentPage === 1;
+            document.getElementById('futuresPrevPage').disabled = futuresCurrentPage === 1;
+            document.getElementById('futuresNextPage').disabled = futuresCurrentPage === futuresTotalPages;
+            document.getElementById('futuresLastPage').disabled = futuresCurrentPage === futuresTotalPages;
+        }
+
+        function changeFuturesPage(delta) {
+            futuresCurrentPage = Math.max(1, Math.min(futuresTotalPages, futuresCurrentPage + delta));
+            renderFuturesMatches();
+        }
+
+        function goToFuturesPage(page) {
+            futuresCurrentPage = page;
+            renderFuturesMatches();
+        }
+
+        function goToFuturesLastPage() {
+            futuresCurrentPage = futuresTotalPages;
+            renderFuturesMatches();
+        }
+
+        function changeFuturesPageSize() {
+            futuresPageSize = parseInt(document.getElementById('futuresPageSize').value);
+            futuresCurrentPage = 1;
+            renderFuturesMatches();
+        }
 
         // Monitoring System
         let monitoringEnabled = true;
