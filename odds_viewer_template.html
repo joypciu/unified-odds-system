@@ -1985,8 +1985,8 @@
                 });
         }
 
-        // Create Match Card for History and Futures - Optimized with odds display
-        function createMatchCard(match, isHistory = false) {
+        // Create History Match Card with Winner Badge
+        function createHistoryCard(match) {
             const badges = [];
             if (match.bookmakers) {
                 match.bookmakers.forEach(bm => {
@@ -2000,9 +2000,9 @@
             const dateStr = startTime ? startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
             const timeStr = startTime ? startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'TBD';
             
-            // Time ago for history
+            // Time ago
             let timeAgo = '';
-            if (isHistory && match.removed_at) {
+            if (match.removed_at) {
                 const removedTime = new Date(match.removed_at * 1000);
                 const diffMs = Date.now() - removedTime;
                 const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -2016,67 +2016,64 @@
                 }
             }
             
-            const statusBadge = isHistory 
-                ? `<span class="live-indicator" style="background: #6b7280;"><i class="fas fa-check"></i> Ended ${timeAgo}</span>`
-                : '<span class="live-indicator" style="background: #8b5cf6;"><i class="fas fa-calendar-alt"></i> Upcoming</span>';
+            // Determine winner based on final_score
+            let winnerBadge = '';
+            let homeClass = '';
+            let awayClass = '';
+            if (match.final_score) {
+                const homeScore = parseFloat(match.final_score.home_score) || 0;
+                const awayScore = parseFloat(match.final_score.away_score) || 0;
+                if (homeScore > awayScore) {
+                    homeClass = 'winner';
+                    winnerBadge = '<span class="winner-badge" style="background: #10b981; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: 700;"><i class="fas fa-crown"></i> HOME WON</span>';
+                } else if (awayScore > homeScore) {
+                    awayClass = 'winner';
+                    winnerBadge = '<span class="winner-badge" style="background: #10b981; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: 700;"><i class="fas fa-crown"></i> AWAY WON</span>';
+                } else if (homeScore === awayScore && homeScore > 0) {
+                    winnerBadge = '<span class="winner-badge" style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: 700;"><i class="fas fa-handshake"></i> DRAW</span>';
+                }
+            }
 
-            // Handle futures/long-term bets that don't have away_team
-            const isSingleOutcome = !match.away_team || match.away_team.trim() === '';
-            const teamsDisplay = isSingleOutcome ? `
-                <div class="match-teams" style="justify-content: center; padding: 16px 20px;">
-                    <div class="team" style="text-align: center; font-size: 1.05em; font-weight: 600; color: #f3f4f6;">${match.home_team}</div>
-                </div>
-            ` : `
-                <div class="match-teams">
-                    <div class="team">${match.home_team}</div>
-                    <div class="vs-divider">VS</div>
-                    <div class="team">${match.away_team}</div>
-                </div>
-            `;
-
-            // Extract and display odds if available
-            let oddsDisplay = '';
-            if (match.odds && typeof match.odds === 'object' && Object.keys(match.odds).length > 0) {
-                const oddsItems = [];
+            // Format final score for display (including cricket format)
+            let scoreDisplay = '';
+            if (match.final_score) {
+                const sport = match.sport?.toLowerCase() || '';
+                let homeScore = match.final_score.home_score || '0';
+                let awayScore = match.final_score.away_score || '0';
                 
-                // Moneyline odds
-                if (match.odds.moneyline_home || match.odds.moneyline_away) {
-                    const homeOdds = match.odds.moneyline_home || 'N/A';
-                    const awayOdds = match.odds.moneyline_away || 'N/A';
-                    const drawOdds = match.odds.moneyline_draw;
-                    if (isSingleOutcome) {
-                        oddsItems.push(`<div style="display: flex; align-items: center; gap: 4px;"><span style="color: #9ca3af; font-size: 0.8em;">Odds:</span><span style="font-weight: 600; color: #10b981;">${homeOdds}</span></div>`);
-                    } else {
-                        oddsItems.push(`<div style="display: flex; gap: 8px;"><span style="color: #9ca3af; font-size: 0.8em;">ML:</span><span style="font-weight: 600; color: #10b981;">${homeOdds}</span>${drawOdds ? `<span style="color: #f59e0b;">${drawOdds}</span>` : ''}<span style="font-weight: 600; color: #ef4444;">${awayOdds}</span></div>`);
-                    }
+                // Cricket format: runs/wickets
+                if (sport.includes('cricket')) {
+                    const homeWickets = match.final_score.home_wickets !== undefined ? match.final_score.home_wickets : '';
+                    const awayWickets = match.final_score.away_wickets !== undefined ? match.final_score.away_wickets : '';
+                    homeScore = homeWickets !== '' ? `${homeScore}/${homeWickets}` : homeScore;
+                    awayScore = awayWickets !== '' ? `${awayScore}/${awayWickets}` : awayScore;
                 }
                 
-                // Spread odds
-                if (match.odds.spread_home || match.odds.spread_away) {
-                    oddsItems.push(`<div style="display: flex; align-items: center; gap: 4px;"><span style="color: #9ca3af; font-size: 0.8em;">Spread:</span><span style="font-size: 0.9em;">${match.odds.spread_home || match.odds.spread_away || 'N/A'}</span></div>`);
-                }
-                
-                // Total odds
-                if (match.odds.total_over || match.odds.total_under) {
-                    oddsItems.push(`<div style="display: flex; align-items: center; gap: 4px;"><span style="color: #9ca3af; font-size: 0.8em;">Total:</span><span style="font-size: 0.9em;">${match.odds.total_over || match.odds.total_under || 'N/A'}</span></div>`);
-                }
-                
-                if (oddsItems.length > 0) {
-                    oddsDisplay = `
-                        <div style="padding: 8px 16px; background: #1a1a27; border-radius: 6px; margin: 8px 0; display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.85em;">
-                            ${oddsItems.join('')}
+                scoreDisplay = `
+                    <div style="padding: 16px; background: #1a1a27; border-radius: 8px; margin: 12px 0; text-align: center;">
+                        <div style="font-size: 0.75em; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Final Score</div>
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 16px; font-size: 1.8em; font-weight: 700;">
+                            <span class="${homeClass}" style="${homeClass === 'winner' ? 'color: #10b981;' : 'color: #9ca3af;'}">${homeScore}</span>
+                            <span style="color: #4b5563; font-size: 0.6em;">-</span>
+                            <span class="${awayClass}" style="${awayClass === 'winner' ? 'color: #10b981;' : 'color: #9ca3af;'}">${awayScore}</span>
                         </div>
-                    `;
-                }
+                    </div>
+                `;
             }
 
             return `
                 <div class="match-card" data-match-id="${match.match_id}" style="cursor: default;">
                     <div class="match-card-header">
                         <span class="sport-badge">${match.sport}</span>
-                        ${statusBadge}
+                        <span class="live-indicator" style="background: #6b7280;"><i class="fas fa-check"></i> Ended ${timeAgo}</span>
                     </div>
-                    ${teamsDisplay}
+                    <div class="match-teams">
+                        <div class="team ${homeClass}" style="${homeClass === 'winner' ? 'color: #10b981; font-weight: 700;' : ''}">${match.home_team}</div>
+                        <div class="vs-divider">VS</div>
+                        <div class="team ${awayClass}" style="${awayClass === 'winner' ? 'color: #10b981; font-weight: 700;' : ''}">${match.away_team}</div>
+                    </div>
+                    ${scoreDisplay}
+                    ${winnerBadge ? `<div style="text-align: center; margin: 8px 0;">${winnerBadge}</div>` : ''}
                     <div class="match-info" style="flex-direction: column; gap: 4px;">
                         <span style="font-weight: 600; color: #d1d5db;"><i class="fas fa-trophy"></i> ${match.league || 'Unknown League'}</span>
                         ${match.country ? `<span style="font-size: 0.85em; color: #9ca3af;"><i class="fas fa-map-marker-alt"></i> ${match.country}</span>` : ''}
@@ -2085,7 +2082,112 @@
                         <span style="font-size: 0.9em;"><i class="fas fa-calendar"></i> ${dateStr}</span>
                         <span style="font-size: 0.9em;"><i class="fas fa-clock"></i> ${timeStr}</span>
                     </div>
+                    <div class="match-footer" style="margin-top: auto;">
+                        <div class="bookmaker-badges">${badges.join('')}</div>
+                        <div class="sources-count">
+                            <i class="fas fa-database"></i> ${badges.length} ${badges.length === 1 ? 'source' : 'sources'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Create Futures Match Card with Special Design
+        function createFuturesCard(match) {
+            const badges = [];
+            if (match.bookmakers) {
+                match.bookmakers.forEach(bm => {
+                    if (bm === 'bet365') badges.push('<span class="badge bet365">Bet365</span>');
+                    if (bm === 'fanduel') badges.push('<span class="badge fanduel">FanDuel</span>');
+                    if (bm === '1xbet') badges.push('<span class="badge xbet">1xBet</span>');
+                });
+            }
+
+            const startTime = match.start_time ? new Date(match.start_time * 1000) : null;
+            const dateStr = startTime ? startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
+            const timeStr = startTime ? startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'TBD';
+
+            // Handle futures/long-term bets that don't have away_team (single outcome bets)
+            const isSingleOutcome = !match.away_team || match.away_team.trim() === '';
+            
+            // Special design for futures
+            const teamsDisplay = isSingleOutcome ? `
+                <div style="padding: 24px 20px; text-align: center; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-radius: 12px; margin: 12px 0;">
+                    <div style="font-size: 0.75em; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Outcome</div>
+                    <div style="font-size: 1.15em; font-weight: 700; color: white; line-height: 1.4;">${match.home_team}</div>
+                </div>
+            ` : `
+                <div style="padding: 20px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-radius: 12px; margin: 12px 0;">
+                    <div style="font-size: 0.75em; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">Match-up</div>
+                    <div style="display: flex; align-items: center; justify-content: space-around; gap: 12px;">
+                        <div style="flex: 1; text-align: center; font-size: 1.05em; font-weight: 600; color: white;">${match.home_team}</div>
+                        <div style="color: rgba(255,255,255,0.6); font-size: 0.9em; font-weight: 700;">VS</div>
+                        <div style="flex: 1; text-align: center; font-size: 1.05em; font-weight: 600; color: white;">${match.away_team}</div>
+                    </div>
+                </div>
+            `;
+
+            // Extract and display odds - prominent for futures
+            let oddsDisplay = '';
+            if (match.odds && typeof match.odds === 'object' && Object.keys(match.odds).length > 0) {
+                const oddsItems = [];
+                
+                // Moneyline odds - make them prominent for futures
+                if (match.odds.moneyline_home || match.odds.moneyline_away) {
+                    const homeOdds = match.odds.moneyline_home || 'N/A';
+                    const awayOdds = match.odds.moneyline_away || 'N/A';
+                    const drawOdds = match.odds.moneyline_draw;
+                    if (isSingleOutcome) {
+                        // Large centered odds for single outcome
+                        oddsDisplay = `
+                            <div style="padding: 20px; background: #1a1a27; border: 2px solid #8b5cf6; border-radius: 12px; margin: 12px 0; text-align: center;">
+                                <div style="font-size: 0.75em; color: #9ca3af; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Odds</div>
+                                <div style="font-size: 2.2em; font-weight: 700; color: #8b5cf6;">${homeOdds}</div>
+                            </div>
+                        `;
+                    } else {
+                        // Side-by-side odds for matchup
+                        oddsDisplay = `
+                            <div style="padding: 16px; background: #1a1a27; border: 2px solid #8b5cf6; border-radius: 12px; margin: 12px 0;">
+                                <div style="font-size: 0.75em; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">Odds</div>
+                                <div style="display: flex; justify-content: space-around; align-items: center; gap: 16px;">
+                                    <div style="text-align: center; flex: 1;">
+                                        <div style="font-size: 0.75em; color: #9ca3af; margin-bottom: 4px;">Home</div>
+                                        <div style="font-size: 1.6em; font-weight: 700; color: #10b981;">${homeOdds}</div>
+                                    </div>
+                                    ${drawOdds ? `
+                                        <div style="text-align: center; flex: 1;">
+                                            <div style="font-size: 0.75em; color: #9ca3af; margin-bottom: 4px;">Draw</div>
+                                            <div style="font-size: 1.6em; font-weight: 700; color: #f59e0b;">${drawOdds}</div>
+                                        </div>
+                                    ` : ''}
+                                    <div style="text-align: center; flex: 1;">
+                                        <div style="font-size: 0.75em; color: #9ca3af; margin-bottom: 4px;">Away</div>
+                                        <div style="font-size: 1.6em; font-weight: 700; color: #ef4444;">${awayOdds}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            return `
+                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default; border: 2px solid #8b5cf6;">
+                    <div class="match-card-header">
+                        <span class="sport-badge" style="background: #8b5cf6;">${match.sport}</span>
+                        <span class="live-indicator" style="background: #8b5cf6;"><i class="fas fa-calendar-alt"></i> Future Event</span>
+                    </div>
+                    ${teamsDisplay}
                     ${oddsDisplay}
+                    <div class="match-info" style="flex-direction: column; gap: 4px;">
+                        <span style="font-weight: 600; color: #d1d5db;"><i class="fas fa-trophy"></i> ${match.league || 'Unknown League'}</span>
+                        ${match.country ? `<span style="font-size: 0.85em; color: #9ca3af;"><i class="fas fa-map-marker-alt"></i> ${match.country}</span>` : ''}
+                    </div>
+                    <div class="match-info" style="padding: 8px 16px; background: #14141f; border-radius: 6px; margin: 8px 0;">
+                        <span style="font-size: 0.9em;"><i class="fas fa-calendar"></i> ${dateStr}</span>
+                        <span style="font-size: 0.9em;"><i class="fas fa-clock"></i> ${timeStr}</span>
+                    </div>
                     <div class="match-footer" style="margin-top: auto;">
                         <div class="bookmaker-badges">${badges.join('')}</div>
                         <div class="sources-count">
@@ -2117,7 +2219,7 @@
             const end = Math.min(start + historyPageSize, historyMatches.length);
             const paginatedMatches = historyMatches.slice(start, end);
 
-            grid.innerHTML = paginatedMatches.map(match => createMatchCard(match, true)).join('');
+            grid.innerHTML = paginatedMatches.map(match => createHistoryCard(match)).join('');
             
             updateHistoryPagination();
         }
@@ -2143,7 +2245,7 @@
             const end = Math.min(start + futuresPageSize, futuresMatches.length);
             const paginatedMatches = futuresMatches.slice(start, end);
 
-            grid.innerHTML = paginatedMatches.map(match => createMatchCard(match, false)).join('');
+            grid.innerHTML = paginatedMatches.map(match => createFuturesCard(match)).join('');
             
             updateFuturesPagination();
         }
@@ -2504,12 +2606,51 @@
                 dataKeys: Object.keys(data)
             });
             
+            // Filter out old pregame matches that have passed
+            const now = new Date();
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            let pregameMatches = (data.pregame_matches || []).filter(match => {
+                // If match is marked as live, keep it
+                if (match.is_live) return true;
+                
+                // Parse match date/time
+                let matchDate = null;
+                
+                // Try different date formats
+                if (match.date && match.time) {
+                    // Format: "Fri Dec 06" and "10:30 PM"
+                    const dateTimeStr = `${match.date} ${now.getFullYear()} ${match.time}`;
+                    matchDate = new Date(dateTimeStr);
+                } else if (match.match_time) {
+                    matchDate = new Date(match.match_time);
+                } else if (match.start_time) {
+                    // Unix timestamp
+                    matchDate = new Date(match.start_time * 1000);
+                }
+                
+                // If we couldn't parse the date, keep the match (better safe than sorry)
+                if (!matchDate || isNaN(matchDate.getTime())) {
+                    return true;
+                }
+                
+                // Filter out matches that are before today
+                const matchDateOnly = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+                const isPast = matchDateOnly < todayStart;
+                
+                if (isPast) {
+                    console.log(`🗑️ Filtered old match: ${match.home_team} vs ${match.away_team} (${match.date} ${match.time})`);
+                }
+                
+                return !isPast;
+            });
+            
             allMatches = [
-                ...(data.pregame_matches || []),
+                ...pregameMatches,
                 ...(data.live_matches || [])
             ];
             
-            console.log('✅ allMatches updated:', allMatches.length, 'total matches');
+            console.log('✅ allMatches updated:', allMatches.length, 'total matches (filtered', (data.pregame_matches?.length || 0) - pregameMatches.length, 'old pregame)');
 
             updateCount++;
             document.getElementById('updateCount').textContent = updateCount;
@@ -2626,8 +2767,18 @@
         }
 
         function updateStats(data) {
-            const pregame = data.pregame_matches?.length || 0;
-            const live = data.live_matches?.length || 0;
+            // Count from filtered allMatches instead of raw data
+            let pregame = 0;
+            let live = 0;
+            
+            allMatches.forEach(m => {
+                if (m.is_live) {
+                    live++;
+                } else {
+                    pregame++;
+                }
+            });
+            
             const total = pregame + live;
 
             // Count matches with 2 or 3 sources
@@ -2953,12 +3104,23 @@
                             `;
                         }
                         
+                        // Cricket-specific format: runs/wickets
+                        let homeScoreDisplay = homeScore;
+                        let awayScoreDisplay = awayScore;
+                        if (sport.includes('cricket')) {
+                            // Check if wickets data exists
+                            const homeWickets = score.home_wickets !== undefined ? score.home_wickets : '';
+                            const awayWickets = score.away_wickets !== undefined ? score.away_wickets : '';
+                            homeScoreDisplay = homeWickets !== '' ? `${homeScore}/${homeWickets}` : homeScore;
+                            awayScoreDisplay = awayWickets !== '' ? `${awayScore}/${awayWickets}` : awayScore;
+                        }
+                        
                         scoreDisplay = `
                             <div class="live-score-display">
                                 <div class="score-row">
-                                    <span class="score-value">${homeScore}</span>
+                                    <span class="score-value">${homeScoreDisplay}</span>
                                     <span class="score-separator">-</span>
-                                    <span class="score-value">${awayScore}</span>
+                                    <span class="score-value">${awayScoreDisplay}</span>
                                 </div>
                                 ${periodScoresHtml}
                                 ${period || timeRemaining ? `
