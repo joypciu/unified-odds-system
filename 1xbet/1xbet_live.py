@@ -22,6 +22,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+try:
+    import zstandard
+    HAS_ZSTD = True
+    logger.debug("zstandard module imported successfully")
+except ImportError:
+    HAS_ZSTD = False
+    logger.warning("zstandard not installed - install with: pip install zstandard")
+
 
 class LiveCollector:
     """1xbet live matches collector"""
@@ -33,13 +41,27 @@ class LiveCollector:
         self.session: Optional[aiohttp.ClientSession] = None
         self.stats = {'new': 0, 'updated': 0, 'total': 0, 'sports': 0, 'time': 0.0}
         self.data_file = self.data_dir / "1xbet_live.json"
-        self.history_file = self.data_dir / "1xbet_live_history.json"
+        self.history_file = self.data_dir / "1xbet_history.json"  # Unified history file
         self.matches = {}  # Store matches by ID
         self.previous_match_ids = set()  # Track matches from previous collection
     
     async def init(self):
         timeout = aiohttp.ClientTimeout(total=30)
-        self.session = aiohttp.ClientSession(timeout=timeout)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Origin': 'https://1xbet.com',
+            'Referer': 'https://1xbet.com/'
+        }
+        # Create connector that skips auto-decompression
+        connector = aiohttp.TCPConnector()
+        self.session = aiohttp.ClientSession(
+            timeout=timeout, 
+            headers=headers,
+            connector=connector,
+            auto_decompress=False  # Disable automatic decompression
+        )
     
     async def close(self):
         if self.session:
@@ -48,26 +70,44 @@ class LiveCollector:
     def decompress(self, data: bytes) -> Dict:
         """Decompress VZip response with zstd support"""
         try:
+            logger.debug(f"Decompressing data, length: {len(data)}, first 20 bytes: {data[:20]}")
+            
             # Try zstd first (1xBet uses zstd compression)
-            try:
-                import zstandard as zstd
-                dctx = zstd.ZstdDecompressor()
-                decompressed = dctx.decompress(data)
-                return json.loads(decompressed.decode('utf-8'))
-            except ImportError:
-                logger.warning("zstandard not installed, trying zlib")
-            except:
-                pass
+            if HAS_ZSTD:
+                try:
+                    dctx = zstandard.ZstdDecompressor()
+                    # Use decompressobj for streaming decompression (handles frames without content size)
+                    dobj = dctx.decompressobj()
+                    decompressed = dobj.decompress(data)
+                    result = json.loads(decompressed.decode('utf-8'))
+                    logger.info("✓ Successfully decompressed with zstd")
+                    return result
+                except zstandard.ZstdError as ze:
+                    logger.debug(f"zstd error: {ze}")
+                except Exception as ze:
+                    logger.debug(f"zstd decompression failed: {ze}")
+            else:
+                logger.warning("zstandard not available")
             
             # Fallback to zlib
             try:
                 decompressed = zlib.decompress(data)
-                return json.loads(decompressed.decode('utf-8'))
-            except:
-                pass
+                result = json.loads(decompressed.decode('utf-8'))
+                logger.info("✓ Successfully decompressed with zlib")
+                return result
+            except Exception as zle:
+                logger.debug(f"zlib decompression failed: {zle}")
                 
-            # Try direct JSON
-            return json.loads(data.decode('utf-8'))
+            # Try direct JSON (uncompressed)
+            try:
+                result = json.loads(data.decode('utf-8'))
+                logger.info("✓ Data was not compressed")
+                return result
+            except Exception as je:
+                logger.debug(f"Direct JSON decode failed: {je}")
+                
+            logger.error("All decompression methods failed")
+            return {}
         except Exception as e:
             logger.error(f"Decompression error: {e}")
             return {}
@@ -131,26 +171,34 @@ class LiveCollector:
     async def get_live_sports(self) -> List[Dict]:
         """Get all sports that have live matches"""
         try:
+            # Use the VZip endpoint but headers will prevent compression
             url = f"{self.base_url}/service-api/LiveFeed/GetSportsShortZip"
             params = {
                 'lng': 'en',
-                'country': '17'
+                'country': '19',
+                'gr': '285'
             }
             
             logger.info(f"Fetching sports list from {url}")
             async with self.session.get(url, params=params) as resp:
                 if resp.status == 200:
-                    data = await resp.json()
-                    if data.get('Success'):
-                        sports = data.get('Value', [])
-                        logger.info(f"✓ Found {len(sports)} sports with live matches")
+                    try:
+                        # Read raw bytes and decompress manually
+                        raw_data = await resp.read()
+                        data = self.decompress(raw_data)
                         
-                        # Filter sports that have visible/live matches (V > 0)
-                        live_sports = [s for s in sports if s.get('V', 0) > 0]
-                        logger.info(f"✓ {len(live_sports)} sports have active live matches")
-                        return live_sports
-                    else:
-                        logger.error(f"API returned Success=False: {data.get('Error', 'Unknown error')}")
+                        if data.get('Success'):
+                            sports = data.get('Value', [])
+                            logger.info(f"✓ Found {len(sports)} sports with live matches")
+                            
+                            # Filter sports that have visible/live matches (V > 0)
+                            live_sports = [s for s in sports if s.get('V', 0) > 0]
+                            logger.info(f"✓ {len(live_sports)} sports have active live matches")
+                            return live_sports
+                        else:
+                            logger.error(f"API returned Success=False: {data.get('Error', 'Unknown error')}")
+                    except Exception as json_err:
+                        logger.error(f"JSON decode error: {json_err}")
                 else:
                     logger.error(f"HTTP error: {resp.status}")
         except Exception as e:
@@ -161,39 +209,37 @@ class LiveCollector:
     async def get_matches_for_sport(self, sport_id: int, sport_name: str) -> List[Dict]:
         """Get all live matches for a specific sport"""
         try:
+            # Use the exact endpoint format from working URL
             url = f"{self.base_url}/service-api/LiveFeed/Get1x2_VZip"
             params = {
                 'sports': str(sport_id),
-                'count': '500',  # High count to get all matches
+                'count': '40',
                 'lng': 'en',
+                'gr': '285',
                 'cfview': '2',
                 'mode': '4',
-                'country': '17',
+                'country': '19',
+                'getEmpty': 'true',
                 'virtualSports': 'true',
-                'OddsType': '2',  # American odds format
-                'partner': '154'  # Additional parameter that might help
+                'noFilterBlockEvent': 'true'
             }
             
             async with self.session.get(url, params=params) as resp:
                 if resp.status == 200:
-                    data = await resp.json()
-                    if data.get('Success'):
-                        matches = data.get('Value', [])
-                        if matches:
-                            logger.info(f"  ✓ {sport_name}: {len(matches)} matches")
-                            return matches
-                elif resp.status == 406:
-                    # Retry without OddsType if 406 error
-                    params.pop('OddsType', None)
-                    params.pop('partner', None)
-                    async with self.session.get(url, params=params) as resp2:
-                        if resp2.status == 200:
-                            data = await resp2.json()
-                            if data.get('Success'):
-                                matches = data.get('Value', [])
-                                if matches:
-                                    logger.info(f"  ✓ {sport_name}: {len(matches)} matches")
-                                    return matches
+                    try:
+                        # Read raw bytes and decompress manually
+                        raw_data = await resp.read()
+                        data = self.decompress(raw_data)
+                        
+                        if data.get('Success'):
+                            matches = data.get('Value', [])
+                            if matches:
+                                logger.info(f"  ✓ {sport_name}: {len(matches)} matches")
+                                return matches
+                    except Exception as json_err:
+                        logger.debug(f"JSON decode error for {sport_name}: {json_err}")
+                else:
+                    logger.debug(f"HTTP {resp.status} for {sport_name}")
         except Exception as e:
             logger.debug(f"Error getting matches for {sport_name}: {e}")
         
@@ -202,25 +248,36 @@ class LiveCollector:
     async def get_all_matches_fallback(self) -> List[Dict]:
         """Fallback method: get matches with high count limit"""
         try:
+            # Use the VZip endpoint with proper parameters
             url = f"{self.base_url}/service-api/LiveFeed/Get1x2_VZip"
             params = {
-                'count': '500',  # Try to get up to 500 matches
+                'count': '100',
                 'lng': 'en',
+                'gr': '285',
                 'cfview': '2',
                 'mode': '4',
-                'country': '17',
+                'country': '19',
+                'getEmpty': 'true',
                 'virtualSports': 'true',
-                'OddsType': '2'  # American odds format
+                'noFilterBlockEvent': 'true'
             }
             
-            logger.info(f"Using fallback method with count=500")
+            logger.info(f"Using fallback method with count=100")
             async with self.session.get(url, params=params) as resp:
                 if resp.status == 200:
-                    data = await resp.json()
-                    if data.get('Success'):
-                        matches = data.get('Value', [])
-                        logger.info(f"✓ Fallback method found {len(matches)} matches")
-                        return matches
+                    try:
+                        # Read raw bytes and decompress manually
+                        raw_data = await resp.read()
+                        data = self.decompress(raw_data)
+                        
+                        if data.get('Success'):
+                            matches = data.get('Value', [])
+                            logger.info(f"✓ Fallback method found {len(matches)} matches")
+                            return matches
+                    except Exception as json_err:
+                        logger.error(f"JSON decode error in fallback: {json_err}")
+                else:
+                    logger.error(f"HTTP {resp.status} in fallback")
         except Exception as e:
             logger.error(f"Fallback method error: {e}")
         
@@ -436,18 +493,23 @@ class LiveCollector:
             return {"total_matches": 0, "total_sports": 0, "sports": {}}
     
     def _save_removed_matches_to_history(self, removed_match_ids: set):
-        """Save removed matches to history file"""
+        """Save removed matches to unified history file"""
         if not removed_match_ids:
             return
         
         # Load existing history
-        history_data = {'metadata': {}, 'matches': []}
+        history_data = {'metadata': {}, 'live': [], 'pregame': []}
         if self.history_file.exists():
             try:
                 with open(self.history_file, 'r', encoding='utf-8') as f:
                     history_data = json.load(f)
+                # Ensure both sections exist
+                if 'live' not in history_data:
+                    history_data['live'] = []
+                if 'pregame' not in history_data:
+                    history_data['pregame'] = []
             except (json.JSONDecodeError, FileNotFoundError):
-                history_data = {'metadata': {}, 'matches': []}
+                history_data = {'metadata': {}, 'live': [], 'pregame': []}
         
         # Get removed matches from current matches dict
         removed_matches = []
@@ -455,17 +517,21 @@ class LiveCollector:
             if match_id in self.matches:
                 match = self.matches[match_id].copy()
                 match['removed_at'] = int(time.time())
+                match['removed_at_readable'] = datetime.now().isoformat()
                 match['status'] = 'completed'
+                match['match_type'] = 'live'
                 removed_matches.append(match)
         
         if removed_matches:
-            # Add to history
-            history_data['matches'].extend(removed_matches)
+            # Add to live section of history
+            history_data['live'].extend(removed_matches)
             
             # Update metadata
             history_data['metadata'] = {
                 'timestamp': datetime.now().isoformat(),
-                'total_matches': len(history_data['matches']),
+                'total_live_matches': len(history_data['live']),
+                'total_pregame_matches': len(history_data['pregame']),
+                'total_matches': len(history_data['live']) + len(history_data['pregame']),
                 'last_updated': int(time.time())
             }
             
@@ -473,7 +539,7 @@ class LiveCollector:
             with open(self.history_file, 'w', encoding='utf-8') as f:
                 json.dump(history_data, f, indent=2, ensure_ascii=False)
             
-            logger.info(f"✓ Saved {len(removed_matches)} completed matches to history")
+            logger.info(f"✓ Saved {len(removed_matches)} completed live matches to history")
     
     async def collect_all(self):
         """Collect all live matches from all sports"""

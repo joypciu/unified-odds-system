@@ -26,7 +26,7 @@ def show_instructions():
     print("\n🔧 The following scrapers use direct Chrome launching:")
     print("   These need to be updated to use chrome_helper.py\n")
     
-    print("📁 bet365/bet365_pregame_scraper.py")
+    print("📁 bet365/bet365_pregame_homepage_scraper.py")
     print("   Currently uses: playwright.chromium.launch()")
     print("   Update to:")
     print("   ```python")
@@ -166,7 +166,7 @@ def verify_chrome_helper_exists():
 def create_example_update():
     """Create an example of how to update a scraper"""
     example = """
-# EXAMPLE: How to update bet365_pregame_scraper.py
+# EXAMPLE: How to update bet365_pregame_homepage_scraper.py
 
 # BEFORE (OLD CODE):
 async with async_playwright() as playwright:

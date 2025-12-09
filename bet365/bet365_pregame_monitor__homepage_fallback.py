@@ -14,7 +14,7 @@ from dataclasses import dataclass, asdict
 import aiofiles
 from concurrent.futures import ThreadPoolExecutor
 
-from bet365_pregame_scraper import EnhancedIntelligentScraper, Game, GameOdds
+from bet365_pregame_homepage_scraper import EnhancedIntelligentScraper, Game, GameOdds
 from typing import Optional
 
 @dataclass

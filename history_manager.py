@@ -19,7 +19,8 @@ class HistoryManager:
     
     def __init__(self, base_dir: str = "."):
         self.base_dir = Path(base_dir)
-        self.history_file = self.base_dir / "history.json"
+        self.history_file = self.base_dir / "history.json"  # Global unified history (all bookmakers)
+        self.xbet_history_file = self.base_dir / "1xbet" / "1xbet_history.json"  # 1xBet-specific unified history
         
         # Individual bookmaker files
         self.xbet_pregame = self.base_dir / "1xbet" / "1xbet_pregame.json"
@@ -37,26 +38,60 @@ class HistoryManager:
         self.seen_match_ids: Set[str] = set()
         
     def load_history(self) -> Dict:
-        """Load existing history"""
+        """Load existing history from global unified file and merge with 1xbet-specific history"""
+        # Load global history
         if self.history_file.exists():
             try:
                 with open(self.history_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    global_history = json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError):
+                global_history = None
+        else:
+            global_history = None
+        
+        # Load 1xbet-specific unified history
+        xbet_unified = None
+        if self.xbet_history_file.exists():
+            try:
+                with open(self.xbet_history_file, 'r', encoding='utf-8') as f:
+                    xbet_unified = json.load(f)
             except (json.JSONDecodeError, FileNotFoundError):
                 pass
         
-        return {
-            'metadata': {
-                'created_at': datetime.now().isoformat(),
-                'total_matches': 0,
-                'last_updated': datetime.now().isoformat()
-            },
-            'matches': {
-                '1xbet': {'pregame': [], 'live': []},
-                'fanduel': {'pregame': [], 'live': []},
-                'bet365': {'pregame': [], 'live': []}
+        # Start with global history or create new structure
+        if global_history:
+            history = global_history
+        else:
+            history = {
+                'metadata': {
+                    'created_at': datetime.now().isoformat(),
+                    'total_matches': 0,
+                    'last_updated': datetime.now().isoformat()
+                },
+                'matches': {
+                    '1xbet': {'pregame': [], 'live': []},
+                    'fanduel': {'pregame': [], 'live': []},
+                    'bet365': {'pregame': [], 'live': []}
+                }
             }
-        }
+        
+        # Merge 1xbet unified history if it exists
+        if xbet_unified:
+            # Ensure 1xbet section exists
+            if '1xbet' not in history['matches']:
+                history['matches']['1xbet'] = {'pregame': [], 'live': []}
+            
+            # Merge pregame and live from 1xbet unified history
+            history['matches']['1xbet']['pregame'] = xbet_unified.get('pregame', [])
+            history['matches']['1xbet']['live'] = xbet_unified.get('live', [])
+            
+            # Update metadata
+            if 'metadata' in xbet_unified:
+                history['metadata']['1xbet_source'] = '1xbet_history.json'
+                history['metadata']['1xbet_total_live'] = xbet_unified['metadata'].get('total_live_matches', 0)
+                history['metadata']['1xbet_total_pregame'] = xbet_unified['metadata'].get('total_pregame_matches', 0)
+        
+        return history
     
     def save_history(self, history_data: Dict):
         """Save history to file"""

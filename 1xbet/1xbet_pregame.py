@@ -33,6 +33,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+try:
+    import zstandard
+    HAS_ZSTD = True
+    logger.debug("zstandard module imported successfully")
+except ImportError:
+    HAS_ZSTD = False
+    logger.warning("zstandard not installed - install with: pip install zstandard")
+
 
 @dataclass
 class Match:
@@ -64,8 +72,10 @@ class JsonDataManager:
         self.data_dir.mkdir(exist_ok=True)
         self.main_file = self.data_dir / "1xbet_pregame.json"
         self.stats_file = self.data_dir / "1xbet_statistics.json"
-        self.history_file = self.data_dir / "1xbet_pregame_history.json"
+        self.history_file = self.data_dir / "1xbet_history.json"  # Unified history file
+        self.futures_file = self.data_dir / "1xbet_futures.json"  # Separate futures/long-term events
         self.init_data_files()
+
     
     def init_data_files(self):
         """Initialize JSON data files"""
@@ -329,8 +339,61 @@ class JsonDataManager:
         """Save collection statistics"""
         self._save_stats_data(stats)
     
+    def separate_futures_from_pregame(self):
+        """
+        Separate future/long-term events (sport_id 2999) into separate file
+        
+        NOTE: This method separates futures but they won't have odds because
+        futures use a different API structure (outrights with multiple selections).
+        Use 1xbet_futures_scraper.py to fetch futures with proper odds.
+        """
+        main_data = self._load_json(self.main_file)
+        matches = main_data.get('data', {}).get('matches', [])
+        
+        # Separate matches into futures and regular pregame
+        futures_matches = []
+        pregame_matches = []
+        
+        for match in matches:
+            # Sport ID 2999 is 'Long-term bets' or future events
+            if match.get('sport_id') == 2999 or match.get('sport_name') == 'Long-term bets':
+                futures_matches.append(match)
+            else:
+                pregame_matches.append(match)
+        
+        if futures_matches:
+            # Save futures to separate file (without odds - use futures_scraper for odds)
+            futures_data = {
+                'metadata': {
+                    'timestamp': datetime.now().isoformat(),
+                    'total_records': len(futures_matches),
+                    'data_type': 'futures_basic',
+                    'source': '1xbet',
+                    'description': 'Long-term bets and future events (basic info only - use 1xbet_futures_scraper.py for odds)',
+                    'note': 'These events have empty odds_data. Run 1xbet_futures_scraper.py to fetch proper outright odds.'
+                },
+                'data': {
+                    'matches': futures_matches
+                }
+            }
+            
+            with open(self.futures_file, 'w', encoding='utf-8') as f:
+                json.dump(futures_data, f, indent=2, ensure_ascii=False)
+            
+            logger.info(f"🔮 Separated {len(futures_matches)} future/long-term events to {self.futures_file.name}")
+            
+            # Update main file with only pregame matches
+            main_data['data']['matches'] = pregame_matches
+            main_data['metadata']['total_records'] = len(pregame_matches)
+            main_data['metadata']['futures_count'] = len(futures_matches)
+            self._save_json(self.main_file, main_data)
+            
+            return len(futures_matches)
+        
+        return 0
+    
     def move_removed_matches_to_history(self, current_match_ids: set):
-        """Move matches that are no longer in current collection to history"""
+        """Move matches that are no longer in current collection to unified history"""
         main_data = self._load_json(self.main_file)
         matches = main_data.get('data', {}).get('matches', [])
         
@@ -344,13 +407,18 @@ class JsonDataManager:
             return 0
         
         # Load existing history
-        history_data = {'metadata': {}, 'matches': []}
+        history_data = {'metadata': {}, 'live': [], 'pregame': []}
         if self.history_file.exists():
             try:
                 with open(self.history_file, 'r', encoding='utf-8') as f:
                     history_data = json.load(f)
+                # Ensure both sections exist
+                if 'live' not in history_data:
+                    history_data['live'] = []
+                if 'pregame' not in history_data:
+                    history_data['pregame'] = []
             except (json.JSONDecodeError, FileNotFoundError):
-                history_data = {'metadata': {}, 'matches': []}
+                history_data = {'metadata': {}, 'live': [], 'pregame': []}
         
         # Find and move removed matches
         removed_matches = []
@@ -361,18 +429,22 @@ class JsonDataManager:
                 # Add to history
                 match_copy = match.copy()
                 match_copy['removed_at'] = int(time.time())
+                match_copy['removed_at_readable'] = datetime.now().isoformat()
                 match_copy['status'] = 'expired'
+                match_copy['match_type'] = 'pregame'
                 removed_matches.append(match_copy)
             else:
                 # Keep in main data
                 updated_matches.append(match)
         
         if removed_matches:
-            # Update history
-            history_data['matches'].extend(removed_matches)
+            # Update pregame section of history
+            history_data['pregame'].extend(removed_matches)
             history_data['metadata'] = {
                 'timestamp': datetime.now().isoformat(),
-                'total_matches': len(history_data['matches']),
+                'total_live_matches': len(history_data['live']),
+                'total_pregame_matches': len(history_data['pregame']),
+                'total_matches': len(history_data['live']) + len(history_data['pregame']),
                 'last_updated': int(time.time())
             }
             
@@ -385,7 +457,7 @@ class JsonDataManager:
             main_data['metadata']['total_records'] = len(updated_matches)
             self._save_json(self.main_file, main_data)
             
-            logger.info(f"📋 Moved {len(removed_matches)} expired matches to history")
+            logger.info(f"📋 Moved {len(removed_matches)} expired pregame matches to history")
             return len(removed_matches)
         
         return 0
@@ -425,7 +497,20 @@ class XBetCollector:
     async def init_session(self):
         """Initialize aiohttp session"""
         timeout = aiohttp.ClientTimeout(total=30)
-        self.session = aiohttp.ClientSession(timeout=timeout)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Origin': 'https://1xbet.com',
+            'Referer': 'https://1xbet.com/'
+        }
+        connector = aiohttp.TCPConnector()
+        self.session = aiohttp.ClientSession(
+            timeout=timeout,
+            headers=headers,
+            connector=connector,
+            auto_decompress=False
+        )
     
     async def close_session(self):
         """Close aiohttp session"""
@@ -433,16 +518,46 @@ class XBetCollector:
             await self.session.close()
     
     def decompress_response(self, data: bytes) -> Dict:
-        """Decompress VZip response"""
+        """Decompress VZip response with zstd support"""
         try:
-            decompressed = zlib.decompress(data)
-            return json.loads(decompressed)
-        except:
-            # If not compressed, try direct JSON parse
+            logger.debug(f"Decompressing data, length: {len(data)}")
+            
+            # Try zstd first (1xBet uses zstd compression)
+            if HAS_ZSTD:
+                try:
+                    dctx = zstandard.ZstdDecompressor()
+                    dobj = dctx.decompressobj()
+                    decompressed = dobj.decompress(data)
+                    result = json.loads(decompressed.decode('utf-8'))
+                    logger.debug("✓ Successfully decompressed with zstd")
+                    return result
+                except zstandard.ZstdError as ze:
+                    logger.debug(f"zstd error: {ze}")
+                except Exception as ze:
+                    logger.debug(f"zstd decompression failed: {ze}")
+            
+            # Fallback to zlib
             try:
-                return json.loads(data)
-            except:
-                return {}
+                decompressed = zlib.decompress(data)
+                result = json.loads(decompressed.decode('utf-8'))
+                logger.debug("✓ Successfully decompressed with zlib")
+                return result
+            except Exception as zle:
+                logger.debug(f"zlib decompression failed: {zle}")
+            
+            # Try direct JSON (uncompressed)
+            try:
+                result = json.loads(data.decode('utf-8'))
+                logger.debug("✓ Data was not compressed")
+                return result
+            except Exception as je:
+                logger.debug(f"Direct JSON decode failed: {je}")
+            
+            logger.error("All decompression methods failed")
+            return {}
+        except Exception as e:
+            logger.error(f"Decompression error: {e}")
+            return {}
     
     async def fetch_sports_list(self) -> List[Dict]:
         """Fetch list of all available sports with pregame matches"""
@@ -450,14 +565,17 @@ class XBetCollector:
             url = f"{self.base_url}/service-api/LineFeed/GetSportsShortZip"
             params = {
                 'lng': 'en',
-                'country': '17'
+                'country': '19',
+                'gr': '285'
             }
             
             try:
                 logger.info(f"Fetching pregame sports list from {url}")
                 async with self.session.get(url, params=params) as response:
                     if response.status == 200:
-                        data = await response.json()
+                        # Read raw bytes and manually decompress
+                        raw_data = await response.read()
+                        data = self.decompress_response(raw_data)
                         
                         if data.get('Success') and data.get('Value'):
                             sports = data['Value']
@@ -482,31 +600,25 @@ class XBetCollector:
             url = f"{self.base_url}/service-api/LineFeed/Get1x2_VZip"
             params = {
                 'sports': str(sport_id),
-                'count': '500',  # High count to get all pregame matches
+                'count': '500',
                 'lng': 'en',
-                'cfview': '2',
-                'mode': '4',
-                'country': '17',
-                'virtualSports': 'true',
-                'OddsType': '2',  # American odds format
-                'partner': '154'
+                'cfview': '2',  # Required for pregame
+                'mode': '4'      # Required for pregame
             }
             
             try:
                 async with self.session.get(url, params=params) as response:
                     if response.status == 200:
-                        data = await response.json()
+                        # Read raw bytes and manually decompress
+                        raw_data = await response.read()
+                        data = self.decompress_response(raw_data)
                         if data.get('Success'):
+                            matches_count = len(data.get('Value', []))
+                            if matches_count > 0:
+                                logger.info(f"✓ Sport {sport_id}: Found {matches_count} pregame matches")
                             return data
-                    elif response.status == 406:
-                        # Retry without OddsType if 406 error
-                        params.pop('OddsType', None)
-                        params.pop('partner', None)
-                        async with self.session.get(url, params=params) as response2:
-                            if response2.status == 200:
-                                data = await response2.json()
-                                if data.get('Success'):
-                                    return data
+                        else:
+                            logger.debug(f"Sport {sport_id}: API returned Success=False")
                     else:
                         logger.warning(f"HTTP {response.status} for sport {sport_id}")
             except Exception as e:
@@ -615,6 +727,11 @@ class XBetCollector:
         removed_count = self.db.move_removed_matches_to_history(self.current_match_ids)
         if removed_count > 0:
             logger.info(f"📋 Moved {removed_count} expired pregame matches to history")
+        
+        # Separate future/long-term events to dedicated file
+        futures_count = self.db.separate_futures_from_pregame()
+        if futures_count > 0:
+            logger.info(f"🔮 {futures_count} future/long-term events in separate file")
         
         # Print summary
         self.print_summary()

@@ -706,6 +706,132 @@ async def get_1xbet_live_optic_odds():
     return optic_format
 
 
+@app.get("/1xbet/history")
+async def get_1xbet_history_optic_odds():
+    """Get 1xBet historical/completed matches in OpticOdds format"""
+    try:
+        history_file = BASE_DIR / "1xbet" / "1xbet_history.json"
+        if not history_file.exists():
+            return {"data": [], "message": "No history data available"}
+        
+        with open(history_file, 'r', encoding='utf-8') as f:
+            history_data = json.load(f)
+        
+        # Convert history to unified format for OpticOdds converter
+        unified_format = {
+            'metadata': history_data.get('metadata', {}),
+            'pregame_matches': [],
+            'live_matches': []
+        }
+        
+        # Add pregame history
+        for match in history_data.get('pregame', []):
+            unified_match = {
+                'match_id': match.get('match_id'),
+                'sport': match.get('sport_name', '').lower(),
+                'league': match.get('league_name', ''),
+                'home_team': match.get('team1', ''),
+                'away_team': match.get('team2', ''),
+                'start_time': match.get('scheduled_time') or match.get('start_time'),
+                '1xbet': {
+                    'available': True,
+                    'odds': match.get('odds_data', {}),
+                    'removed_at': match.get('removed_at'),
+                    'status': match.get('status', 'expired')
+                }
+            }
+            unified_format['pregame_matches'].append(unified_match)
+        
+        # Add live history
+        for match in history_data.get('live', []):
+            unified_match = {
+                'match_id': match.get('match_id'),
+                'sport': match.get('sport_name', '').lower(),
+                'league': match.get('league', ''),
+                'home_team': match.get('team1', ''),
+                'away_team': match.get('team2', ''),
+                'start_time': match.get('start_time'),
+                'score': f"{match.get('score1', 0)}-{match.get('score2', 0)}",
+                '1xbet': {
+                    'available': True,
+                    'odds': match.get('odds', {}),
+                    'removed_at': match.get('removed_at'),
+                    'status': match.get('status', 'completed')
+                }
+            }
+            unified_format['live_matches'].append(unified_match)
+        
+        optic_format = OpticOddsConverter.convert_unified_to_optic(unified_format)
+        optic_format['metadata'] = history_data.get('metadata', {})
+        return optic_format
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading history: {str(e)}")
+
+
+@app.get("/1xbet/future")
+async def get_1xbet_future_optic_odds():
+    """Get 1xBet future/long-term events in OpticOdds format"""
+    try:
+        # Primary futures file
+        futures_file_path = BASE_DIR / "1xbet" / "1xbet_future.json"
+        
+        # Legacy fallback files
+        futures_with_odds_file = BASE_DIR / "1xbet" / "1xbet_futures_with_odds.json"
+        futures_basic_file = BASE_DIR / "1xbet" / "1xbet_futures.json"
+        
+        futures_file = None
+        has_proper_odds = False
+        
+        if futures_file_path.exists():
+            futures_file = futures_file_path
+            has_proper_odds = True
+        elif futures_with_odds_file.exists():
+            futures_file = futures_with_odds_file
+            has_proper_odds = True
+        elif futures_basic_file.exists():
+            futures_file = futures_basic_file
+            has_proper_odds = False
+        else:
+            return {"data": [], "message": "No futures data available. Run run_futures_collection.py to collect futures with odds."}
+        
+        with open(futures_file, 'r', encoding='utf-8') as f:
+            futures_data = json.load(f)
+        
+        # Convert based on format
+        converter = OpticOddsConverter()
+        optic_odds_data = []
+        
+        if has_proper_odds:
+            # New format with selections
+            items = futures_data.get('data', {}).get('events', [])
+            for item in items:
+                converted = converter.convert_future_to_optic_odds(item)
+                if converted:
+                    optic_odds_data.append(converted)
+        else:
+            # Old format (basic match structure)
+            items = futures_data.get('data', {}).get('matches', [])
+            for item in items:
+                converted = converter.convert_to_optic_odds(item, "1xbet", "futures")
+                if converted:
+                    optic_odds_data.append(converted)
+        
+        return {
+            "success": True,
+            "data": optic_odds_data,
+            "count": len(optic_odds_data),
+            "bookmaker": "1xbet",
+            "type": "futures",
+            "has_odds": has_proper_odds,
+            "metadata": futures_data.get('metadata', {}),
+            "note": "Run run_futures_collection.py to get futures with proper odds" if not has_proper_odds else None
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading futures: {str(e)}")
+
+
 @app.get("/fanduel")
 async def get_fanduel_optic_odds():
     """Get all FanDuel odds in OpticOdds format (default)"""
@@ -760,7 +886,7 @@ async def get_bet365_optic_odds():
 
 @app.get("/bet365/pregame")
 async def get_bet365_pregame_optic_odds():
-    """Get Bet365 pregame odds in OpticOdds format (default)"""
+    """Get Bet365 pregame odds in OpticOdds format (homepage scraper data)"""
     data = load_unified_data()
     
     # Filter for only pregame matches
@@ -777,7 +903,7 @@ async def get_bet365_pregame_optic_odds():
 
 @app.get("/bet365/live")
 async def get_bet365_live_optic_odds():
-    """Get Bet365 live odds in OpticOdds format (default)"""
+    """Get Bet365 live odds in OpticOdds format (concurrent scraper data)"""
     data = load_unified_data()
     
     # Filter for only live matches

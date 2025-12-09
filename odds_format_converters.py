@@ -308,6 +308,75 @@ class OpticOddsConverter:
             })
         
         return odds_list
+    
+    @staticmethod
+    def convert_future_to_optic_odds(future_data: Dict) -> Dict:
+        """
+        Convert 1xbet futures/outright event to OpticOdds format
+        
+        Args:
+            future_data: Future event with selections and odds
+        """
+        # Build odds array from selections
+        odds = []
+        timestamp = datetime.now().timestamp()
+        
+        for selection in future_data.get('selections', []):
+            odds.append({
+                "id": f"1xbet_future_{future_data.get('event_id')}_{selection.get('selection_id')}",
+                "sportsbook": "1xBet",
+                "market": future_data.get('market_type', 'Winner'),
+                "name": selection.get('selection_name', 'Unknown'),
+                "is_main": True,
+                "selection": selection.get('selection_name', 'Unknown'),
+                "normalized_selection": selection.get('selection_name', '').lower().replace(' ', '_'),
+                "market_id": "outright_winner",
+                "selection_line": None,
+                "player_id": None,
+                "team_id": None,
+                "price": selection.get('coefficient'),
+                "american_odds": selection.get('american_odds'),
+                "timestamp": timestamp,
+                "grouping_key": "default",
+                "points": selection.get('param'),
+                "betlink": "",
+                "limits": None
+            })
+        
+        event_name = future_data.get('event_name', '')
+        
+        return {
+            "id": f"1xbet_future_{future_data.get('event_id')}",
+            "game_id": f"1xbet_future_{future_data.get('event_id')}",
+            "start_date": future_data.get('start_time_readable', ''),
+            "home_competitors": [{
+                "id": None,
+                "name": event_name,
+                "abbreviation": "",
+                "logo": None
+            }],
+            "away_competitors": [],
+            "status": "scheduled",
+            "event_status": "pregame",
+            "sport": {
+                "id": future_data.get('sport_id'),
+                "name": future_data.get('sport_name', 'Long-term bets')
+            },
+            "league": {
+                "id": future_data.get('league_id'),
+                "name": future_data.get('league_name', ''),
+                "logo": None
+            },
+            "is_live": False,
+            "odds": odds,
+            "metadata": {
+                "event_id": future_data.get('event_id'),
+                "country": future_data.get('country'),
+                "market_type": future_data.get('market_type'),
+                "total_selections": future_data.get('total_selections', len(odds)),
+                "type": "future"
+            }
+        }
 
 
 class EternityFormatConverter:

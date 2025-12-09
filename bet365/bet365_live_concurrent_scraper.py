@@ -198,12 +198,33 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
                 tab_state.is_redirected = False
                 tab_state.is_active = True
                 tab_state.consecutive_redirects = 0
-                # Create new page
-                if not self.context:
-                    self.context = await self.browser_instance.new_context()
-                tab_state.page = await self.context.new_page()
-                await tab_state.page.goto(tab_state.url, wait_until='domcontentloaded', timeout=20000)
-                await asyncio.sleep(1.5)
+                # Create new page with timeout protection
+                try:
+                    if not self.context:
+                        self.context = await self.browser_instance.new_context()
+                    tab_state.page = await self.context.new_page()
+                    await asyncio.wait_for(
+                        tab_state.page.goto(tab_state.url, wait_until='domcontentloaded', timeout=20000),
+                        timeout=25.0  # Overall timeout slightly longer than page timeout
+                    )
+                    await asyncio.sleep(1.5)
+                except asyncio.TimeoutError:
+                    self.logger.warning(f"Timeout reopening tab for {tab_state.sport_name}, will retry later")
+                    tab_state.retry_after = datetime.now() + timedelta(minutes=5)  # Retry in 5 minutes
+                    tab_state.is_active = False
+                    if tab_state.page:
+                        try:
+                            await tab_state.page.close()
+                        except Exception:
+                            pass
+                        tab_state.page = None
+                    return {
+                        'sport': tab_state.sport_name,
+                        'code': tab_state.sport_code,
+                        'matches': [],
+                        'status': 'TIMEOUT_REOPENING',
+                        'redirected': False
+                    }
             
             if not tab_state.page:
                 await self.ensure_tab_page(tab_state)
@@ -325,7 +346,7 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
             return []
 
     async def ensure_tab_page(self, tab_state: TabState):
-        """Ensure a TabState has a live Playwright page"""
+        """Ensure a TabState has a live Playwright page with timeout protection"""
         try:
             if tab_state.page:
                 return
@@ -338,13 +359,29 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
                 self.context = await self.browser_instance.new_context()
 
             tab_state.page = await self.context.new_page()
-            await tab_state.page.goto(tab_state.url, wait_until='domcontentloaded', timeout=20000)
-            await asyncio.sleep(1.0)
+            
+            # Add timeout protection for page navigation
+            try:
+                await asyncio.wait_for(
+                    tab_state.page.goto(tab_state.url, wait_until='domcontentloaded', timeout=20000),
+                    timeout=25.0  # Overall timeout
+                )
+                await asyncio.sleep(1.0)
 
-            current_url = tab_state.page.url
-            tab_state.is_redirected = self.is_redirect_url(current_url)
-            tab_state.last_check_time = datetime.now()
-            self.logger.info(f"    Recreated page for {tab_state.sport_name}")
+                current_url = tab_state.page.url
+                tab_state.is_redirected = self.is_redirect_url(current_url)
+                tab_state.last_check_time = datetime.now()
+                self.logger.info(f"    Recreated page for {tab_state.sport_name}")
+                
+            except asyncio.TimeoutError:
+                self.logger.warning(f"    Timeout recreating page for {tab_state.sport_name}")
+                tab_state.error_count += 1
+                if tab_state.page:
+                    try:
+                        await tab_state.page.close()
+                    except Exception:
+                        pass
+                    tab_state.page = None
 
         except Exception as e:
             self.logger.error(f"    Failed to recreate page for {tab_state.sport_name}: {e}")
@@ -473,24 +510,34 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
             self.logger.info(f"Reopened {len(reopened)} inactive tabs")
     
     async def extract_all_tabs_incremental(self) -> List[Dict[str, Any]]:
-        """Extract data from all active tabs concurrently, collecting all results before saving"""
+        """Extract data from all active tabs concurrently with timeout protection"""
         active_tabs = [tab for tab in self.tab_pool.values() if tab.is_active]
 
         if not active_tabs:
             self.logger.warning("No active tabs to extract from")
             return []
 
-        # Create tasks for all tabs
-        task_list = [self.extract_from_tab(tab) for tab in active_tabs]
-        tab_list = active_tabs
+        # Create tasks for all tabs with individual timeouts
+        task_list = []
+        tab_names = []
+        for tab in active_tabs:
+            # Wrap each extraction in a timeout (30 seconds per tab)
+            task = asyncio.create_task(
+                asyncio.wait_for(self.extract_from_tab(tab), timeout=30.0)
+            )
+            task_list.append(task)
+            tab_names.append(tab.sport_name)
 
         all_matches = []
         valid_results = []
+        completed_count = 0
+        total_tabs = len(task_list)
 
-        # Process results as they complete
+        # Process results as they complete with progress tracking
         for completed_task in asyncio.as_completed(task_list):
             try:
                 result = await completed_task
+                completed_count += 1
 
                 if isinstance(result, Exception):
                     self.logger.error(f"Extraction error: {result}")
@@ -502,20 +549,26 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
                 if result.get('matches'):
                     sport_matches = result['matches']
                     all_matches.extend(sport_matches)
-                    self.logger.info(f"  {result['sport']}: {result['matches_found']} matches (collected)")
+                    self.logger.info(f"  [{completed_count}/{total_tabs}] {result['sport']}: {result['matches_found']} matches (collected)")
 
                 elif result.get('redirected'):
                     if result.get('matches_found', 0) > 0:
                         sport_matches = result['matches']
                         all_matches.extend(sport_matches)
-                        self.logger.info(f"  {result['sport']}: {result['matches_found']} redirected matches (collected)")
+                        self.logger.info(f"  [{completed_count}/{total_tabs}] {result['sport']}: {result['matches_found']} redirected matches (collected)")
                     else:
-                        self.logger.info(f"  - {result['sport']}: Redirected (no matches)")
+                        self.logger.info(f"  [{completed_count}/{total_tabs}] - {result['sport']}: Redirected (no matches)")
                 else:
-                    self.logger.info(f"  - {result['sport']}: No matches")
+                    self.logger.info(f"  [{completed_count}/{total_tabs}] - {result['sport']}: No matches")
 
+            except asyncio.TimeoutError:
+                completed_count += 1
+                self.logger.error(f"  [{completed_count}/{total_tabs}] Timeout error - tab took too long to extract (>30s)")
+                # Continue processing other tabs even if one times out
+                
             except Exception as e:
-                self.logger.error(f"Error processing completed task: {e}")
+                completed_count += 1
+                self.logger.error(f"  [{completed_count}/{total_tabs}] Error processing task: {e}")
 
         # SAVE ALL COLLECTED DATA ONCE AT THE END OF THE EXTRACTION CYCLE
         if all_matches:
@@ -901,9 +954,10 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
             browser_connected = False
             if await self.launch_manual_browser():
                 if await self.connect_playwright_to_browser():
-                    if await self.wait_for_bet365_load():
-                        browser_connected = True
-                        self.logger.info("Connected to existing browser session")
+                    # Skip strict bet365 load check for concurrent scraper
+                    # The tabs will handle navigation themselves
+                    browser_connected = True
+                    self.logger.info("Connected to browser - tabs will handle navigation")
 
             if not browser_connected:
                 self.logger.info("Launching new isolated browser for tab pool")
@@ -915,9 +969,9 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
                 if not await self.connect_playwright_to_browser():
                     return
 
-                if not await self.wait_for_bet365_load():
-                    self.logger.error("Aborting monitoring - bet365 failed to load")
-                    return
+                # Skip strict bet365 verification - tabs will navigate individually
+                self.logger.info("Browser connected - tabs will handle navigation")
+                browser_connected = True
             
             await self.initialize_tab_pool(sport_codes)
             
@@ -1066,7 +1120,8 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
                 self.logger.error("Server unavailable")
                 return None
 
-            self.kill_existing_browsers()
+            # DON'T kill existing browsers - we want to use manual browser
+            # self.kill_existing_browsers()
 
             if not await self.launch_manual_browser():
                 return None
@@ -1074,9 +1129,9 @@ class ConcurrentLiveScraper(UltimateLiveScraper):
             if not await self.connect_playwright_to_browser():
                 return None
 
-            if not await self.wait_for_bet365_load():
-                self.logger.error("bet365 failed to load")
-                return None
+            # Skip strict bet365 load verification for concurrent scraper
+            # Each tab will navigate to its own sport URL
+            self.logger.info("Browser connected - initializing tabs...")
 
             await self.initialize_tab_pool(sport_codes)
 

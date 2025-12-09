@@ -766,8 +766,8 @@ class UltimateLiveScraper:
         sport_mappings_for_js = {code: info['name'] for code, info in self.sport_mappings.items()}
         sport_mappings_js = json.dumps(sport_mappings_for_js)
 
-        # Use comprehensive extraction script from bet365_extraction_template.py
-        from bet365_extraction_template import get_comprehensive_extraction_script
+        # Use comprehensive extraction script from bet365_extraction_template__fallback.py
+        from bet365_extraction_template__fallback import get_comprehensive_extraction_script
 
         extraction_script = get_comprehensive_extraction_script(
             sport_code=sport_code,
@@ -1032,6 +1032,12 @@ class UltimateLiveScraper:
              # Window settings
             "--window-size=1366,768",
             "--start-maximized",
+            
+            # Prevent popup windows
+            "--disable-popup-blocking=false",
+            
+            # Start with bet365 homepage to prevent duplicate instances
+            "https://www.bet365.ca/#/HO/",
         ]
         
         try:
