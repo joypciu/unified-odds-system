@@ -2003,24 +2003,63 @@
         function loadFuturesData() {
             const grid = document.getElementById('futuresGrid');
             grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;"><i class="fas fa-spinner fa-spin"></i> Loading futures...</div>';
-            
+
+            // First try the API endpoint (when running with a backend). If it returns HTML (404/index), fall back to local files.
             fetch('/api/futures')
-                .then(response => response.json())
+                .then(async response => {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (!response.ok) {
+                        // Try fallback to unified_odds.json when API not available
+                        throw { code: response.status, text: await response.text(), contentType };
+                    }
+                    if (!contentType.includes('application/json')) {
+                        // Response is not JSON (likely HTML) — treat as fallback
+                        throw { code: response.status, text: await response.text(), contentType };
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    futuresMatches = data.matches || [];
+                    futuresMatches = data.matches || data.futures || [];
                     futuresDataLoaded = true;
                     renderFuturesMatches();
-                    console.log(`✓ Loaded ${futuresMatches.length} futures matches`);
+                    console.log(`✓ Loaded ${futuresMatches.length} futures matches from /api/futures`);
                 })
-                .catch(error => {
-                    console.error('Error loading futures:', error);
-                    grid.innerHTML = `
-                        <div class="no-data">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <h3>Error loading futures</h3>
-                            <p>${error.message}</p>
-                        </div>
-                    `;
+                .catch(async err => {
+                    // If API returned HTML or failed, try loading local `unified_odds.json` and derive futures if possible.
+                    try {
+                        const resp = await fetch('unified_odds.json');
+                        const ct = resp.headers.get('content-type') || '';
+                        if (!resp.ok || !ct.includes('application/json')) {
+                            const txt = await resp.text();
+                            throw new Error('Neither /api/futures nor unified_odds.json returned JSON. Server response: ' + (err && err.text ? err.text : (txt || err && err.text || 'unknown')));
+                        }
+                        const data = await resp.json();
+
+                        // Try common keys: data.futures, data.matches, data.pregame_matches
+                        if (Array.isArray(data.futures) && data.futures.length > 0) {
+                            futuresMatches = data.futures;
+                        } else if (Array.isArray(data.matches) && data.matches.length > 0) {
+                            futuresMatches = data.matches;
+                        } else if (Array.isArray(data.pregame_matches)) {
+                            // Derive futures if there are any flagged market types or explicit fields
+                            futuresMatches = data.pregame_matches.filter(m => (m.market_type && /future/i.test(m.market_type)) || m.is_futures || m.category === 'futures');
+                        } else {
+                            futuresMatches = [];
+                        }
+
+                        futuresDataLoaded = true;
+                        renderFuturesMatches();
+                        console.log(`✓ Loaded ${futuresMatches.length} futures matches from unified_odds.json`);
+                    } catch (finalErr) {
+                        console.error('Error loading futures:', finalErr);
+                        grid.innerHTML = `
+                            <div class="no-data">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h3>Error loading futures</h3>
+                                <p>${(finalErr && finalErr.message) ? finalErr.message : 'Unable to load futures data.'}</p>
+                            </div>
+                        `;
+                    }
                 });
         }
 
@@ -2174,117 +2213,81 @@
 
             // Handle futures/long-term bets that don't have away_team (single outcome bets)
             const isSingleOutcome = !match.away_team || match.away_team.trim() === '';
-            
-            // Special design for futures
-            const teamsDisplay = isSingleOutcome ? `
-                <div style="padding: 24px 20px; text-align: center; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; margin: 12px 0;">
-                    <div style="font-size: 0.75em; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Outcome</div>
-                    <div style="font-size: 1.15em; font-weight: 700; color: white; line-height: 1.4;">${match.home_team}</div>
-                </div>
-            ` : `
-                <div style="padding: 20px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; margin: 12px 0;">
-                    <div style="font-size: 0.75em; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">Match-up</div>
-                    <div style="display: flex; align-items: center; justify-content: space-around; gap: 12px;">
-                        <div style="flex: 1; text-align: center; font-size: 1.05em; font-weight: 600; color: white;">${match.home_team}</div>
-                        <div style="color: rgba(255,255,255,0.6); font-size: 0.9em; font-weight: 700;">VS</div>
-                        <div style="flex: 1; text-align: center; font-size: 1.05em; font-weight: 600; color: white;">${match.away_team}</div>
+
+            // Use current data (prefer formatted fields if present)
+            const scheduledDate = match.date || match.start_time_readable || '';
+            const scheduledTime = match.time || match.start_time_readable || '';
+
+            // Compact title area
+            const titleHtml = `
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                    <div style="display:flex; flex-direction:column;">
+                        <div style="font-size:14px; font-weight:700; color:#e6eef8;">${match.home_team}${isSingleOutcome ? '' : ' vs ' + (match.away_team || '')}</div>
+                        <div style="font-size:12px; color:#9ca3af; margin-top:4px;">${match.league || ''}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:12px; color:#cbd5e1; font-weight:700">${scheduledDate}</div>
+                        <div style="font-size:12px; color:#9ca3af">${scheduledTime}</div>
                     </div>
                 </div>
             `;
 
-            // Extract and display selections/odds - for futures with multiple selections
-            let oddsDisplay = '';
-            if (match.selections && match.selections.length > 0) {
-                // Display selections (teams/players) with their odds
-                const selectionsHtml = match.selections.slice(0, 8).map(sel => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #14141f; border-radius: 6px; border-left: 3px solid #3b82f6;">
-                        <span style="color: #d1d5db; font-size: 0.9em; flex: 1;">${sel.selection_name}</span>
-                        <span style="font-weight: 700; color: #3b82f6; font-size: 1.1em; min-width: 60px; text-align: right;">${sel.american_odds || sel.coefficient}</span>
-                    </div>
-                `).join('');
-                
-                const moreSelections = match.total_selections > 8 ? `
-                    <div style="text-align: center; padding: 8px; color: #9ca3af; font-size: 0.85em;">
-                        +${match.total_selections - 8} more selections available
-                    </div>
-                ` : '';
-                
-                oddsDisplay = `
-                    <div style="padding: 16px; background: #1a1a27; border: 2px solid #3b82f6; border-radius: 12px; margin: 12px 0;">
-                        <div style="font-size: 0.75em; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <span>${match.market_type || 'Selections'}</span>
-                            <span style="color: #3b82f6; font-weight: 600;">${match.total_selections} Total</span>
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            ${selectionsHtml}
-                        </div>
-                        ${moreSelections}
+            // Selections area
+            let selectionsHtml = '';
+            if (Array.isArray(match.selections) && match.selections.length > 0) {
+                // Show up to 6 selections in a compact grid
+                const slice = match.selections.slice(0, 6);
+                selectionsHtml = `
+                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:12px;">
+                        ${slice.map(sel => `
+                            <div style="padding:8px; background:#0f1724; border-radius:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                                <div style="flex:1; color:#d1d5db; font-size:0.95em;">${sel.selection_name}</div>
+                                <div style="font-weight:700; color:#3b82f6;">${sel.american_odds || sel.coefficient || sel.odds || '—'}</div>
+                            </div>
+                        `).join('')}
                     </div>
                 `;
-            } else if (match.odds && typeof match.odds === 'object' && Object.keys(match.odds).length > 0) {
-                const oddsItems = [];
-                
-                // Moneyline odds - make them prominent for futures
-                if (match.odds.moneyline_home || match.odds.moneyline_away) {
-                    const homeOdds = match.odds.moneyline_home || 'N/A';
-                    const awayOdds = match.odds.moneyline_away || 'N/A';
-                    const drawOdds = match.odds.moneyline_draw;
-                    if (isSingleOutcome) {
-                        // Large centered odds for single outcome
-                        oddsDisplay = `
-                            <div style="padding: 20px; background: #1a1a27; border: 2px solid #3b82f6; border-radius: 12px; margin: 12px 0; text-align: center;">
-                                <div style="font-size: 0.75em; color: #9ca3af; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Odds</div>
-                                <div style="font-size: 2.2em; font-weight: 700; color: #3b82f6;">${homeOdds}</div>
-                            </div>
-                        `;
-                    } else {
-                        // Side-by-side odds for matchup
-                        oddsDisplay = `
-                            <div style="padding: 16px; background: #1a1a27; border: 2px solid #3b82f6; border-radius: 12px; margin: 12px 0;">
-                                <div style="font-size: 0.75em; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">Odds</div>
-                                <div style="display: flex; justify-content: space-around; align-items: center; gap: 16px;">
-                                    <div style="text-align: center; flex: 1;">
-                                        <div style="font-size: 0.75em; color: #9ca3af; margin-bottom: 4px;">Home</div>
-                                        <div style="font-size: 1.6em; font-weight: 700; color: #10b981;">${homeOdds}</div>
-                                    </div>
-                                    ${drawOdds ? `
-                                        <div style="text-align: center; flex: 1;">
-                                            <div style="font-size: 0.75em; color: #9ca3af; margin-bottom: 4px;">Draw</div>
-                                            <div style="font-size: 1.6em; font-weight: 700; color: #f59e0b;">${drawOdds}</div>
-                                        </div>
-                                    ` : ''}
-                                    <div style="text-align: center; flex: 1;">
-                                        <div style="font-size: 0.75em; color: #9ca3af; margin-bottom: 4px;">Away</div>
-                                        <div style="font-size: 1.6em; font-weight: 700; color: #ef4444;">${awayOdds}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
+                if (match.selections.length > 6) {
+                    selectionsHtml += `<div style="margin-top:8px; font-size:12px; color:#9ca3af;">+${match.selections.length - 6} more selections</div>`;
+                }
+            } else {
+                // Fallback: if no selections, but odds exist, summarize odds
+                if (match.odds && Object.keys(match.odds).length > 0) {
+                    selectionsHtml = `
+                        <div style="display:flex; gap:8px; margin-top:12px;">
+                            <div style="flex:1; padding:8px; background:#0f1724; border-radius:8px; color:#d1d5db;">Opening Lines</div>
+                            <div style="font-weight:700; color:#3b82f6;">${match.odds.moneyline_home || match.odds.moneyline || '—'}</div>
+                        </div>
+                    `;
+                } else {
+                    selectionsHtml = `<div style="margin-top:12px; color:#9ca3af; font-size:12px;">No selections available</div>`;
                 }
             }
 
+            // Extract and display selections/odds - for futures with multiple selections
+            let oddsDisplay = '';
             return `
-                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default; border: 2px solid #3b82f6; background: linear-gradient(to bottom, #0a0a0f 0%, #14141f 100%);">
-                    <div class="match-card-header">
-                        <span class="sport-badge" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">${match.sport}</span>
-                        <span class="sport-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.75em;"><i class="fas fa-calendar-plus"></i> FUTURES</span>
-                    </div>
-                    ${teamsDisplay}
-                    ${oddsDisplay}
-                    <div class="match-info" style="flex-direction: column; gap: 4px;">
-                        <span style="font-weight: 600; color: #d1d5db;"><i class="fas fa-trophy"></i> ${match.league || 'Unknown League'}</span>
-                        ${match.country ? `<span style="font-size: 0.85em; color: #9ca3af;"><i class="fas fa-map-marker-alt"></i> ${match.country}</span>` : ''}
-                    </div>
-                    <div class="match-info" style="padding: 8px 16px; background: #14141f; border-radius: 6px; margin: 8px 0;">
-                        <span style="font-size: 0.9em;"><i class="fas fa-calendar"></i> ${dateStr}</span>
-                        <span style="font-size: 0.9em;"><i class="fas fa-clock"></i> ${timeStr}</span>
-                    </div>
-                    <div class="match-footer" style="margin-top: auto;">
-                        <div class="bookmaker-badges">${badges.join('')}</div>
-                        <div class="sources-count">
-                            <i class="fas fa-database"></i> ${badges.length} ${badges.length === 1 ? 'source' : 'sources'}
+                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default; border: 1px solid rgba(60,66,85,0.4); background: linear-gradient(to bottom, #07101a 0%, #0f1724 100%);">
+                    <div class="match-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="sport-badge" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">${match.sport}</span>
+                            <div style="font-size:12px; color:#9ca3af;">${match.market_type || 'Futures'}</div>
                         </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            ${badges.join('')}
+                        </div>
+                    </div>
+                    <div style="padding:12px 0;">
+                        ${titleHtml}
+                        ${selectionsHtml}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+                        <div style="color:#9ca3af; font-size:12px;">${match.total_selections ? match.total_selections + ' selections' : ''}</div>
+                        <div style="color:#cbd5e1; font-weight:700; font-size:14px;">${match.top_odds || ''}</div>
+                    </div>
+                    <div class="match-footer" style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                        <div class="bookmaker-badges">${badges.join('')}</div>
+                        <div class="sources-count"><i class="fas fa-database"></i> ${badges.length} ${badges.length === 1 ? 'source' : 'sources'}</div>
                     </div>
                 </div>
             `;
