@@ -314,6 +314,35 @@ class LiveCollector:
             score1 = score_data.get('S1', 0)
             score2 = score_data.get('S2', 0)
         
+        # Extract cricket-specific wickets data from the S array
+        # Cricket scores are in format "runs/wickets" in Team1Scores/Team2Scores
+        if 'S' in score_data and isinstance(score_data['S'], list):
+            for score_item in score_data['S']:
+                if isinstance(score_item, dict):
+                    key = score_item.get('Key', '')
+                    value = score_item.get('Value', '')
+                    
+                    if key == 'Team1Scores' and value:
+                        # Parse "runs/wickets" format (e.g., "43/0")
+                        if '/' in str(value):
+                            try:
+                                parts = str(value).split('/')
+                                if len(parts) == 2:
+                                    detailed_score['home_wickets'] = parts[1]
+                            except:
+                                pass
+                    elif key == 'Team2Scores' and value:
+                        if '/' in str(value):
+                            try:
+                                parts = str(value).split('/')
+                                if len(parts) == 2:
+                                    detailed_score['away_wickets'] = parts[1]
+                            except:
+                                pass
+                    elif key == 'InnsStats':
+                        # Extract innings statistics if needed
+                        detailed_score['innings_stats'] = value
+        
         # Extract period scores (PS) - for sports like basketball, tennis, etc.
         if 'PS' in score_data and isinstance(score_data['PS'], list):
             period_scores = []
@@ -366,7 +395,17 @@ class LiveCollector:
                 secs = time_remaining % 60
                 time_str = f"{mins:02d}:{secs:02d}"
         
-        # Extract additional time info
+        # Extract current period/phase
+        if 'CPS' in score_data:
+            period = score_data.get('CPS', '')
+        
+        # Extract current period number for better period display
+        if 'CP' in score_data:
+            current_period = score_data.get('CP', '')
+            if current_period and not period:
+                period = f"Period {current_period}"
+        
+        # Extract additional time info and status
         if 'SLS' in score_data:
             detailed_score['status_text'] = score_data['SLS']
         
@@ -407,18 +446,24 @@ class LiveCollector:
             from datetime import datetime
             dt = datetime.fromtimestamp(start_time_unix)
 
-            # Format date like bet365: "Thu Nov 06"
+            # Format date like bet365: "Thu Nov 06" - but use current year context
             match['date'] = dt.strftime("%a %b %d")
 
-            # Format time like bet365: "9:10 PM" (12-hour format)
-            match['start_time_readable'] = dt.strftime("%I:%M %p")
+            # Format time like bet365: "9:10 PM" (12-hour format) with proper padding
+            # Use cross-platform method to remove leading zero
+            hour_str = dt.strftime("%I").lstrip('0') or '12'  # Handle midnight (00 -> 12)
+            match['start_time_readable'] = f"{hour_str}:{dt.strftime('%M %p')}"
 
             # Keep original timestamp for compatibility
             match['start_time_unix'] = start_time_unix
+        else:
+            # Fallback values if no valid timestamp
+            match['date'] = 'LIVE'
+            match['start_time_readable'] = 'In Progress'
+            match['start_time_unix'] = 0
         
-        # Add detailed scores if available
-        if detailed_score:
-            match['detailed_score'] = detailed_score
+        # Add detailed scores if available - always include it even if empty
+        match['detailed_score'] = detailed_score if detailed_score else {}
         
         return match
     

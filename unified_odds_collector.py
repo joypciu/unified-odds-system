@@ -757,8 +757,8 @@ class UnifiedOddsCollector:
                     'sport': normalized_sport,  # Use normalized sport name
                     'home_team': match_data.get('team1', ''),
                     'away_team': match_data.get('team2', ''),
-                    'date': '',
-                    'time': match_data.get('time', ''),
+                    'date': match_data.get('date', ''),  # Now extracted from start_time in 1xbet_live.py
+                    'time': match_data.get('start_time_readable', match_data.get('time', '')),  # Prefer start_time_readable
                     'game_id': str(match_data.get('match_id', '')),
                     'match_id': match_data.get('match_id', ''),
                     'source': '1xbet',
@@ -1207,7 +1207,7 @@ class UnifiedOddsCollector:
             score_info['time_remaining'] = raw.get('time', '')
             score_info['status'] = 'Live'
             
-            # Extract detailed score data (period-by-period and statistics)
+            # Extract detailed score data (period-by-period, statistics, and cricket wickets)
             detailed_score = raw.get('detailed_score', {})
             if detailed_score:
                 # Extract period-by-period scores
@@ -1219,6 +1219,12 @@ class UnifiedOddsCollector:
                 statistics = detailed_score.get('statistics', [])
                 if statistics:
                     score_info['statistics'] = statistics
+                
+                # Extract cricket wickets
+                if 'home_wickets' in detailed_score:
+                    score_info['home_wickets'] = detailed_score['home_wickets']
+                if 'away_wickets' in detailed_score:
+                    score_info['away_wickets'] = detailed_score['away_wickets']
         
         return score_info
     

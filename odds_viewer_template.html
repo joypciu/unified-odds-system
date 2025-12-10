@@ -119,6 +119,8 @@
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
+            transition: opacity 0.3s ease, max-height 0.3s ease;
+            overflow: hidden;
         }
 
         .search-bar { 
@@ -310,6 +312,8 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 12px;
+            transition: opacity 0.3s ease, max-height 0.3s ease;
+            overflow: hidden;
         }
 
         .stat-card {
@@ -1927,6 +1931,20 @@
             });
             document.getElementById('content-' + tabName).classList.add('active');
             
+            // Show/hide filters and stats based on active tab
+            const filtersWrapper = document.querySelector('.controls');
+            const statsBar = document.querySelector('.stats-bar');
+            
+            if (tabName === 'current') {
+                // Show filters and stats for current matches
+                filtersWrapper.style.display = 'block';
+                statsBar.style.display = 'flex';
+            } else {
+                // Hide filters and stats for history and futures
+                filtersWrapper.style.display = 'none';
+                statsBar.style.display = 'none';
+            }
+            
             // Load data for the selected tab (with caching)
             if (tabName === 'history' && !historyDataLoaded) {
                 loadHistoryData();
@@ -2226,10 +2244,10 @@
             }
 
             return `
-                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default; border: 2px solid #3b82f6;">
+                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default; border: 2px solid #3b82f6; background: linear-gradient(to bottom, #0a0a0f 0%, #14141f 100%);">
                     <div class="match-card-header">
-                        <span class="sport-badge" style="background: #3b82f6;">${match.sport}</span>
-                        <span class="live-indicator" style="background: #3b82f6;"><i class="fas fa-calendar-alt"></i> Future Event</span>
+                        <span class="sport-badge" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">${match.sport}</span>
+                        <span class="sport-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.75em;"><i class="fas fa-calendar-plus"></i> FUTURES</span>
                     </div>
                     ${teamsDisplay}
                     ${oddsDisplay}
@@ -2820,7 +2838,7 @@
         }
 
         function updateStats(data) {
-            // Count from filtered allMatches instead of raw data
+            // Count ONLY from allMatches (current matches), not history or futures
             let pregame = 0;
             let live = 0;
             
@@ -2834,7 +2852,7 @@
             
             const total = pregame + live;
 
-            // Count matches with 2 or 3 sources
+            // Count matches with 2 or 3 sources from current matches only
             let twoSourceCount = 0;
             let threeSourceCount = 0;
             
@@ -2849,6 +2867,7 @@
             document.getElementById('liveMatches').textContent = live;
             document.getElementById('twoSourceMatches').textContent = twoSourceCount;
             document.getElementById('threeSourceMatches').textContent = threeSourceCount;
+            document.getElementById('filteredCount').textContent = filteredMatches.length;
         }
 
         function extractSports() {
@@ -3236,17 +3255,21 @@
             });
 
             // Smart update: Only replace if needed, minimize flicker
-            // Remove cards that no longer exist
-            Array.from(container.children).forEach(child => {
-                const id = child.dataset?.matchId;
-                if (id && !newMatchIds.has(id)) {
-                    child.remove();
-                }
-            });
+            const currentCardIds = Array.from(container.children).map(c => c.dataset?.matchId).filter(Boolean);
+            const newCardIdsArray = Array.from(newMatchIds);
             
-            // Append new fragment (contains all cards in correct order)
-            container.innerHTML = '';
-            container.appendChild(fragment);
+            // Check if order or cards changed
+            const structureChanged = currentCardIds.length !== newCardIdsArray.length || 
+                currentCardIds.some((id, idx) => id !== newCardIdsArray[idx]);
+            
+            if (structureChanged) {
+                // Only clear and rebuild if structure changed (prevents flicker on updates)
+                container.innerHTML = '';
+                container.appendChild(fragment);
+            } else {
+                // Cards are in same order, updates already applied in-place above
+                // No need to rebuild DOM
+            }
         }
 
         function openMatchModal(match) {
