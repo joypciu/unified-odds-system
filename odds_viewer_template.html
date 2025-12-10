@@ -2893,7 +2893,15 @@
 
         function extractSports() {
             availableSports.clear();
-            allMatches.forEach(m => {
+            // Respect current match type filter when building the sports list
+            let sourceMatches = allMatches;
+            if (currentMatchTypeFilter === 'live') {
+                sourceMatches = allMatches.filter(m => m.is_live === true);
+            } else if (currentMatchTypeFilter === 'pregame') {
+                sourceMatches = allMatches.filter(m => m.is_live !== true);
+            }
+
+            sourceMatches.forEach(m => {
                 if (m.sport && m.sport.trim()) {  // Only add non-empty sports
                     availableSports.add(m.sport);
                 }
