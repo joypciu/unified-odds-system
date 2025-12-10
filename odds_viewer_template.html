@@ -2909,6 +2909,12 @@
             document.querySelectorAll('[data-type]').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.type === type);
             });
+            
+            // Reset sport filter when changing match type
+            currentSportFilter = 'all';
+            
+            // Update sports filter based on the new match type
+            extractSports();
             applyFilters();
         }
 
