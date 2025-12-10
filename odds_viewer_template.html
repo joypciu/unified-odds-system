@@ -3117,8 +3117,8 @@
                 const sourcesCount = badges.length;
 
                 const liveIndicator = match.is_live ? 
-                    `<span style="font-size: 0.85em; color: #ef4444; display: flex; align-items: center; gap: 6px;"><i class="fas fa-circle"></i> LIVE</span>` : 
-                    `<span style="font-size: 0.85em; color: #6b7280;"><i class="fas fa-calendar"></i> ${match.date || 'TBD'}</span>`;
+                    `<span style="color: #ef4444; display: flex; align-items: center; gap: 6px; font-size: 0.85em;"><i class="fas fa-circle"></i> LIVE</span>` : 
+                    `<span style="color: #10b981; display: flex; align-items: center; gap: 6px; font-size: 0.85em;"><i class="fas fa-clock"></i> Pregame</span>`;
 
                 // Format live score display
                 let scoreDisplay = '';
