@@ -3,33 +3,33 @@
 Unified Odds Collector - Combines Bet365, FanDuel, and 1xBet odds data
 Creates a unified database where each match has odds from all bookmakers
 
-TEAM NAME NORMALIZATION STRATEGY:
-==================================
-This module uses a two-tier approach for team name matching:
+ENHANCED TEAM NAME NORMALIZATION STRATEGY v3.0:
+================================================
+This module uses an INTELLIGENT cache system with advanced name mapping:
 
-1. PRIMARY: Cache-based O(1) lookup (cache_data.json)
-   - All team names are normalized to canonical format from cache
-   - O(1) hash table lookup via normalized name (lowercase, no special chars)
-   - Ensures consistent naming across all three sources
-   - Example: "pakistan" -> "Pakistan", "new zealand breakers" -> "New Zealand Breakers"
-   - NOW WITH AUTO-UPDATE: New teams are automatically added to cache
+1. PRIMARY: Enhanced Cache with Intelligent Name Mapper
+   - O(1) hash table lookup with smart deduplication
+   - Handles variations: "Manchester City", "Man City", "Man City FC" -> "Manchester City"
+   - Cross-source standardization (1xbet, FanDuel, Bet365)
+   - Automatic alias detection and merging
+   - Example: "Man City (W)" and "Manchester City" are recognized as same team
 
-2. FALLBACK: Fuzzy string matching
-   - Used only when team not found in cache (new teams, typos, etc.)
-   - Uses SequenceMatcher for similarity comparison (threshold: 0.6)
-   - Prevents system failure when cache doesn't have a team yet
-   - Allows gradual cache building as new teams are discovered
+2. AUTOMATIC DEDUPLICATION:
+   - Intelligent similarity matching using multiple algorithms
+   - Core name extraction (removes suffixes like FC, United, etc.)
+   - Location expansion (Man -> Manchester, LA -> Los Angeles)
+   - Fuzzy matching for new teams with 80% similarity threshold
 
-WORKFLOW:
-1. Load data from all sources (bet365, fanduel, 1xbet)
-2. Normalize all team names using cache (normalize_match_teams)
-3. Auto-update cache with new teams discovered
-4. Match games using canonical names (exact match if in cache)
-5. Fallback to fuzzy matching for unknown teams
-6. Merge odds from all sources into unified structure
+3. WORKFLOW:
+   - Load data from all sources (bet365, fanduel, 1xbet)
+   - Process each match through enhanced cache manager
+   - Automatic team name standardization with O(1) lookup
+   - Intelligent merging of duplicate teams
+   - Generate unified output with canonical names
 
-This ensures maximum accuracy for known teams while maintaining
-robustness for new/unknown teams that haven't been added to cache yet.
+This ensures maximum accuracy and eliminates duplicates like:
+- "1xbet: Manchester City" vs "FanDuel: Man City" -> Both become "Manchester City"
+- No more separate entries for team name variations
 """
 
 import json
@@ -41,11 +41,19 @@ from difflib import SequenceMatcher
 import re
 import threading
 from pathlib import Path
-from dynamic_cache_manager import DynamicCacheManager
+
+# Import enhanced cache system
+try:
+    from enhanced_cache_manager import EnhancedCacheManager
+    USE_ENHANCED_CACHE = True
+except ImportError:
+    print("[WARN] Enhanced cache not available, falling back to legacy cache")
+    from dynamic_cache_manager import DynamicCacheManager
+    USE_ENHANCED_CACHE = False
 
 
 class UnifiedOddsCollector:
-    """Combines odds data from Bet365 and FanDuel into a unified database"""
+    """Combines odds data from Bet365, FanDuel, and 1xBet into a unified database"""
     
     def __init__(self):
         # Paths to data sources
@@ -63,7 +71,7 @@ class UnifiedOddsCollector:
         self.xbet_pregame_file = os.path.join(self.base_dir, "1xbet", "1xbet_pregame.json")
         self.xbet_live_file = os.path.join(self.base_dir, "1xbet", "1xbet_live.json")
         
-        # Cache file (moved to parent directory)
+        # Cache file
         self.cache_file = os.path.join(self.base_dir, "cache_data.json")
         
         # Output file
@@ -72,8 +80,13 @@ class UnifiedOddsCollector:
         # File write lock to prevent concurrent writes
         self.file_lock = threading.Lock()
         
-        # Initialize dynamic cache manager for auto-updates
-        self.cache_manager = DynamicCacheManager(Path(self.base_dir))
+        # Initialize cache manager (enhanced or legacy)
+        if USE_ENHANCED_CACHE:
+            print("[INFO] Using Enhanced Cache Manager with Intelligent Name Mapping")
+            self.cache_manager = EnhancedCacheManager(Path(self.base_dir))
+        else:
+            print("[INFO] Using Legacy Cache Manager")
+            self.cache_manager = DynamicCacheManager(Path(self.base_dir))
         
         # Load cache for O(1) team name lookups
         self.team_lookup_cache = {}  # normalized_name -> canonical_name
@@ -81,25 +94,27 @@ class UnifiedOddsCollector:
         self.load_cache()
 
         # Auto-update cache from available source files (run once at startup)
-        try:
-            srcs = [
-                (Path(self.bet365_pregame_file), 'bet365'),
-                (Path(self.bet365_live_file), 'bet365'),
-                (Path(self.fanduel_pregame_file), 'fanduel'),
-                (Path(self.fanduel_live_file), 'fanduel'),
-                (Path(self.xbet_pregame_file), '1xbet'),
-                (Path(self.xbet_live_file), '1xbet')
-            ]
-            for p, src in srcs:
-                if p.exists():
-                    try:
-                        summary = self.cache_manager.auto_update_from_file(p, src)
-                        if summary.get('new_teams') or summary.get('new_sports'):
-                            print(f"[CACHE] Auto-updated from {p.name}: +{len(summary.get('new_teams',[]))} teams, +{len(summary.get('new_sports',[]))} sports")
-                    except Exception as e:
-                        print(f"[WARN] Cache update failed for {p.name}: {e}")
-        except Exception as e:
-            print(f"[WARN] Error during cache auto-update initialization: {e}")
+        if not USE_ENHANCED_CACHE:
+            # Legacy auto-update
+            try:
+                srcs = [
+                    (Path(self.bet365_pregame_file), 'bet365'),
+                    (Path(self.bet365_live_file), 'bet365'),
+                    (Path(self.fanduel_pregame_file), 'fanduel'),
+                    (Path(self.fanduel_live_file), 'fanduel'),
+                    (Path(self.xbet_pregame_file), '1xbet'),
+                    (Path(self.xbet_live_file), '1xbet')
+                ]
+                for p, src in srcs:
+                    if p.exists():
+                        try:
+                            summary = self.cache_manager.auto_update_from_file(p, src)
+                            if summary.get('new_teams') or summary.get('new_sports'):
+                                print(f"[CACHE] Auto-updated from {p.name}: +{len(summary.get('new_teams',[]))} teams, +{len(summary.get('new_sports',[]))} sports")
+                        except Exception as e:
+                            print(f"[WARN] Cache update failed for {p.name}: {e}")
+            except Exception as e:
+                print(f"[WARN] Error during cache auto-update initialization: {e}")
         
         # Fallback cache for normalized team names (legacy)
         self.team_name_cache = {}
@@ -303,50 +318,72 @@ class UnifiedOddsCollector:
     
     def get_canonical_team_name(self, team_name: str) -> str:
         """
-        Get canonical team name using O(1) cache lookup
-        First tries cache lookup, then returns original name if not found
-        This ensures cache is primary, with fallback to original name
+        Get canonical team name using intelligent cache system
+        Uses EnhancedCacheManager for O(1) lookup with smart deduplication
         """
         if not team_name:
             return team_name
         
-        # Normalize the input (same normalization as build_team_cache.py)
-        normalized = team_name.lower().strip()
-        normalized = re.sub(r'[^\w\s]', '', normalized)  # Remove special chars
-        normalized = re.sub(r'\s+', ' ', normalized)  # Normalize whitespace
-        
-        # O(1) lookup in cache - PRIMARY METHOD
-        canonical = self.team_lookup_cache.get(normalized)
-        if canonical:
-            return canonical
-        
-        # Fallback: return original if not in cache
-        # This allows the fuzzy matching logic to still work for unknown teams
-        return team_name
+        if USE_ENHANCED_CACHE:
+            # Use enhanced cache with intelligent name mapping
+            return self.cache_manager.get_canonical_team_name(team_name)
+        else:
+            # Legacy cache lookup
+            normalized = team_name.lower().strip()
+            normalized = re.sub(r'[^\w\s]', '', normalized)
+            normalized = re.sub(r'\s+', ' ', normalized)
+            
+            canonical = self.team_lookup_cache.get(normalized)
+            if canonical:
+                return canonical
+            
+            return team_name
     
-    def normalize_match_teams(self, match: Dict) -> Dict:
+    def normalize_match_teams(self, match: Dict, sport: str = "", source: str = "") -> Dict:
         """
-        Normalize team names in a match to canonical names from cache.
-        If team not in cache, keeps original name for fuzzy matching fallback.
+        Normalize team names in a match to canonical names.
+        If using enhanced cache, automatically adds/updates teams.
         
-        This ensures all matches use canonical names where possible,
+        This ensures all matches use canonical names,
         improving match accuracy across different sources.
         """
-        if 'home_team' in match:
-            original_home = match['home_team']
+        home_team = match.get('home_team', match.get('team1', ''))
+        away_team = match.get('away_team', match.get('team2', ''))
+        match_sport = match.get('sport', match.get('sport_name', sport))
+        
+        if not home_team or not away_team:
+            return match
+        
+        if USE_ENHANCED_CACHE:
+            # Use enhanced cache - automatically handles deduplication
+            home_canonical, _ = self.cache_manager.add_or_update_team(
+                match_sport, home_team, source=source
+            )
+            away_canonical, _ = self.cache_manager.add_or_update_team(
+                match_sport, away_team, source=source
+            )
+            
+            match['home_team'] = home_canonical
+            match['away_team'] = away_canonical
+            
+            # Keep originals for debugging
+            if home_canonical != home_team:
+                match['home_team_original'] = home_team
+            if away_canonical != away_team:
+                match['away_team_original'] = away_team
+        else:
+            # Legacy normalization
+            original_home = home_team
             canonical_home = self.get_canonical_team_name(original_home)
             match['home_team'] = canonical_home
             
-            # Store original if different (for debugging)
             if canonical_home != original_home:
                 match['home_team_original'] = original_home
-        
-        if 'away_team' in match:
-            original_away = match['away_team']
+            
+            original_away = away_team
             canonical_away = self.get_canonical_team_name(original_away)
             match['away_team'] = canonical_away
             
-            # Store original if different (for debugging)
             if canonical_away != original_away:
                 match['away_team_original'] = original_away
         
@@ -1520,50 +1557,89 @@ class UnifiedOddsCollector:
         xbet_pregame = self.load_1xbet_pregame()
         xbet_live = self.load_1xbet_live()
 
-        # Auto-update cache with new teams discovered
-        print("\nAuto-updating cache with newly discovered teams...")
-        cache_updates = {
-            'bet365_pregame': bet365_pregame,
-            'bet365_live': bet365_live,
-            'fanduel_pregame': fanduel_pregame,
-            'fanduel_live': fanduel_live,
-            '1xbet_pregame': xbet_pregame,
-            '1xbet_live': xbet_live
-        }
-        
-        total_new_teams = 0
-        total_new_sports = 0
-        for source_name, matches in cache_updates.items():
-            if matches:
-                try:
-                    for match in matches:
-                        sport = match.get('sport', 'Unknown')
-                        home_team = match.get('home_team', '')
-                        away_team = match.get('away_team', '')
-                        
-                        if sport and sport != 'Unknown':
-                            self.cache_manager.add_sport(sport, source=source_name.split('_')[0])
-                        
-                        if home_team:
-                            was_added = self.cache_manager.add_team(sport, home_team, source=source_name.split('_')[0])
-                            if was_added:
-                                total_new_teams += 1
-                        
-                        if away_team:
-                            was_added = self.cache_manager.add_team(sport, away_team, source=source_name.split('_')[0])
-                            if was_added:
-                                total_new_teams += 1
-                except Exception as e:
-                    print(f"  Warning: Could not process {source_name} for cache update: {e}")
-        
-        # Save updated cache
-        if total_new_teams > 0:
-            self.cache_manager.save_cache(replicate_to_subfolders=True)
-            print(f"[OK] Cache updated: +{total_new_teams} new teams discovered")
-            # Reload cache for this session
-            self.load_cache()
+        # Normalize team names using enhanced cache (auto-updates and deduplicates)
+        if USE_ENHANCED_CACHE:
+            print("\nNormalizing team names with intelligent cache...")
+            
+            all_matches = [
+                (bet365_pregame, 'bet365'),
+                (bet365_live, 'bet365'),
+                (fanduel_pregame, 'fanduel'),
+                (fanduel_live, 'fanduel'),
+                (xbet_pregame, '1xbet'),
+                (xbet_live, '1xbet')
+            ]
+            
+            normalized_count = 0
+            esports_filtered = 0
+            
+            for matches, source in all_matches:
+                for match in matches:
+                    sport = match.get('sport', '')
+                    home = match.get('home_team', '')
+                    away = match.get('away_team', '')
+                    
+                    # Skip esports/virtual matches
+                    if (self.cache_manager.name_mapper.is_esports_or_virtual(home) or 
+                        self.cache_manager.name_mapper.is_esports_or_virtual(away)):
+                        esports_filtered += 1
+                        # Mark match as esports for later filtering
+                        match['is_esports'] = True
+                        continue
+                    
+                    self.normalize_match_teams(match, sport=sport, source=source)
+                    normalized_count += 1
+            
+            print(f"[OK] Normalized {normalized_count} matches, filtered {esports_filtered} esports/virtual matches")
+            
+            # Save cache updates quietly
+            self.cache_manager.save_cache()
+            self.cache_manager.save_mappings()
         else:
-            print("[OK] No new teams found (cache is up to date)")
+            # Legacy cache update
+            print("\nAuto-updating cache with newly discovered teams...")
+            cache_updates = {
+                'bet365_pregame': bet365_pregame,
+                'bet365_live': bet365_live,
+                'fanduel_pregame': fanduel_pregame,
+                'fanduel_live': fanduel_live,
+                '1xbet_pregame': xbet_pregame,
+                '1xbet_live': xbet_live
+            }
+            
+            total_new_teams = 0
+            total_new_sports = 0
+            for source_name, matches in cache_updates.items():
+                if matches:
+                    try:
+                        for match in matches:
+                            sport = match.get('sport', 'Unknown')
+                            home_team = match.get('home_team', '')
+                            away_team = match.get('away_team', '')
+                            
+                            if sport and sport != 'Unknown':
+                                self.cache_manager.add_sport(sport, source=source_name.split('_')[0])
+                            
+                            if home_team:
+                                was_added = self.cache_manager.add_team(sport, home_team, source=source_name.split('_')[0])
+                                if was_added:
+                                    total_new_teams += 1
+                            
+                            if away_team:
+                                was_added = self.cache_manager.add_team(sport, away_team, source=source_name.split('_')[0])
+                                if was_added:
+                                    total_new_teams += 1
+                    except Exception as e:
+                        print(f"  Warning: Could not process {source_name} for cache update: {e}")
+            
+            # Save updated cache
+            if total_new_teams > 0:
+                self.cache_manager.save_cache(replicate_to_subfolders=True)
+                print(f"[OK] Cache updated: +{total_new_teams} new teams discovered")
+                # Reload cache for this session
+                self.load_cache()
+            else:
+                print("[OK] No new teams found (cache is up to date)")
 
         # Merge pregame
         print("\nMerging pregame matches...")

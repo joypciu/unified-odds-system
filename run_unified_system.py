@@ -28,6 +28,14 @@ from email.mime.multipart import MIMEMultipart
 from unified_odds_collector import UnifiedOddsCollector
 from secure_config import SecureConfig
 
+# Import cache auto-update hook for automatic background updates
+try:
+    from cache_auto_update_hook import on_data_saved
+    CACHE_AUTO_UPDATE_AVAILABLE = True
+except ImportError:
+    CACHE_AUTO_UPDATE_AVAILABLE = False
+    print("⚠ Cache auto-update hook not available")
+
 # Import monitoring system for integration
 try:
     from monitoring_system import OddsMonitoringSystem
@@ -94,7 +102,7 @@ class RealtimeUnifiedCollector:
         return False
     
     def update_unified_odds(self, source_file=None):
-        """Update unified odds database"""
+        """Update unified odds database and trigger cache auto-update"""
         with self.update_lock:
             # Rate limiting - don't update too frequently
             current_time = time.time()
@@ -107,6 +115,22 @@ class RealtimeUnifiedCollector:
             try:
                 if source_file:
                     print(f"[{timestamp}] 🔄 Change detected: {Path(source_file).name}")
+                    
+                    # Trigger cache auto-update in background
+                    if CACHE_AUTO_UPDATE_AVAILABLE:
+                        # Determine source name from file path
+                        file_path = Path(source_file)
+                        if '1xbet' in str(file_path):
+                            source_name = '1xbet'
+                        elif 'bet365' in str(file_path):
+                            source_name = 'bet365'
+                        elif 'fanduel' in str(file_path):
+                            source_name = 'fanduel'
+                        else:
+                            source_name = 'unknown'
+                        
+                        # Trigger background cache update
+                        on_data_saved(source_name, str(source_file))
                 
                 # Load all data
                 bet365_pregame = self.collector.load_bet365_pregame()
