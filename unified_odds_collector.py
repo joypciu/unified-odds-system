@@ -273,12 +273,12 @@ class UnifiedOddsCollector:
                     self.team_lookup_cache = lookups.get('team_alias_to_canonical', {})
                     self.sport_lookup_cache = lookups.get('sport_alias_to_canonical', {})
                     
-                    print(f"✓ Loaded cache: {len(self.team_lookup_cache)} team aliases, {len(self.sport_lookup_cache)} sport aliases")
+                    print(f"[OK] Loaded cache: {len(self.team_lookup_cache)} team aliases, {len(self.sport_lookup_cache)} sport aliases")
             else:
-                print(f"⚠ Cache file not found: {self.cache_file}")
+                print(f"[WARN] Cache file not found: {self.cache_file}")
                 print(f"  Run build_team_cache.py to create it")
         except Exception as e:
-            print(f"⚠ Error loading cache: {e}")
+            print(f"[WARN] Error loading cache: {e}")
     
     def get_canonical_team_name(self, team_name: str) -> str:
         """
@@ -972,7 +972,7 @@ class UnifiedOddsCollector:
         #     'extra_fields': lambda m: {'match_id': m.get('match_id', '')}
         # }
         
-        print(f"\n🔄 Normalizing team names to canonical format...")
+        print(f"\n[INFO] Normalizing team names to canonical format...")
         
         # Print match counts per bookmaker
         bookmaker_names = list(bookmakers.keys())
@@ -980,7 +980,7 @@ class UnifiedOddsCollector:
         print(f"\nMatching {', '.join([f'{count} {name}' for name, count in match_counts.items()])} matches...")
         
         # STEP 2: Find all pairwise matches dynamically
-        print("\n🔍 Finding pairwise matches between all bookmakers...")
+        print("\n[INFO] Finding pairwise matches between all bookmakers...")
         pairwise_matches = {}  # Key: (bookmaker1, bookmaker2), Value: [(idx1, idx2), ...]
         matched_indices = {name: set() for name in bookmaker_names}  # Track matched indices per bookmaker
         
@@ -1002,7 +1002,7 @@ class UnifiedOddsCollector:
                 print(f"    Found {len(pairs)} matches")
         
         # STEP 3: Build match groups (clusters of related matches across bookmakers)
-        print("\n🔗 Building match groups across all bookmakers...")
+        print("\n[INFO] Building match groups across all bookmakers...")
         match_groups = []  # Each group is a dict: {bookmaker_name: match_index}
         
         # Use Union-Find algorithm to group related matches
@@ -1048,7 +1048,7 @@ class UnifiedOddsCollector:
         print(f"  Matches with all {len(bookmaker_names)} bookmakers: {len(all_bookmaker_groups)}")
         
         # STEP 4: Create unified match records
-        print("\n📦 Creating unified match records...")
+        print("\n[INFO] Creating unified match records...")
         unified_matches = []
         
         for group in match_groups:
@@ -1095,7 +1095,7 @@ class UnifiedOddsCollector:
             unified_matches.append(unified_match)
         
         # Add unmatched singles (matches that appear in only one bookmaker)
-        print("\n➕ Adding unmatched singles...")
+        print("\n[INFO] Adding unmatched singles...")
         for bookmaker_name in bookmaker_names:
             unmatched_count = 0
             for idx, match_data in enumerate(bookmakers[bookmaker_name]['matches']):
@@ -1136,7 +1136,7 @@ class UnifiedOddsCollector:
             if unmatched_count > 0:
                 print(f"  Added {unmatched_count} unmatched {bookmaker_name} matches")
 
-        print(f"\n✅ Pregame Summary:")
+        print(f"\n[OK] Pregame Summary:")
         print(f"   Total unified matches: {len(unified_matches)}")
         print(f"   Matches with all {len(bookmaker_names)} bookmakers: {len(all_bookmaker_groups)}")
         print(f"   Matches with 2+ bookmakers: {len(multi_bookmaker_groups)}")
@@ -1240,7 +1240,7 @@ class UnifiedOddsCollector:
         3. Fallback to fuzzy matching for teams not in cache (FALLBACK)
         """
         # STEP 1: Normalize all team names to canonical names from cache
-        print(f"\n🔄 Normalizing team names to canonical format...")
+        print(f"\n[INFO] Normalizing team names to canonical format...")
         bet365_matches = [self.normalize_match_teams(m) for m in bet365_matches]
         fanduel_matches = [self.normalize_match_teams(m) for m in fanduel_matches]
         xbet_matches = [self.normalize_match_teams(m) for m in xbet_matches]
@@ -1365,6 +1365,13 @@ class UnifiedOddsCollector:
                 xbet_score_info = self.extract_live_score(xbet_match, '1xbet')
                 if not score_info['home_score'] and xbet_score_info['home_score']:
                     score_info = xbet_score_info
+                
+                # Update date/time with 1xBet data if it has better info (e.g., Bet365 has "Live" as date)
+                if unified_match['date'] == 'Live' and xbet_match.get('date'):
+                    unified_match['date'] = xbet_match['date']
+                if unified_match['time'] and xbet_match.get('time'):
+                    # Prefer 1xBet time if Bet365 only has period/time_remaining
+                    unified_match['time'] = xbet_match['time']
             
             unified_matches.append(unified_match)
         
@@ -1409,14 +1416,15 @@ class UnifiedOddsCollector:
                 canonical_sport = self.get_canonical_sport_name(xbet_match['sport'])
                 score_info = self.extract_live_score(xbet_match, '1xbet')
                 
-                # Use Live as date and extract time from score info
-                match_time = score_info.get('time_remaining') or score_info.get('period') or 'In Progress'
+                # Use actual date/time from 1xbet match data
+                match_date = xbet_match.get('date', 'Live')
+                match_time = xbet_match.get('time', score_info.get('time_remaining') or score_info.get('period') or 'In Progress')
                 
                 unified_match = {
                     'sport': canonical_sport,
                     'home_team': xbet_match['home_team'],
                     'away_team': xbet_match['away_team'],
-                    'date': 'Live',
+                    'date': match_date,
                     'time': match_time,
                     'is_live': True,
                     'score': score_info,
@@ -1471,18 +1479,18 @@ class UnifiedOddsCollector:
                 ], cwd=os.path.join(self.base_dir, "bet365"), capture_output=True, text=True, timeout=180)
 
                 if result.returncode == 0:
-                    print("✅ Bet365 concurrent scraper completed successfully")
+                    print("[OK] Bet365 concurrent scraper completed successfully")
                 else:
-                    print(f"⚠️  Bet365 concurrent scraper failed (exit code: {result.returncode})")
+                    print(f"[WARN] Bet365 concurrent scraper failed (exit code: {result.returncode})")
                     print(f"   Error: {result.stderr[:300]}...")
 
             except Exception as e:
                 if "TimeoutExpired" in str(type(e)):
-                    print("⚠️  Bet365 concurrent scraper timed out after 180 seconds")
+                    print("[WARN] Bet365 concurrent scraper timed out after 180 seconds")
                 else:
-                    print(f"⚠️  Error running Bet365 concurrent scraper: {e}")
+                    print(f"[WARN] Error running Bet365 concurrent scraper: {e}")
         else:
-            print("⚠️  Bet365 concurrent scraper not found, using existing data")
+            print("[WARN] Bet365 concurrent scraper not found, using existing data")
 
         bet365_pregame = self.load_bet365_pregame()
         bet365_live = self.load_bet365_live()
@@ -1530,11 +1538,11 @@ class UnifiedOddsCollector:
         # Save updated cache
         if total_new_teams > 0:
             self.cache_manager.save_cache(replicate_to_subfolders=True)
-            print(f"✓ Cache updated: +{total_new_teams} new teams discovered")
+            print(f"[OK] Cache updated: +{total_new_teams} new teams discovered")
             # Reload cache for this session
             self.load_cache()
         else:
-            print("✓ No new teams found (cache is up to date)")
+            print("[OK] No new teams found (cache is up to date)")
 
         # Merge pregame
         print("\nMerging pregame matches...")
@@ -1642,15 +1650,15 @@ class UnifiedOddsCollector:
                             shutil.copy2(filepath, backup_file)
                         except json.JSONDecodeError:
                             # Existing file is corrupted, don't back it up
-                            print("⚠ Existing file corrupted, not backing up")
+                            print("[WARN] Existing file corrupted, not backing up")
                     
                     # Atomic replace using os.replace (atomic on Windows and Unix)
                     os.replace(temp_file, filepath)
                     
-                    print("✓ File saved successfully (atomic write with validation)")
+                    print("[OK] File saved successfully (atomic write with validation)")
                     
                 except Exception as e:
-                    print(f"❌ Error saving file: {e}")
+                    print(f"[ERROR] Error saving file: {e}")
                     # Clean up temp file if it exists
                     if os.path.exists(temp_file):
                         try:

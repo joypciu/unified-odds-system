@@ -90,15 +90,15 @@ class DynamicCacheManager:
                     if self.cache_data['teams_global']:
                         max_team_id = max(t['id'] for t in self.cache_data['teams_global'].values())
                         self.team_id_counter = max_team_id + 1
-                    
-                    print(f"✓ Loaded existing cache: {self.cache_data['metadata']['total_teams']} teams, "
+
+                    print(f"[OK] Loaded existing cache: {self.cache_data['metadata']['total_teams']} teams, "
                           f"{self.cache_data['metadata']['total_sports']} sports")
                     return True
             else:
-                print("⚠ No existing cache found, starting fresh")
+                print("[WARN] No existing cache found, starting fresh")
                 return False
         except Exception as e:
-            print(f"⚠ Error loading cache: {e}, starting fresh")
+            print(f"[WARN] Error loading cache: {e}, starting fresh")
             return False
     
     def save_cache(self, replicate_to_subfolders: bool = True):
@@ -134,7 +134,7 @@ class DynamicCacheManager:
                 
                 return True
             except Exception as e:
-                print(f"❌ Error saving cache: {e}")
+                print(f"[ERROR] Error saving cache: {e}")
                 return False
     
     def _create_timestamped_backup(self):
@@ -150,7 +150,7 @@ class DynamicCacheManager:
                 shutil.copy2(self.cache_file, backup_path)
                 
         except Exception as e:
-            print(f"⚠ Could not create backup: {e}")
+            print(f"[WARN] Could not create backup: {e}")
     
     def _cleanup_old_backups(self, keep_count: int = 10):
         """Keep only the most recent N backups, delete older ones"""
@@ -167,7 +167,7 @@ class DynamicCacheManager:
                 old_backup.unlink()
                 
         except Exception as e:
-            print(f"⚠ Could not cleanup old backups: {e}")
+            print(f"[WARN] Could not cleanup old backups: {e}")
     
     def restore_from_backup(self, backup_file: Optional[Path] = None) -> bool:
         """
@@ -183,7 +183,7 @@ class DynamicCacheManager:
                     reverse=True
                 )
                 if not backup_files:
-                    print("❌ No backup files found")
+                    print("[ERROR] No backup files found")
                     return False
                 backup_file = backup_files[0]
             
@@ -195,7 +195,7 @@ class DynamicCacheManager:
             with open(self.cache_file, 'w', encoding='utf-8') as f:
                 json.dump(self.cache_data, f, indent=2, ensure_ascii=False)
             
-            print(f"✓ Cache restored from backup: {backup_file.name}")
+            print(f"[OK] Cache restored from backup: {backup_file.name}")
             return True
             
         except Exception as e:

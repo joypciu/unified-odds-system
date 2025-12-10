@@ -864,6 +864,27 @@
             gap: 12px;
         }
 
+        /* Header date/time shown alongside live badge */
+        .header-datetime {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 11px;
+            color: #9ca3af;
+            margin-left: 8px;
+            line-height: 1.1;
+        }
+
+        .header-datetime .hdr-date { font-weight: 700; color: #cbd5e1; }
+        .header-datetime .hdr-time { font-size: 11px; color: #9ca3af; }
+
+        /* Responsive: on narrow screens hide the date and keep time compact */
+        @media (max-width: 640px) {
+            .header-datetime { align-items: flex-start; }
+            .header-datetime .hdr-date { display: none; }
+            .header-datetime .hdr-time { font-size: 12px; }
+        }
+
         .bookmaker-badges { display: flex; gap: 6px; flex-wrap: wrap; }
 
         .bookmaker-badge {
@@ -3214,9 +3235,15 @@
                 }
 
                 const cardHtml = `
-                    <div class="match-card-header">
+                    <div class="match-card-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
                         <span class="sport-badge">${match.sport}</span>
-                        ${liveIndicator}
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            ${liveIndicator}
+                                <div class="header-datetime">
+                                    <div class="hdr-date">${(match.date && match.date !== 'Live') ? match.date : (match['1xbet']?.live_data?.start_time_readable || '')}</div>
+                                    <div class="hdr-time">${match.time || match['1xbet']?.live_data?.start_time_readable || ''}</div>
+                                </div>
+                        </div>
                     </div>
                     <div class="match-teams">
                         <div class="team">${match.home_team}</div>
@@ -3318,6 +3345,11 @@
                 <span><i class="fas fa-clock"></i> ${match.time || 'TBD'}</span>
                 <span><i class="fas fa-chart-line"></i> ${sourcesCount} source(s)</span>
             `;
+
+            // If match is live and we have scheduled date/time (from 1xBet), ensure it's clear in modal
+            if (match.is_live && match.date && match.date !== 'Live') {
+                subtitleHtml += `<span style="font-weight:600; color:#cbd5e1;"><i class="fas fa-calendar-alt"></i> Scheduled: ${match.date} ${match.time || ''}</span>`;
+            }
             
             document.getElementById('modalSubtitle').innerHTML = subtitleHtml;
 
