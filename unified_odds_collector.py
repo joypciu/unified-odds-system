@@ -79,6 +79,27 @@ class UnifiedOddsCollector:
         self.team_lookup_cache = {}  # normalized_name -> canonical_name
         self.sport_lookup_cache = {}  # normalized_sport -> canonical_sport
         self.load_cache()
+
+        # Auto-update cache from available source files (run once at startup)
+        try:
+            srcs = [
+                (Path(self.bet365_pregame_file), 'bet365'),
+                (Path(self.bet365_live_file), 'bet365'),
+                (Path(self.fanduel_pregame_file), 'fanduel'),
+                (Path(self.fanduel_live_file), 'fanduel'),
+                (Path(self.xbet_pregame_file), '1xbet'),
+                (Path(self.xbet_live_file), '1xbet')
+            ]
+            for p, src in srcs:
+                if p.exists():
+                    try:
+                        summary = self.cache_manager.auto_update_from_file(p, src)
+                        if summary.get('new_teams') or summary.get('new_sports'):
+                            print(f"[CACHE] Auto-updated from {p.name}: +{len(summary.get('new_teams',[]))} teams, +{len(summary.get('new_sports',[]))} sports")
+                    except Exception as e:
+                        print(f"[WARN] Cache update failed for {p.name}: {e}")
+        except Exception as e:
+            print(f"[WARN] Error during cache auto-update initialization: {e}")
         
         # Fallback cache for normalized team names (legacy)
         self.team_name_cache = {}
