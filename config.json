@@ -29,5 +29,16 @@
   "cache": {
     "auto_update": true,
     "update_interval_minutes": 60
+  },
+  "sportbex": {
+    "api_keys": [
+      "Dw7o4sdSeFcEMovchGSjUJ8VYGm73JOx7NRDE64z"
+    ],
+    "base_url": "https://trial-api.sportbex.com/api/betfair",
+    "competitions": [1, 4, 5, 7, 4339, 7522, 6423, 7511, 3988, 998917, 468328]
+  },
+  "optic_odds": {
+    "api_key": "",
+    "base_url": "https://api.opticodds.com/api/v2"
   }
 }

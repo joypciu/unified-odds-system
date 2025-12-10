@@ -1,0 +1,31 @@
+{
+  "source": "oddsmagnet",
+  "timestamp": "2025-12-10T17:48:28.854509",
+  "matches": [
+    {
+      "league": "Spain Laliga",
+      "match": "Sociedad V Girona",
+      "market": "Winner In First 15 Min",
+      "odds": [
+        {
+          "selection": "Draw",
+          "bookie": "VB",
+          "decimal": 1.24,
+          "fractional": "6/25"
+        },
+        {
+          "selection": "Sociedad",
+          "bookie": "VB",
+          "decimal": 5.2,
+          "fractional": "21/5"
+        },
+        {
+          "selection": "Girona",
+          "bookie": "VB",
+          "decimal": 9.7,
+          "fractional": "87/10"
+        }
+      ]
+    }
+  ]
+}

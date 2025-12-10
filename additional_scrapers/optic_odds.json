@@ -1,0 +1,210 @@
+{
+  "metadata": {
+    "source": "optic_odds",
+    "method": "web_scraping",
+    "generated_at": "2025-12-10T16:58:04.190672",
+    "total_sports": 5
+  },
+  "sports": [
+    {
+      "sport": "soccer",
+      "events": [
+        {
+          "raw_text": "Sorry, we could not locate the page you were looking for.\n\nIt is possible the page requested relates to a past event and therefore no longer exists. Please use the menu above to select a different event.\n\nHere are some links to help you get started:\nHome\nFootball\nHorse Racing\nFree Bets",
+          "source_url": "https://www.oddschecker.com/soccer",
+          "scraped_at": "2025-12-10T16:54:30.523170"
+        }
+      ],
+      "method": "web_scraping",
+      "fetched_at": "2025-12-10T16:54:30.524168"
+    },
+    {
+      "sport": "basketball",
+      "events": [
+        {
+          "raw_text": "Chemnitz\nPanionios\n73\n68",
+          "source_url": "https://www.flashscore.com/basketball",
+          "scraped_at": "2025-12-10T16:55:24.321896"
+        },
+        {
+          "raw_text": "Hapoel Jerusalem\nHamburg\n86\n76",
+          "source_url": "https://www.flashscore.com/basketball",
+          "scraped_at": "2025-12-10T16:55:24.351895"
+        },
+        {
+          "raw_text": "JL Bourg\nTrento\n73\n91",
+          "source_url": "https://www.flashscore.com/basketball",
+          "scraped_at": "2025-12-10T16:55:24.375896"
+        },
+        {
+          "raw_text": "Bahcesehir Kol.\nCluj-Napoca\n22:00",
+          "source_url": "https://www.flashscore.com/basketball",
+          "scraped_at": "2025-12-10T16:55:24.405896"
+        },
+        {
+          "raw_text": "Neptunas\nSlask Wroclaw\n23:00",
+          "source_url": "https://www.flashscore.com/basketball",
+          "scraped_at": "2025-12-10T16:55:24.419897"
+        },
+        {
+          "raw_text": "AS Karditsas\nMersin SK\n72\n80",
+          "source_url": "https://www.flashscore.com/basketball",
+          "scraped_at": "2025-12-10T16:55:24.432900"
+        },
+        {
+          "raw_text": "Chalon/Saone\nAlba Berlin\n91\n100",
+          "source_url": "https://www.flashscore.com/basketball",
+          "scraped_at": "2025-12-10T16:55:24.457898"
+        },
+        {
+          "raw_text": "Oostende\nUnicaja\n73\n89",
+          "source_url": "https://www.flashscore.com/basketball",
+          "scraped_at": "2025-12-10T16:55:24.488895"
+        }
+      ],
+      "method": "web_scraping",
+      "fetched_at": "2025-12-10T16:55:24.506895"
+    },
+    {
+      "sport": "tennis",
+      "events": [
+        {
+          "raw_text": "Friedsam A-L.\nKawa K.\n2\n0",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.113402"
+        },
+        {
+          "raw_text": "Knutson G.\nCharaeva A.\n2\n1",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.135403"
+        },
+        {
+          "raw_text": "Xu M.\nKlimovicova L.\n0\n2",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.156403"
+        },
+        {
+          "raw_text": "Korpatsch T.\nRuzic A.\n15\n0\n1\n1\nS1\n0\n0",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.181404"
+        },
+        {
+          "raw_text": "Paquet C.\nJacquemot E.\n18:30",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.204404"
+        },
+        {
+          "raw_text": "Rakotomanga Rajaonah T.\nPonchet J.\n20:00",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.215404"
+        },
+        {
+          "raw_text": "Zhang S.\nStefanini L.\n21:30",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.227402"
+        },
+        {
+          "raw_text": "Kartal S.\nKalinina A.\n23:00",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.237404"
+        },
+        {
+          "raw_text": "Dolzhenkov D.\nPieri S.\n0\n2",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.248403"
+        },
+        {
+          "raw_text": "Madaras N.\nZielinski M.\nRetired\n1\n0",
+          "source_url": "https://www.flashscore.com/tennis",
+          "scraped_at": "2025-12-10T16:56:16.272403"
+        }
+      ],
+      "method": "web_scraping",
+      "fetched_at": "2025-12-10T16:56:16.272403"
+    },
+    {
+      "sport": "football",
+      "events": [
+        {
+          "raw_text": "Atalanta\nChelsea\n2\n1",
+          "source_url": "https://www.flashscore.com/football",
+          "scraped_at": "2025-12-10T16:57:07.782645"
+        },
+        {
+          "raw_text": "Barcelona\nEintracht Frankfurt\n2\n1",
+          "source_url": "https://www.flashscore.com/football",
+          "scraped_at": "2025-12-10T16:57:07.810644"
+        },
+        {
+          "raw_text": "Inter\nLiverpool\n0\n1",
+          "source_url": "https://www.flashscore.com/football",
+          "scraped_at": "2025-12-10T16:57:07.835645"
+        },
+        {
+          "raw_text": "Monaco\nGalatasaray\n1\n0",
+          "source_url": "https://www.flashscore.com/football",
+          "scraped_at": "2025-12-10T16:57:07.865644"
+        },
+        {
+          "raw_text": "PSV\nAtl. Madrid\n2\n3",
+          "source_url": "https://www.flashscore.com/football",
+          "scraped_at": "2025-12-10T16:57:07.894645"
+        },
+        {
+          "raw_text": "Royale Union SG\nMarseille\n2\n3",
+          "source_url": "https://www.flashscore.com/football",
+          "scraped_at": "2025-12-10T16:57:07.920645"
+        },
+        {
+          "raw_text": "Tottenham\nSlavia Prague\n3\n0",
+          "source_url": "https://www.flashscore.com/football",
+          "scraped_at": "2025-12-10T16:57:07.952644"
+        }
+      ],
+      "method": "web_scraping",
+      "fetched_at": "2025-12-10T16:57:07.965645"
+    },
+    {
+      "sport": "baseball",
+      "events": [
+        {
+          "raw_text": "Caimanes\nTigres\n6\n4",
+          "source_url": "https://www.flashscore.com/baseball",
+          "scraped_at": "2025-12-10T16:57:59.897932"
+        },
+        {
+          "raw_text": "Toros\nVaqueros de Monteria\nPostp\n-\n-",
+          "source_url": "https://www.flashscore.com/baseball",
+          "scraped_at": "2025-12-10T16:57:59.921934"
+        },
+        {
+          "raw_text": "Ciego de Avila\nIndustriales\n5\n9",
+          "source_url": "https://www.flashscore.com/baseball",
+          "scraped_at": "2025-12-10T16:57:59.943934"
+        },
+        {
+          "raw_text": "Cienfuegos\nLas Tunas\n4\n7",
+          "source_url": "https://www.flashscore.com/baseball",
+          "scraped_at": "2025-12-10T16:57:59.966934"
+        },
+        {
+          "raw_text": "Granma\nMatanzas\n16\n5",
+          "source_url": "https://www.flashscore.com/baseball",
+          "scraped_at": "2025-12-10T16:57:59.990933"
+        },
+        {
+          "raw_text": "Guantanamo\nSancti Spiritus\n2\n3",
+          "source_url": "https://www.flashscore.com/baseball",
+          "scraped_at": "2025-12-10T16:58:00.015940"
+        },
+        {
+          "raw_text": "Isla Juventud\nHolguin\n9\n8",
+          "source_url": "https://www.flashscore.com/baseball",
+          "scraped_at": "2025-12-10T16:58:00.040551"
+        }
+      ],
+      "method": "web_scraping",
+      "fetched_at": "2025-12-10T16:58:00.047550"
+    }
+  ]
+}

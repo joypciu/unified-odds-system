@@ -1,0 +1,1410 @@
+{
+  "metadata": {
+    "source": "sportbex",
+    "method": "api",
+    "generated_at": "2025-12-10T16:51:32.671433",
+    "total_competitions": 5
+  },
+  "competitions": [
+    {
+      "competition_id": "1",
+      "sport": "Soccer",
+      "data": [
+        {
+          "competition": {
+            "id": "2608550",
+            "name": "Specials"
+          },
+          "marketCount": 3,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "89219",
+            "name": "Brazilian Cup"
+          },
+          "marketCount": 14,
+          "competitionRegion": "BRA"
+        },
+        {
+          "competition": {
+            "id": "12110652",
+            "name": "Andorran Primera Divisio"
+          },
+          "marketCount": 24,
+          "competitionRegion": "AND"
+        },
+        {
+          "competition": {
+            "id": "12199359",
+            "name": "Northern Irish Premiership"
+          },
+          "marketCount": 8,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "133",
+            "name": "Swiss Super League"
+          },
+          "marketCount": 6,
+          "competitionRegion": "CHE"
+        },
+        {
+          "competition": {
+            "id": "135",
+            "name": "Swiss Challenge League"
+          },
+          "marketCount": 28,
+          "competitionRegion": "CHE"
+        },
+        {
+          "competition": {
+            "id": "9",
+            "name": "Austrian Erste Liga"
+          },
+          "marketCount": 8,
+          "competitionRegion": "AUT"
+        },
+        {
+          "competition": {
+            "id": "11",
+            "name": "Dutch Eerste Divisie"
+          },
+          "marketCount": 42,
+          "competitionRegion": "NLD"
+        },
+        {
+          "competition": {
+            "id": "12117172",
+            "name": "Australian A-League Men"
+          },
+          "marketCount": 225,
+          "competitionRegion": "AUS"
+        },
+        {
+          "competition": {
+            "id": "2079376",
+            "name": "Costa Rican Primera Division"
+          },
+          "marketCount": 48,
+          "competitionRegion": "CRI"
+        },
+        {
+          "competition": {
+            "id": "17",
+            "name": "Croatian HNL"
+          },
+          "marketCount": 4,
+          "competitionRegion": "HRV"
+        },
+        {
+          "competition": {
+            "id": "7616742",
+            "name": "Kenyan Premier League"
+          },
+          "marketCount": 24,
+          "competitionRegion": "KEN"
+        },
+        {
+          "competition": {
+            "id": "12220206",
+            "name": "UEFA Women's Champions League"
+          },
+          "marketCount": 165,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "12204204",
+            "name": "Czech 1 Liga"
+          },
+          "marketCount": 8,
+          "competitionRegion": "CZE"
+        },
+        {
+          "competition": {
+            "id": "12214445",
+            "name": "Montenegrin 2nd League"
+          },
+          "marketCount": 24,
+          "competitionRegion": "SRB"
+        },
+        {
+          "competition": {
+            "id": "12108847",
+            "name": "Australian A-League Women"
+          },
+          "marketCount": 115,
+          "competitionRegion": "AUS"
+        },
+        {
+          "competition": {
+            "id": "1062024",
+            "name": "Japanese J League 2"
+          },
+          "marketCount": 2,
+          "competitionRegion": "JPN"
+        },
+        {
+          "competition": {
+            "id": "9404054",
+            "name": "Dutch Eredivisie"
+          },
+          "marketCount": 9,
+          "competitionRegion": "NLD"
+        },
+        {
+          "competition": {
+            "id": "6566654",
+            "name": "Guatemalan Liga Nacional"
+          },
+          "marketCount": 96,
+          "competitionRegion": "GTM"
+        },
+        {
+          "competition": {
+            "id": "3796898",
+            "name": "Jamaican Premier League"
+          },
+          "marketCount": 48,
+          "competitionRegion": "JAM"
+        },
+        {
+          "competition": {
+            "id": "12202273",
+            "name": "English WSL"
+          },
+          "marketCount": 33,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "4608858",
+            "name": "Thai League 2"
+          },
+          "marketCount": 24,
+          "competitionRegion": "THA"
+        },
+        {
+          "competition": {
+            "id": "12103207",
+            "name": "Saudi 2nd Division"
+          },
+          "marketCount": 24,
+          "competitionRegion": "SAU"
+        },
+        {
+          "competition": {
+            "id": "11086347",
+            "name": "English National League"
+          },
+          "marketCount": 25,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "35",
+            "name": "English Sky Bet League 1"
+          },
+          "marketCount": 39,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12204313",
+            "name": "Spanish Segunda Division"
+          },
+          "marketCount": 11,
+          "competitionRegion": "ESP"
+        },
+        {
+          "competition": {
+            "id": "37",
+            "name": "English Sky Bet League 2"
+          },
+          "marketCount": 81,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12375833",
+            "name": "UEFA Europa Conference League"
+          },
+          "marketCount": 604,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "12383129",
+            "name": "Spanish Primera Federación - Group 2"
+          },
+          "marketCount": 24,
+          "competitionRegion": "ESP"
+        },
+        {
+          "competition": {
+            "id": "12202271",
+            "name": "Honduras Liga Nacional"
+          },
+          "marketCount": 24,
+          "competitionRegion": "HND"
+        },
+        {
+          "competition": {
+            "id": "194215",
+            "name": "Turkish Super League"
+          },
+          "marketCount": 10,
+          "competitionRegion": "TUR"
+        },
+        {
+          "competition": {
+            "id": "3784863",
+            "name": "UEFA Youth League"
+          },
+          "marketCount": 471,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "12226205",
+            "name": "Georgian Cup"
+          },
+          "marketCount": 24,
+          "competitionRegion": "GEO"
+        },
+        {
+          "competition": {
+            "id": "12707558",
+            "name": "FIFA Intercontinental Cup"
+          },
+          "marketCount": 24,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "8594603",
+            "name": "Peruvian Primera Division"
+          },
+          "marketCount": 24,
+          "competitionRegion": "PER"
+        },
+        {
+          "competition": {
+            "id": "12246418",
+            "name": "Scottish League Cup"
+          },
+          "marketCount": 8,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "41",
+            "name": "English National League North"
+          },
+          "marketCount": 21,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "9513",
+            "name": "Portuguese Segunda Liga"
+          },
+          "marketCount": 3,
+          "competitionRegion": "PRT"
+        },
+        {
+          "competition": {
+            "id": "4905",
+            "name": "Romanian Liga I"
+          },
+          "marketCount": 8,
+          "competitionRegion": "ROU"
+        },
+        {
+          "competition": {
+            "id": "844197",
+            "name": "Colombian Primera A"
+          },
+          "marketCount": 2,
+          "competitionRegion": "COL"
+        },
+        {
+          "competition": {
+            "id": "39218",
+            "name": "AFC Champions League"
+          },
+          "marketCount": 66,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "12199689",
+            "name": "Italian Serie B"
+          },
+          "marketCount": 2,
+          "competitionRegion": "ITA"
+        },
+        {
+          "competition": {
+            "id": "2371216",
+            "name": "Jordan 1st Division"
+          },
+          "marketCount": 120,
+          "competitionRegion": "JOR"
+        },
+        {
+          "competition": {
+            "id": "12016770",
+            "name": "Turkish U19"
+          },
+          "marketCount": 24,
+          "competitionRegion": "TUR"
+        },
+        {
+          "competition": {
+            "id": "12251791",
+            "name": "Other Competitions Soccer"
+          },
+          "marketCount": 48,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "55",
+            "name": "French Ligue 1"
+          },
+          "marketCount": 73,
+          "competitionRegion": "FRA"
+        },
+        {
+          "competition": {
+            "id": "4517491",
+            "name": "Azerbaijan 1st Division"
+          },
+          "marketCount": 96,
+          "competitionRegion": "AZE"
+        },
+        {
+          "competition": {
+            "id": "309948",
+            "name": "Bulgarian Cup"
+          },
+          "marketCount": 2,
+          "competitionRegion": "BGR"
+        },
+        {
+          "competition": {
+            "id": "12276354",
+            "name": "Norwegian Playoffs"
+          },
+          "marketCount": 33,
+          "competitionRegion": "NOR"
+        },
+        {
+          "competition": {
+            "id": "57",
+            "name": "French Ligue 2"
+          },
+          "marketCount": 13,
+          "competitionRegion": "FRA"
+        },
+        {
+          "competition": {
+            "id": "67387",
+            "name": "Argentinian Primera Division"
+          },
+          "marketCount": 1,
+          "competitionRegion": "ARG"
+        },
+        {
+          "competition": {
+            "id": "10932509",
+            "name": "English Premier League"
+          },
+          "marketCount": 151,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "59",
+            "name": "German Bundesliga"
+          },
+          "marketCount": 137,
+          "competitionRegion": "DEU"
+        },
+        {
+          "competition": {
+            "id": "61",
+            "name": "German Bundesliga 2"
+          },
+          "marketCount": 11,
+          "competitionRegion": "DEU"
+        },
+        {
+          "competition": {
+            "id": "97855",
+            "name": "Slovakian Cup"
+          },
+          "marketCount": 24,
+          "competitionRegion": "SVK"
+        },
+        {
+          "competition": {
+            "id": "175680",
+            "name": "Turkish 1 Lig"
+          },
+          "marketCount": 2,
+          "competitionRegion": "TUR"
+        },
+        {
+          "competition": {
+            "id": "12209528",
+            "name": "Africa Cup of Nations"
+          },
+          "marketCount": 18,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "961354",
+            "name": "Chilean Cup"
+          },
+          "marketCount": 24,
+          "competitionRegion": "CHL"
+        },
+        {
+          "competition": {
+            "id": "12208242",
+            "name": "Montenegrin 1st League"
+          },
+          "marketCount": 120,
+          "competitionRegion": "SRB"
+        },
+        {
+          "competition": {
+            "id": "10479956",
+            "name": "Austrian Bundesliga"
+          },
+          "marketCount": 5,
+          "competitionRegion": "AUT"
+        },
+        {
+          "competition": {
+            "id": "12206708",
+            "name": "Scottish FA Cup"
+          },
+          "marketCount": 21,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12007015",
+            "name": "Georgian Matches"
+          },
+          "marketCount": 24,
+          "competitionRegion": "GEO"
+        },
+        {
+          "competition": {
+            "id": "81",
+            "name": "Italian Serie A"
+          },
+          "marketCount": 81,
+          "competitionRegion": "ITA"
+        },
+        {
+          "competition": {
+            "id": "12005859",
+            "name": "Friendly Matches"
+          },
+          "marketCount": 72,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "2005",
+            "name": "UEFA Europa League"
+          },
+          "marketCount": 631,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "2134",
+            "name": "English Football League Cup"
+          },
+          "marketCount": 55,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12209388",
+            "name": "Thai League 1"
+          },
+          "marketCount": 2,
+          "competitionRegion": "THA"
+        },
+        {
+          "competition": {
+            "id": "12688794",
+            "name": "AFC Champions League Two"
+          },
+          "marketCount": 255,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "4215067",
+            "name": "Algerian Cup"
+          },
+          "marketCount": 42,
+          "competitionRegion": "DZA"
+        },
+        {
+          "competition": {
+            "id": "12722076",
+            "name": "English U21 Premier League Cup"
+          },
+          "marketCount": 24,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12271450",
+            "name": "Turkish Ladies"
+          },
+          "marketCount": 18,
+          "competitionRegion": "TUR"
+        },
+        {
+          "competition": {
+            "id": "12199513",
+            "name": "Italian Serie C"
+          },
+          "marketCount": 1,
+          "competitionRegion": "ITA"
+        },
+        {
+          "competition": {
+            "id": "99",
+            "name": "Portuguese Primeira Liga"
+          },
+          "marketCount": 8,
+          "competitionRegion": "PRT"
+        },
+        {
+          "competition": {
+            "id": "228",
+            "name": "UEFA Champions League"
+          },
+          "marketCount": 514,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "803690",
+            "name": "Ecuadorian Serie A"
+          },
+          "marketCount": 24,
+          "competitionRegion": "ECU"
+        },
+        {
+          "competition": {
+            "id": "12444373",
+            "name": "Egyptian League Cup"
+          },
+          "marketCount": 122,
+          "competitionRegion": "EGY"
+        },
+        {
+          "competition": {
+            "id": "105",
+            "name": "Scottish Premiership"
+          },
+          "marketCount": 12,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12199507",
+            "name": "Italian Serie C Cup"
+          },
+          "marketCount": 96,
+          "competitionRegion": "ITA"
+        },
+        {
+          "competition": {
+            "id": "107",
+            "name": "Scottish Championship"
+          },
+          "marketCount": 6,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12469077",
+            "name": "FIFA World Cup"
+          },
+          "marketCount": 132,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "7247362",
+            "name": "Ugandan Premier League"
+          },
+          "marketCount": 96,
+          "competitionRegion": "UGA"
+        },
+        {
+          "competition": {
+            "id": "12007003",
+            "name": "Bolivian Liga de Futbol Profesional"
+          },
+          "marketCount": 120,
+          "competitionRegion": "BOL"
+        },
+        {
+          "competition": {
+            "id": "109",
+            "name": "Scottish League One"
+          },
+          "marketCount": 5,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "7129730",
+            "name": "English Sky Bet Championship"
+          },
+          "marketCount": 186,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12209621",
+            "name": "Portuguese U23"
+          },
+          "marketCount": 24,
+          "competitionRegion": "PRT"
+        },
+        {
+          "competition": {
+            "id": "111",
+            "name": "Scottish League Two"
+          },
+          "marketCount": 5,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "11730241",
+            "name": "Nigerian Premier League"
+          },
+          "marketCount": 24,
+          "competitionRegion": "NGA"
+        },
+        {
+          "competition": {
+            "id": "5627174",
+            "name": "Mexican Liga MX"
+          },
+          "marketCount": 33,
+          "competitionRegion": "MEX"
+        },
+        {
+          "competition": {
+            "id": "117",
+            "name": "Spanish La Liga"
+          },
+          "marketCount": 153,
+          "competitionRegion": "ESP"
+        },
+        {
+          "competition": {
+            "id": "11717188",
+            "name": "Belgian Challenger Pro League"
+          },
+          "marketCount": 2,
+          "competitionRegion": "BEL"
+        },
+        {
+          "competition": {
+            "id": "1081960",
+            "name": "French National"
+          },
+          "marketCount": 16,
+          "competitionRegion": "FRA"
+        },
+        {
+          "competition": {
+            "id": "89979",
+            "name": "Belgian Pro League"
+          },
+          "marketCount": 9,
+          "competitionRegion": "BEL"
+        },
+        {
+          "competition": {
+            "id": "862579",
+            "name": "Romanian Liga II"
+          },
+          "marketCount": 10,
+          "competitionRegion": "ROU"
+        }
+      ],
+      "method": "api",
+      "fetched_at": "2025-12-10T16:51:25.053446"
+    },
+    {
+      "competition_id": "4",
+      "sport": "Cricket",
+      "data": [
+        {
+          "competition": {
+            "id": "11365612",
+            "name": "Test Matches"
+          },
+          "marketCount": 29,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "12306233",
+            "name": "Syed Mushtaq Ali Trophy"
+          },
+          "marketCount": 12,
+          "competitionRegion": "IND"
+        },
+        {
+          "competition": {
+            "id": "10529093",
+            "name": "WBBL"
+          },
+          "marketCount": 23,
+          "competitionRegion": "AUS"
+        },
+        {
+          "competition": {
+            "id": "12547929",
+            "name": "International League T20"
+          },
+          "marketCount": 30,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "12444379",
+            "name": "The Ashes"
+          },
+          "marketCount": 17,
+          "competitionRegion": "AUS"
+        },
+        {
+          "competition": {
+            "id": "10328858",
+            "name": "BBL"
+          },
+          "marketCount": 78,
+          "competitionRegion": "AUS"
+        },
+        {
+          "competition": {
+            "id": "101480",
+            "name": "Indian Premier League"
+          },
+          "marketCount": 1,
+          "competitionRegion": "IND"
+        },
+        {
+          "competition": {
+            "id": "12706346",
+            "name": "Nepal Premier League"
+          },
+          "marketCount": 3,
+          "competitionRegion": "NPL"
+        },
+        {
+          "competition": {
+            "id": "12774768",
+            "name": "Falcons Champions Trophy T20"
+          },
+          "marketCount": 3,
+          "competitionRegion": "KWT"
+        },
+        {
+          "competition": {
+            "id": "9992899",
+            "name": "International Twenty20 Matches"
+          },
+          "marketCount": 24,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "12652316",
+            "name": "Zimbabwe Domestic T20"
+          },
+          "marketCount": 6,
+          "competitionRegion": "ZWE"
+        },
+        {
+          "competition": {
+            "id": "12072774",
+            "name": "Womens International Twenty20 Matches"
+          },
+          "marketCount": 21,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "12674623",
+            "name": "ICC Men's T20 World Cup"
+          },
+          "marketCount": 1,
+          "competitionRegion": "International"
+        }
+      ],
+      "method": "api",
+      "fetched_at": "2025-12-10T16:51:26.697047"
+    },
+    {
+      "competition_id": "5",
+      "sport": "Tennis",
+      "data": [
+        {
+          "competition": {
+            "id": "12630480",
+            "name": "World Cup 2027"
+          },
+          "marketCount": 1,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "31201",
+            "name": "French Top 14"
+          },
+          "marketCount": 1,
+          "competitionRegion": "FRA"
+        },
+        {
+          "competition": {
+            "id": "10515159",
+            "name": "European Champions Cup"
+          },
+          "marketCount": 61,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "11960510",
+            "name": "Gallagher Premiership"
+          },
+          "marketCount": 1,
+          "competitionRegion": "GBR"
+        },
+        {
+          "competition": {
+            "id": "12365622",
+            "name": "United Rugby Championship"
+          },
+          "marketCount": 1,
+          "competitionRegion": "International"
+        },
+        {
+          "competition": {
+            "id": "10542763",
+            "name": "The Six Nations 2026"
+          },
+          "marketCount": 22,
+          "competitionRegion": "International"
+        }
+      ],
+      "method": "api",
+      "fetched_at": "2025-12-10T16:51:28.337587"
+    },
+    {
+      "competition_id": "7",
+      "sport": "Horse Racing",
+      "data": [
+        {
+          "competition": {
+            "id": "69184625",
+            "name": "GB-Newcastle"
+          },
+          "marketCount": 8,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "76975134",
+            "name": "US-Turf Paradise"
+          },
+          "marketCount": 7,
+          "competitionRegion": "US"
+        },
+        {
+          "competition": {
+            "id": "52092111",
+            "name": "US-Philadelphia"
+          },
+          "marketCount": 9,
+          "competitionRegion": "US"
+        },
+        {
+          "competition": {
+            "id": "13111443",
+            "name": "GB-Leicester"
+          },
+          "marketCount": 7,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "62711699",
+            "name": "GB-Kempton"
+          },
+          "marketCount": 9,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "44191555",
+            "name": "GB-Hereford"
+          },
+          "marketCount": 7,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "96701870",
+            "name": "GB-Hexham"
+          },
+          "marketCount": 6,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "70008785",
+            "name": "IE-Dundalk"
+          },
+          "marketCount": 8,
+          "competitionRegion": "IE"
+        },
+        {
+          "competition": {
+            "id": "47068561",
+            "name": "AU-Launceston"
+          },
+          "marketCount": 18,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "90200548",
+            "name": "AU-Ascot"
+          },
+          "marketCount": 16,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "88707145",
+            "name": "GB-Taunton"
+          },
+          "marketCount": 6,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "25135935",
+            "name": "GB-Chelmsford City"
+          },
+          "marketCount": 8,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "42027042",
+            "name": "GB-Warwick"
+          },
+          "marketCount": 7,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "54107747",
+            "name": "ZA-Kenilworth"
+          },
+          "marketCount": 9,
+          "competitionRegion": "ZA"
+        },
+        {
+          "competition": {
+            "id": "67697668",
+            "name": "FR-Pau"
+          },
+          "marketCount": 8,
+          "competitionRegion": "FR"
+        },
+        {
+          "competition": {
+            "id": "60097724",
+            "name": "IE-Punchestown"
+          },
+          "marketCount": 8,
+          "competitionRegion": "IE"
+        },
+        {
+          "competition": {
+            "id": "38149820",
+            "name": "US-Tampa Bay Downs"
+          },
+          "marketCount": 9,
+          "competitionRegion": "US"
+        },
+        {
+          "competition": {
+            "id": "11235713",
+            "name": "US-Turfway Park"
+          },
+          "marketCount": 9,
+          "competitionRegion": "US"
+        },
+        {
+          "competition": {
+            "id": "69700329",
+            "name": "US-Aqueduct"
+          },
+          "marketCount": 8,
+          "competitionRegion": "US"
+        },
+        {
+          "competition": {
+            "id": "49825888",
+            "name": "US-Delta Downs"
+          },
+          "marketCount": 8,
+          "competitionRegion": "US"
+        },
+        {
+          "competition": {
+            "id": "22817534",
+            "name": "AU-Mildura"
+          },
+          "marketCount": 16,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "39531121",
+            "name": "AU-Redcliffe"
+          },
+          "marketCount": 18,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "82129800",
+            "name": "AU-Bathurst"
+          },
+          "marketCount": 16,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "34179032",
+            "name": "AU-Scone"
+          },
+          "marketCount": 14,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "53368576",
+            "name": "NZ-Ellerslie"
+          },
+          "marketCount": 12,
+          "competitionRegion": "NZ"
+        },
+        {
+          "competition": {
+            "id": "11951577",
+            "name": "NZ-Ascot Park"
+          },
+          "marketCount": 2,
+          "competitionRegion": "NZ"
+        },
+        {
+          "competition": {
+            "id": "29546440",
+            "name": "AU-Kyneton"
+          },
+          "marketCount": 20,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "34150797",
+            "name": "AU-Dalby"
+          },
+          "marketCount": 14,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "78592986",
+            "name": "AU-Pinjarra"
+          },
+          "marketCount": 14,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "43258972",
+            "name": "NZ-Te Rapa"
+          },
+          "marketCount": 4,
+          "competitionRegion": "NZ"
+        },
+        {
+          "competition": {
+            "id": "93344493",
+            "name": "AU-Kembla Grange"
+          },
+          "marketCount": 14,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "29713896",
+            "name": "AU-Canterbury"
+          },
+          "marketCount": 16,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "76755182",
+            "name": "AU-Cranbourne"
+          },
+          "marketCount": 16,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "59256011",
+            "name": "US-Charles Town"
+          },
+          "marketCount": 9,
+          "competitionRegion": "US"
+        },
+        {
+          "competition": {
+            "id": "93913798",
+            "name": "US-Remington Park"
+          },
+          "marketCount": 9,
+          "competitionRegion": "US"
+        },
+        {
+          "competition": {
+            "id": "53959068",
+            "name": "ZA-Vaal"
+          },
+          "marketCount": 10,
+          "competitionRegion": "ZA"
+        },
+        {
+          "competition": {
+            "id": "33355890",
+            "name": "FR-Cagnes-sur-Mer"
+          },
+          "marketCount": 7,
+          "competitionRegion": "FR"
+        },
+        {
+          "competition": {
+            "id": "69128638",
+            "name": "FR-Chantilly"
+          },
+          "marketCount": 8,
+          "competitionRegion": "FR"
+        }
+      ],
+      "method": "api",
+      "fetched_at": "2025-12-10T16:51:30.005523"
+    },
+    {
+      "competition_id": "4339",
+      "sport": "Greyhound Racing",
+      "data": [
+        {
+          "competition": {
+            "id": "28738643",
+            "name": "GB-Sunderland"
+          },
+          "marketCount": 24,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "53629271",
+            "name": "GB-Monmore"
+          },
+          "marketCount": 12,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "69444364",
+            "name": "GB-Romford"
+          },
+          "marketCount": 24,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "51766582",
+            "name": "GB-Dunstall Park"
+          },
+          "marketCount": 12,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "11789881",
+            "name": "GB-Hove"
+          },
+          "marketCount": 24,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "15165446",
+            "name": "GB-Valley"
+          },
+          "marketCount": 26,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "12667736",
+            "name": "GB-Yarmouth"
+          },
+          "marketCount": 10,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "97993739",
+            "name": "GB-Doncaster"
+          },
+          "marketCount": 11,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "77119397",
+            "name": "GB-Newcastle"
+          },
+          "marketCount": 24,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "56112095",
+            "name": "GB-Harlow"
+          },
+          "marketCount": 24,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "64516591",
+            "name": "GB-Nottingham"
+          },
+          "marketCount": 12,
+          "competitionRegion": "GB"
+        },
+        {
+          "competition": {
+            "id": "28156934",
+            "name": "AU-Gunnedah"
+          },
+          "marketCount": 24,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "13225035",
+            "name": "AU-Richmond"
+          },
+          "marketCount": 22,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "22126187",
+            "name": "AU-The Meadows"
+          },
+          "marketCount": 24,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "58522390",
+            "name": "AU-Ballarat"
+          },
+          "marketCount": 28,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "83716055",
+            "name": "AU-Rockhampton"
+          },
+          "marketCount": 18,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "11898317",
+            "name": "AU-Darwin"
+          },
+          "marketCount": 14,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "51225131",
+            "name": "AU-Cannington"
+          },
+          "marketCount": 24,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "46893548",
+            "name": "AU-Q Straight"
+          },
+          "marketCount": 20,
+          "competitionRegion": "AU"
+        },
+        {
+          "competition": {
+            "id": "56905261",
+            "name": "AU-Shepparton"
+          },
+          "marketCount": 28,
+          "competitionRegion": "AU"
+        }
+      ],
+      "method": "api",
+      "fetched_at": "2025-12-10T16:51:31.669599"
+    }
+  ]
+}
