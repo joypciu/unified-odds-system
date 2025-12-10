@@ -24,6 +24,15 @@ from dynamic_cache_manager import DynamicCacheManager
 from monitoring_status_api import update_monitoring_status
 from secure_config import SecureConfig
 
+# Try to import enhanced cache manager
+try:
+    from enhanced_cache_manager import EnhancedCacheManager
+    USE_ENHANCED_CACHE = True
+    print("✓ Using Enhanced Cache Manager with intelligent deduplication")
+except ImportError:
+    USE_ENHANCED_CACHE = False
+    print("⚠ Enhanced cache not available, using legacy cache")
+
 
 class ConfigManager:
     """Manages configuration with fallback to environment variables"""
@@ -271,8 +280,12 @@ class OddsMonitoringSystem:
         
         # Initialize cache manager if auto-update is enabled
         if self.config.get('cache.auto_update', True):
-            self.cache_manager = DynamicCacheManager(self.base_dir)
-            print("✓ Dynamic cache auto-update ENABLED")
+            if USE_ENHANCED_CACHE:
+                self.cache_manager = EnhancedCacheManager(self.base_dir)
+                print("✓ Enhanced cache auto-update ENABLED with intelligent deduplication")
+            else:
+                self.cache_manager = DynamicCacheManager(self.base_dir)
+                print("✓ Dynamic cache auto-update ENABLED")
         
         self.running = False
         self.monitor_thread = None
@@ -354,29 +367,43 @@ ACTION:
         
         total_new_teams = 0
         total_new_sports = 0
+        total_esports_filtered = 0
+        total_duplicates_merged = 0
         errors = []
         
         for file_path, source in sources:
-            summary = self.cache_manager.auto_update_from_file(file_path, source)
-            if summary['success']:
-                total_new_teams += len(summary['new_teams'])
-                total_new_sports += len(summary['new_sports'])
+            if USE_ENHANCED_CACHE:
+                summary = self.cache_manager.auto_update_from_json(file_path, source, quiet=True)
+                if summary['success']:
+                    total_new_teams += summary.get('new_teams', 0)
+                    total_new_sports += summary.get('new_sports', 0)
+                    total_esports_filtered += summary.get('esports_filtered', 0)
+                else:
+                    errors.extend(summary.get('errors', []))
             else:
-                # Only add errors that aren't already reported as module failures
-                for error in summary['errors']:
-                    # Skip fanduel errors if modules are already failing
-                    if 'fanduel' in error.lower():
-                        # Check if fanduel modules are known failures
-                        fanduel_failing = any('fanduel' in m.lower() for m in self.monitor.failure_counts.keys() 
-                                             if self.monitor.failure_counts[m] > 0)
-                        if fanduel_failing:
-                            continue  # Skip this error, already reported
-                    errors.append(error)
+                summary = self.cache_manager.auto_update_from_file(file_path, source)
+                if summary['success']:
+                    total_new_teams += len(summary['new_teams'])
+                    total_new_sports += len(summary['new_sports'])
+                else:
+                    errors.extend(summary['errors'])
         
-        if total_new_teams > 0 or total_new_sports > 0:
-            message = f"Cache auto-updated: +{total_new_teams} teams, +{total_new_sports} sports"
+        # Report cache updates
+        if total_new_teams > 0 or total_new_sports > 0 or total_esports_filtered > 0:
+            parts = []
+            if total_new_teams > 0:
+                parts.append(f"+{total_new_teams} teams")
+            if total_new_sports > 0:
+                parts.append(f"+{total_new_sports} sports")
+            if total_esports_filtered > 0:
+                parts.append(f"{total_esports_filtered} esports filtered")
+            
+            message = f"Cache auto-updated: {', '.join(parts)}"
             print(f"✓ {message}")
-            self.email.send_alert("Cache Updated", message, "cache_update")
+            
+            # Only send email alert if significant updates (threshold: 10 new items)
+            if total_new_teams >= 10 or total_new_sports >= 2:
+                self.email.send_alert("Cache Updated", message, "cache_update")
         
         if errors:
             error_msg = "Cache update errors:\n" + "\n".join(errors)
@@ -517,10 +544,41 @@ Next check in {check_interval} seconds.
             return
         
         update_interval = self.config.get('cache.update_interval_minutes', 30) * 60
+        dedupe_interval = update_interval * 4  # Run deduplication less frequently (every 2 hours if updates are every 30 min)
+        last_dedupe_time = 0
         
         while self.running:
             try:
+                # Regular cache update from all sources
                 self.update_cache_from_all_sources()
+                
+                # Periodic deduplication cleanup
+                if USE_ENHANCED_CACHE:
+                    current_time = time.time()
+                    if current_time - last_dedupe_time >= dedupe_interval:
+                        print("\n🔄 Running periodic cache deduplication...")
+                        dedupe_report = self.cache_manager.cleanup_and_deduplicate()
+                        
+                        if dedupe_report['duplicates_merged'] > 0 or dedupe_report['esports_removed'] > 0:
+                            parts = []
+                            if dedupe_report['duplicates_merged'] > 0:
+                                parts.append(f"{dedupe_report['duplicates_merged']} duplicates merged")
+                            if dedupe_report['esports_removed'] > 0:
+                                parts.append(f"{dedupe_report['esports_removed']} esports removed")
+                            
+                            message = f"Cache cleanup completed: {', '.join(parts)}"
+                            print(f"✓ {message}")
+                            
+                            # Alert if significant cleanup occurred
+                            if dedupe_report['duplicates_merged'] >= 5:
+                                self.email.send_alert(
+                                    "Cache Deduplication Report",
+                                    f"{message}\n\nTotal teams: {dedupe_report['total_teams']}\nTotal sports: {dedupe_report['total_sports']}",
+                                    "cache_dedupe"
+                                )
+                        
+                        last_dedupe_time = current_time
+                
             except Exception as e:
                 print(f"❌ Error in cache update loop: {e}")
                 self.email.send_alert(
