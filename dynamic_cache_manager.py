@@ -95,6 +95,15 @@ class DynamicCacheManager:
                         if 'metadata' not in self.cache_data:
                             self.cache_data['metadata'] = {}
                         self.cache_data['metadata']['update_count'] = 0
+
+                    # Ensure normalization_stats exists
+                    if 'normalization_stats' not in self.cache_data.get('metadata', {}):
+                        self.cache_data['metadata']['normalization_stats'] = {
+                            'teams_merged': 0,
+                            'duplicates_removed': 0,
+                            'aliases_created': 0,
+                            'last_cleanup': None
+                        }
                     
                     # Restore ID counters from existing data
                     if self.cache_data['sports']:
@@ -127,14 +136,14 @@ class DynamicCacheManager:
                     self.cache_data['lookups']['team_alias_to_canonical']
                 )
                 self.cache_data['metadata']['update_count'] += 1
-                
+
                 # Create timestamped backup before saving
                 self._create_timestamped_backup()
-                
+
                 # Save main cache
                 with open(self.cache_file, 'w', encoding='utf-8') as f:
                     json.dump(self.cache_data, f, indent=2, ensure_ascii=False)
-                
+
                 # Replicate to subfolders if requested
                 if replicate_to_subfolders:
                     for subfolder in ['1xbet', 'bet365', 'fanduel']:
@@ -142,14 +151,97 @@ class DynamicCacheManager:
                         if subfolder_path.parent.exists():
                             with open(subfolder_path, 'w', encoding='utf-8') as f:
                                 json.dump(self.cache_data, f, indent=2, ensure_ascii=False)
-                
+
                 # Cleanup old backups (keep last 10)
                 self._cleanup_old_backups(keep_count=10)
-                
+
                 return True
             except Exception as e:
                 print(f"[ERROR] Error saving cache: {e}")
                 return False
+
+    def cleanup_duplicates(self) -> Dict:
+        """
+        Intelligent cleanup of duplicates and normalization issues
+        Returns summary of cleanup operations
+        """
+        summary = {
+            'duplicates_removed': 0,
+            'teams_merged': 0,
+            'aliases_cleaned': 0,
+            'orphaned_entries': 0
+        }
+
+        with self.lock:
+            try:
+                # Step 1: Find and merge duplicate teams within the same sport
+                for sport_name, sport_data in self.cache_data['sports'].items():
+                    teams = sport_data['teams']
+                    normalized_to_canonical = {}
+
+                    # Group teams by normalized name
+                    for team_name, team_data in teams.items():
+                        normalized = team_data.get('normalized_name', self.normalize_name(team_name))
+                        if normalized not in normalized_to_canonical:
+                            normalized_to_canonical[normalized] = team_name
+                        else:
+                            # Merge this team into the canonical one
+                            canonical_name = normalized_to_canonical[normalized]
+                            if canonical_name != team_name:
+                                # Move aliases and metadata
+                                canonical_team = teams[canonical_name]
+                                if 'aliases' in team_data:
+                                    for alias in team_data['aliases']:
+                                        if alias not in canonical_team.get('aliases', []):
+                                            canonical_team.setdefault('aliases', []).append(alias)
+                                            self.cache_data['lookups']['team_alias_to_canonical'][alias] = canonical_name
+
+                                # Update sources
+                                if 'metadata' in team_data and 'sources' in team_data['metadata']:
+                                    for source in team_data['metadata']['sources']:
+                                        if source not in canonical_team.get('metadata', {}).get('sources', []):
+                                            canonical_team.setdefault('metadata', {}).setdefault('sources', []).append(source)
+
+                                # Remove the duplicate team
+                                del teams[team_name]
+                                summary['teams_merged'] += 1
+
+                # Step 2: Clean up orphaned global team entries
+                global_teams = self.cache_data['teams_global']
+                existing_team_names = set()
+                for sport_data in self.cache_data['sports'].values():
+                    existing_team_names.update(sport_data['teams'].keys())
+
+                orphaned_teams = [name for name in global_teams.keys() if name not in existing_team_names]
+                for orphaned in orphaned_teams:
+                    del global_teams[orphaned]
+                    summary['orphaned_entries'] += 1
+
+                # Step 3: Clean up invalid alias mappings
+                aliases_to_remove = []
+                for alias, canonical in self.cache_data['lookups']['team_alias_to_canonical'].items():
+                    if canonical not in existing_team_names:
+                        aliases_to_remove.append(alias)
+
+                for alias in aliases_to_remove:
+                    del self.cache_data['lookups']['team_alias_to_canonical'][alias]
+                    summary['aliases_cleaned'] += 1
+
+                # Update metadata
+                self.cache_data['metadata']['normalization_stats']['teams_merged'] = summary['teams_merged']
+                self.cache_data['metadata']['normalization_stats']['duplicates_removed'] = summary['duplicates_removed']
+                self.cache_data['metadata']['normalization_stats']['aliases_created'] = len(self.cache_data['lookups']['team_alias_to_canonical'])
+                self.cache_data['metadata']['normalization_stats']['last_cleanup'] = datetime.now().isoformat()
+
+                if sum(summary.values()) > 0:
+                    self.save_cache()
+
+                print(f"[OK] Cache cleanup completed: {summary}")
+                return summary
+
+            except Exception as e:
+                print(f"[ERROR] Error during cache cleanup: {e}")
+                return summary
     
     def _create_timestamped_backup(self):
         """Create a timestamped backup of the cache in cache_backups folder"""
@@ -213,7 +305,7 @@ class DynamicCacheManager:
             return True
             
         except Exception as e:
-            print(f"❌ Error restoring from backup: {e}")
+            print(f"[ERROR] Error restoring from backup: {e}")
             return False
     
     def add_sport(self, canonical_sport: str, aliases: Set[str] = None, source: str = "") -> bool:
@@ -363,55 +455,100 @@ class DynamicCacheManager:
             'new_teams': [],
             'new_sports': []
         }
-        
+
         # Extract match info (handle different formats)
         sport = match.get('sport') or match.get('sport_name', '')
         home = match.get('home_team') or match.get('team1', '')
         away = match.get('away_team') or match.get('team2', '')
-        
+
         if not sport or not home or not away:
             return updates
-        
+
         # Check if sport exists in cache
         normalized_sport = self.normalize_name(sport)
         canonical_sport = self.cache_data['lookups']['sport_alias_to_canonical'].get(
             normalized_sport, sport
         )
-        
+
         # Add sport if new
         if self.add_sport(canonical_sport, {sport}, source):
             updates['new_sports'].append(canonical_sport)
             updates['updated'] = True
-        
-        # Add home team if new
-        normalized_home = self.normalize_name(home)
-        canonical_home = self.cache_data['lookups']['team_alias_to_canonical'].get(normalized_home)
-        # Fallback: try stripped variant (remove FC/FK/etc) if direct lookup fails
-        if not canonical_home:
-            stripped_home = self.strip_common_tokens(home)
-            canonical_home = self.cache_data['lookups']['team_alias_to_canonical'].get(stripped_home)
-        if not canonical_home:
-            canonical_home = home
 
+        # Add home team if new - improved normalization logic
+        canonical_home = self._find_or_create_canonical_team_name(home, canonical_sport, source)
         if self.add_team(canonical_sport, canonical_home, {home}, source):
             updates['new_teams'].append(canonical_home)
             updates['updated'] = True
-        
-        # Add away team if new
-        normalized_away = self.normalize_name(away)
-        canonical_away = self.cache_data['lookups']['team_alias_to_canonical'].get(normalized_away)
-        # Fallback: try stripped variant (remove FC/FK/etc) if direct lookup fails
-        if not canonical_away:
-            stripped_away = self.strip_common_tokens(away)
-            canonical_away = self.cache_data['lookups']['team_alias_to_canonical'].get(stripped_away)
-        if not canonical_away:
-            canonical_away = away
 
+        # Add away team if new - improved normalization logic
+        canonical_away = self._find_or_create_canonical_team_name(away, canonical_sport, source)
         if self.add_team(canonical_sport, canonical_away, {away}, source):
             updates['new_teams'].append(canonical_away)
             updates['updated'] = True
-        
+
         return updates
+
+    def _find_or_create_canonical_team_name(self, team_name: str, sport: str, source: str = "") -> str:
+        """
+        Find existing canonical team name or create new one with intelligent matching
+        """
+        if not team_name:
+            return team_name
+
+        # Step 1: Direct normalized lookup
+        normalized = self.normalize_name(team_name)
+        canonical = self.cache_data['lookups']['team_alias_to_canonical'].get(normalized)
+        if canonical:
+            return canonical
+
+        # Step 2: Stripped variant lookup (remove FC/FK/etc)
+        stripped = self.strip_common_tokens(team_name)
+        if stripped and stripped != normalized:
+            canonical = self.cache_data['lookups']['team_alias_to_canonical'].get(stripped)
+            if canonical:
+                return canonical
+
+        # Step 3: Check if any existing team in this sport has similar normalized names
+        sport_teams = self.cache_data['sports'].get(sport, {}).get('teams', {})
+        for existing_team_name, team_data in sport_teams.items():
+            existing_normalized = team_data.get('normalized_name', '')
+            existing_stripped = self.strip_common_tokens(existing_team_name)
+
+            # Check similarity scores
+            if self._teams_are_similar(normalized, existing_normalized, stripped, existing_stripped):
+                # Found a match! Use existing canonical name
+                return existing_team_name
+
+        # Step 4: No match found, use original name as canonical
+        return team_name
+
+    def _teams_are_similar(self, norm1: str, norm2: str, stripped1: str, stripped2: str) -> bool:
+        """
+        Determine if two team names are similar enough to be considered the same team
+        """
+        if not norm1 or not norm2:
+            return False
+
+        # Exact match on normalized names
+        if norm1 == norm2:
+            return True
+
+        # Exact match on stripped names
+        if stripped1 and stripped2 and stripped1 == stripped2:
+            return True
+
+        # One is substring of the other (but not too short)
+        if len(norm1) > 3 and len(norm2) > 3:
+            if norm1 in norm2 or norm2 in norm1:
+                return True
+
+        # Check if one normalized name contains the other's stripped version
+        if stripped1 and stripped2:
+            if (stripped1 in norm2 and len(stripped1) > 3) or (stripped2 in norm1 and len(stripped2) > 3):
+                return True
+
+        return False
     
     def auto_update_from_file(self, file_path: Path, source: str = "") -> Dict:
         """
@@ -493,7 +630,8 @@ class DynamicCacheManager:
             'total_teams': len(self.cache_data['teams_global']),
             'total_aliases': len(self.cache_data['lookups']['team_alias_to_canonical']),
             'last_updated': self.cache_data['metadata'].get('last_updated'),
-            'update_count': self.cache_data['metadata'].get('update_count', 0)
+            'update_count': self.cache_data['metadata'].get('update_count', 0),
+            'normalization_stats': self.cache_data['metadata'].get('normalization_stats', {})
         }
 
 
@@ -521,7 +659,7 @@ if __name__ == "__main__":
                   f"+{len(summary['new_teams'])} new teams, "
                   f"+{len(summary['new_sports'])} new sports")
         else:
-            print(f"\n❌ {source}: {', '.join(summary['errors'])}")
+            print(f"\n[ERROR] {source}: {', '.join(summary['errors'])}")
     
     # Show final stats
     stats = manager.get_stats()
