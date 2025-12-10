@@ -62,9 +62,23 @@ class DynamicCacheManager:
         if not name:
             return ""
         normalized = name.lower().strip()
-        normalized = re.sub(r'[^\w\s]', '', normalized)
+        # Replace punctuation with spaces to avoid merging words
+        normalized = re.sub(r'[^\w\s]', ' ', normalized)
+        # Remove common club suffixes like FC, FK, SC, CF, AC (with or without dots)
+        normalized = re.sub(r'\b(?:f\.?c\.?|f\.?k\.?|s\.?c\.?|c\.?f\.?|a\.?c\.?)\b', ' ', normalized)
+        # Collapse whitespace
         normalized = re.sub(r'\s+', ' ', normalized)
-        return normalized
+        return normalized.strip()
+
+    def strip_common_tokens(self, name: str) -> str:
+        """Return a variant with extra tokens removed to improve matching."""
+        if not name:
+            return ''
+        tmp = self.normalize_name(name)
+        # Remove words like 'team', 'club', year tokens, and short qualifiers
+        tmp = re.sub(r"\b(team|club|u\d{1,2}|\d{4})\b", ' ', tmp)
+        tmp = re.sub(r'\s+', ' ', tmp)
+        return tmp.strip()
     
     def load_cache(self) -> bool:
         """Load existing cache from disk"""
@@ -317,7 +331,14 @@ class DynamicCacheManager:
                 team_data['aliases'].append(normalized_team)
                 self.cache_data['lookups']['team_alias_to_canonical'][normalized_team] = team_canonical
                 was_updated = True
-            
+
+            # Also add a stripped variant without common tokens (improves matching like 'qarabag fk' -> 'qarabag')
+            stripped_canonical = self.strip_common_tokens(team_canonical)
+            if stripped_canonical and stripped_canonical not in team_data['aliases']:
+                team_data['aliases'].append(stripped_canonical)
+                self.cache_data['lookups']['team_alias_to_canonical'][stripped_canonical] = team_canonical
+                was_updated = True
+
             # Add additional aliases
             if aliases:
                 for alias in aliases:
@@ -364,20 +385,28 @@ class DynamicCacheManager:
         
         # Add home team if new
         normalized_home = self.normalize_name(home)
-        canonical_home = self.cache_data['lookups']['team_alias_to_canonical'].get(
-            normalized_home, home
-        )
-        
+        canonical_home = self.cache_data['lookups']['team_alias_to_canonical'].get(normalized_home)
+        # Fallback: try stripped variant (remove FC/FK/etc) if direct lookup fails
+        if not canonical_home:
+            stripped_home = self.strip_common_tokens(home)
+            canonical_home = self.cache_data['lookups']['team_alias_to_canonical'].get(stripped_home)
+        if not canonical_home:
+            canonical_home = home
+
         if self.add_team(canonical_sport, canonical_home, {home}, source):
             updates['new_teams'].append(canonical_home)
             updates['updated'] = True
         
         # Add away team if new
         normalized_away = self.normalize_name(away)
-        canonical_away = self.cache_data['lookups']['team_alias_to_canonical'].get(
-            normalized_away, away
-        )
-        
+        canonical_away = self.cache_data['lookups']['team_alias_to_canonical'].get(normalized_away)
+        # Fallback: try stripped variant (remove FC/FK/etc) if direct lookup fails
+        if not canonical_away:
+            stripped_away = self.strip_common_tokens(away)
+            canonical_away = self.cache_data['lookups']['team_alias_to_canonical'].get(stripped_away)
+        if not canonical_away:
+            canonical_away = away
+
         if self.add_team(canonical_sport, canonical_away, {away}, source):
             updates['new_teams'].append(canonical_away)
             updates['updated'] = True
