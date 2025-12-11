@@ -187,6 +187,14 @@
             color: white;
         }
 
+        .filter-dropdown {
+            position: relative;
+        }
+
+        .filter-dropdown {
+            position: relative;
+        }
+
         .filter-btn i {
             font-size: 12px;
         }
@@ -406,11 +414,15 @@
             gap: 4px;
             font-weight: 600;
             color: var(--text-primary);
-            transition: color 0.15s ease;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 4px;
         }
 
         .odds-cell:hover {
-            color: var(--accent-primary);
+            background: rgba(59, 130, 246, 0.15);
+            transform: scale(1.05);
         }
 
         .odds-arrow {
@@ -441,6 +453,28 @@
             font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
+        }
+
+        .bookmaker-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bookmaker-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+        .selection-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
         }
 
         .odds-value {
@@ -971,12 +1005,25 @@
                 return;
             }
 
-            // Render header
+            // Render header with home/draw/away columns
             tableHead.innerHTML = `
                 <tr>
-                    <th>Match</th>
+                    <th rowspan="2">Match</th>
                     ${bookmakers.map(bm => `
-                        <th><div class="bookmaker-name">${bm.name}</div></th>
+                        <th colspan="3">
+                            <div class="bookmaker-header">
+                                <img src="${bookmakerLogos[bm.code] || 'https://ui-avatars.com/api/?name=' + bm.name + '&size=80'}" 
+                                     alt="${bm.name}" class="bookmaker-logo" />
+                                <div class="bookmaker-name">${bm.name}</div>
+                            </div>
+                        </th>
+                    `).join('')}
+                </tr>
+                <tr>
+                    ${bookmakers.map(() => `
+                        <th><span class="selection-label">Home</span></th>
+                        <th><span class="selection-label">Draw</span></th>
+                        <th><span class="selection-label">Away</span></th>
                     `).join('')}
                 </tr>
             `;
@@ -996,8 +1043,8 @@
                 `${matchDate.getMonth() + 1}/${matchDate.getDate()} ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
                 'TBD';
 
-            // Get odds for current market
-            const oddsMap = getMatchOdds(match);
+            // Get odds map by selection (home/draw/away) for current market
+            const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
 
             return `
                 <tr>
@@ -1009,24 +1056,32 @@
                         </div>
                     </td>
                     ${bookmakers.map(bm => {
-                        const odd = oddsMap.get(bm.code);
-                        return renderOddsCell(odd, match.match_name, bm.code);
+                        const homeOdd = homeOdds.get(bm.code);
+                        const drawOdd = drawOdds.get(bm.code);
+                        const awayOdd = awayOdds.get(bm.code);
+                        return `
+                            ${renderOddsCell(homeOdd, match.match_name, bm.code, 'home')}
+                            ${renderOddsCell(drawOdd, match.match_name, bm.code, 'draw')}
+                            ${renderOddsCell(awayOdd, match.match_name, bm.code, 'away')}
+                        `;
                     }).join('')}
                 </tr>
             `;
         }
 
-        function getMatchOdds(match) {
-            const oddsMap = new Map();
+        function getMatchOddsBySelection(match) {
+            const homeOdds = new Map();
+            const drawOdds = new Map();
+            const awayOdds = new Map();
             
             if (!match.markets || !match.markets[currentMarket]) {
-                return oddsMap;
+                return { homeOdds, drawOdds, awayOdds };
             }
 
             const markets = match.markets[currentMarket];
-            if (!Array.isArray(markets)) return oddsMap;
+            if (!Array.isArray(markets)) return { homeOdds, drawOdds, awayOdds };
 
-            // Find the main market
+            // Find the main market (win market)
             const mainMarket = markets.find(m =>
                 m.market_name?.toLowerCase().includes('win') ||
                 m.market_name?.toLowerCase().includes('match winner') ||
@@ -1035,21 +1090,32 @@
 
             if (mainMarket && mainMarket.odds) {
                 mainMarket.odds.forEach(odd => {
-                    if (odd.bookmaker_code && odd.decimal_odds) {
-                        oddsMap.set(odd.bookmaker_code, odd);
+                    if (!odd.bookmaker_code || !odd.decimal_odds) return;
+                    
+                    const selection = odd.selection?.toLowerCase();
+                    const homeTeam = match.home_team?.toLowerCase();
+                    const awayTeam = match.away_team?.toLowerCase();
+                    
+                    // Categorize by selection
+                    if (selection === 'draw') {
+                        drawOdds.set(odd.bookmaker_code, odd);
+                    } else if (selection === homeTeam || selection?.includes(homeTeam)) {
+                        homeOdds.set(odd.bookmaker_code, odd);
+                    } else if (selection === awayTeam || selection?.includes(awayTeam)) {
+                        awayOdds.set(odd.bookmaker_code, odd);
                     }
                 });
             }
 
-            return oddsMap;
+            return { homeOdds, drawOdds, awayOdds };
         }
 
-        function renderOddsCell(odd, matchName, bookmakerCode) {
+        function renderOddsCell(odd, matchName, bookmakerCode, selection) {
             if (!odd || !odd.decimal_odds) {
                 return '<td><span class="locked">-</span></td>';
             }
 
-            const oddKey = `${matchName}-${bookmakerCode}`;
+            const oddKey = `${matchName}-${bookmakerCode}-${selection}`;
             const prevOdd = previousOdds.get(oddKey);
             let arrowHtml = '';
 
@@ -1063,10 +1129,14 @@
             // Find if this is best odds
             const isBest = odd.is_best_odds;
             const cellClass = isBest ? 'best-odds' : '';
+            
+            // Get clickout URL
+            const clickoutUrl = odd.clickout_url || '#';
+            const clickHandler = clickoutUrl !== '#' ? `onclick="window.open('${clickoutUrl}', '_blank')"` : '';
 
             return `
                 <td>
-                    <div class="odds-cell ${cellClass}">
+                    <div class="odds-cell ${cellClass}" ${clickHandler}>
                         ${arrowHtml}
                         <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>
                     </div>
