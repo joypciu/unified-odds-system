@@ -499,6 +499,16 @@ async def get_home():
     return HTMLResponse(content=html_content)
 
 
+@app.get("/oddsmagnet", response_class=HTMLResponse)
+async def get_oddsmagnet_page():
+    """Serve the OddsMagnet viewer page"""
+    template_path = BASE_DIR / 'html' / 'oddsmagnet_viewer.html'
+    if not template_path.exists():
+        return HTMLResponse(content="<h1>OddsMagnet viewer not found</h1>", status_code=404)
+    html_content = open(template_path, 'r', encoding='utf-8').read()
+    return HTMLResponse(content=html_content)
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates"""
