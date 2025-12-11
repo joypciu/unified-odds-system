@@ -280,17 +280,33 @@
 
         .match-teams {
             margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(79, 172, 254, 0.05);
+            border-radius: 6px;
+            text-align: center;
         }
 
         .team-name {
             font-size: 16px;
             font-weight: 600;
             color: #ffffff;
-            padding: 4px 0;
+            padding: 6px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .team-name:first-child {
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+        }
+
+        .team-name::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #4facfe;
         }
 
         .vs-separator {
@@ -299,7 +315,7 @@
             font-weight: 700;
             text-align: center;
             margin: 4px 0;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
 
         /* Markets Section */
@@ -595,7 +611,7 @@
             <div class="filters">
                 <div class="filter-group">
                     <label class="filter-label">League</label>
-                    <select class="filter-select" id="leagueFilter">
+                    <select class="filter-select" id="leagueFilter" onchange="applyFilters()">
                         <option value="">All Leagues</option>
                         <option value="premier">Premier League</option>
                         <option value="laliga">La Liga</option>
@@ -611,11 +627,11 @@
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Search Teams</label>
-                    <input type="text" class="filter-input" id="searchInput" placeholder="Search...">
+                    <input type="text" class="filter-input" id="searchInput" placeholder="Search..." oninput="debouncedSearch()">
                 </div>
                 <div class="filter-group" style="max-width: 140px;">
                     <label class="filter-label">Per Page</label>
-                    <select class="filter-select" id="pageSizeSelect">
+                    <select class="filter-select" id="pageSizeSelect" onchange="applyFilters()">
                         <option value="10">10</option>
                         <option value="25" selected>25</option>
                         <option value="50">50</option>
@@ -623,14 +639,8 @@
                 </div>
                 <div class="filter-group" style="flex: 0; min-width: auto;">
                     <label class="filter-label">&nbsp;</label>
-                    <button class="btn" onclick="applyFilters()">
-                        <i class="fas fa-filter"></i> Apply
-                    </button>
-                </div>
-                <div class="filter-group" style="flex: 0; min-width: auto;">
-                    <label class="filter-label">&nbsp;</label>
-                    <button class="btn btn-secondary" onclick="clearFilters()">
-                        <i class="fas fa-times"></i> Clear
+                    <button class="btn" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Reload
                     </button>
                 </div>
             </div>
@@ -651,6 +661,19 @@
         let currentData = null;
         let previousOdds = new Map(); // Track odds changes
         let isLoading = false;
+        let searchTimeout = null;
+
+        // Debounced search to avoid too many requests
+        function debouncedSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                applyFilters();
+            }, 500); // Wait 500ms after user stops typing
+        }
+
+        function applyFilters() {
+            loadMatches(1); // Reset to page 1 when filters change
+        }
 
         async function loadMatches(page = 1, silent = false) {
             if (isLoading) return;
@@ -896,21 +919,6 @@
                 document.getElementById('lastUpdate').textContent = time;
             }
         }
-
-        function applyFilters() {
-            loadMatches(1);
-        }
-
-        function clearFilters() {
-            document.getElementById('leagueFilter').value = '';
-            document.getElementById('searchInput').value = '';
-            document.getElementById('pageSizeSelect').value = '25';
-            loadMatches(1);
-        }
-
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') applyFilters();
-        });
 
         // Auto-refresh every 15 seconds (silent mode for smooth updates)
         setInterval(() => {
