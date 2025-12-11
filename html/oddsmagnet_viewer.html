@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 OddsMagnet Pro - Complete Odds Comparison</title>
+    <title>🎯 OddsMagnet - Top 10 Leagues Odds Comparison</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -910,7 +910,7 @@
         <div class="header-top">
             <div class="logo">
                 <div class="logo-icon">⚡</div>
-                <div>OddsMagnet Pro</div>
+                <div>OddsMagnet Pro <span style="font-size: 11px; opacity: 0.7; font-weight: 400;">Top 10 Leagues</span></div>
             </div>
             <div class="header-actions">
                 <div class="search-box">
@@ -1312,11 +1312,19 @@
             const startTime = performance.now();
 
             try {
+                // Fetch from top 10 leagues endpoint
+                // Includes: Premier League, La Liga, Serie A, Bundesliga, Ligue 1,
+                // Champions League, Europa League, Championship, Eredivisie, Primeira Liga
                 const response = await fetch('/oddsmagnet/football/top10');
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
                 allMatches = data.matches || [];
+                
+                // Log leagues info if available
+                if (data.leagues_included) {
+                    console.log('Top 10 Leagues:', data.leagues_included.join(', '));
+                }
                 
                 // Process data efficiently
                 extractBookmakers();
@@ -1326,7 +1334,7 @@
                 applyFilters();
                 
                 const loadTime = (performance.now() - startTime).toFixed(0);
-                console.log(`Data loaded in ${loadTime}ms`);
+                console.log(`Data loaded in ${loadTime}ms - ${allMatches.length} matches from top leagues`);
                 updateStatus('Live');
             } catch (error) {
                 console.error('Error loading data:', error);
