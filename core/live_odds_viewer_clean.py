@@ -37,8 +37,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Live Odds Viewer", lifespan=lifespan)
 
-# Base directory
-BASE_DIR = Path(__file__).parent
+# Base directory - should be project root, not core/
+BASE_DIR = Path(__file__).parent.parent
 
 # Initialize history manager
 history_manager = HistoryManager(str(BASE_DIR))
@@ -110,13 +110,13 @@ def format_betlink(*, betlink=None, sportsbook=None, state_info=None):
 
 # Files to monitor
 FILES = {
-    'unified': BASE_DIR / "unified_odds.json",
-    'bet365_pregame': BASE_DIR / "bet365" / "bet365_current_pregame.json",
-    'bet365_live': BASE_DIR / "bet365" / "bet365_live_current.json",
-    'fanduel_pregame': BASE_DIR / "fanduel" / "fanduel_pregame.json",
-    'fanduel_live': BASE_DIR / "fanduel" / "fanduel_live.json",
-    '1xbet_pregame': BASE_DIR / "1xbet" / "1xbet_pregame.json",
-    '1xbet_live': BASE_DIR / "1xbet" / "1xbet_live.json"
+    'unified': BASE_DIR / "data" / "unified_odds.json",
+    'bet365_pregame': BASE_DIR / "bookmakers" / "bet365" / "bet365_current_pregame.json",
+    'bet365_live': BASE_DIR / "bookmakers" / "bet365" / "bet365_live_current.json",
+    'fanduel_pregame': BASE_DIR / "bookmakers" / "fanduel" / "fanduel_pregame.json",
+    'fanduel_live': BASE_DIR / "bookmakers" / "fanduel" / "fanduel_live.json",
+    '1xbet_pregame': BASE_DIR / "bookmakers" / "1xbet" / "1xbet_pregame.json",
+    '1xbet_live': BASE_DIR / "bookmakers" / "1xbet" / "1xbet_live.json"
 }
 
 # Track file modifications
@@ -494,7 +494,8 @@ async def send_email_alert(alert_data: EmailAlert):
 @app.get("/", response_class=HTMLResponse)
 async def get_home():
     """Serve the main HTML page"""
-    html_content = open('odds_viewer_template.html', 'r', encoding='utf-8').read()
+    template_path = BASE_DIR / 'odds_viewer_template.html'
+    html_content = open(template_path, 'r', encoding='utf-8').read()
     return HTMLResponse(content=html_content)
 
 
@@ -631,7 +632,7 @@ async def get_monitoring_status():
     """API endpoint to get monitoring system status"""
     try:
         # Try to load monitoring status directly from file
-        monitoring_status_file = BASE_DIR / "monitoring_status.json"
+        monitoring_status_file = BASE_DIR / "data" / "monitoring_status.json"
         if monitoring_status_file.exists():
             with open(monitoring_status_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -673,7 +674,7 @@ async def get_history():
         history_matches = []
         
         # Load 1xBet history
-        xbet_history_file = BASE_DIR / "1xbet" / "1xbet_history.json"
+        xbet_history_file = BASE_DIR / "bookmakers" / "1xbet" / "1xbet_history.json"
         if xbet_history_file.exists():
             with open(xbet_history_file, 'r', encoding='utf-8') as f:
                 xbet_data = json.load(f)
@@ -738,7 +739,7 @@ async def get_futures():
                     })
         else:
             # Fallback to old format if new file doesn't exist
-            xbet_futures_old = BASE_DIR / "1xbet" / "1xbet_futures.json"
+            xbet_futures_old = BASE_DIR / "bookmakers" / "1xbet" / "1xbet_futures.json"
             if xbet_futures_old.exists():
                 with open(xbet_futures_old, 'r', encoding='utf-8') as f:
                     xbet_data = json.load(f)
@@ -816,7 +817,7 @@ async def get_1xbet_live_optic_odds():
 async def get_1xbet_history_optic_odds():
     """Get 1xBet historical/completed matches in OpticOdds format"""
     try:
-        history_file = BASE_DIR / "1xbet" / "1xbet_history.json"
+        history_file = BASE_DIR / "bookmakers" / "1xbet" / "1xbet_history.json"
         if not history_file.exists():
             return {"data": [], "message": "No history data available"}
         
@@ -883,8 +884,8 @@ async def get_1xbet_future_optic_odds():
         futures_file_path = BASE_DIR / "1xbet" / "1xbet_future.json"
         
         # Legacy fallback files
-        futures_with_odds_file = BASE_DIR / "1xbet" / "1xbet_futures_with_odds.json"
-        futures_basic_file = BASE_DIR / "1xbet" / "1xbet_futures.json"
+        futures_with_odds_file = BASE_DIR / "bookmakers" / "1xbet" / "1xbet_futures_with_odds.json"
+        futures_basic_file = BASE_DIR / "bookmakers" / "1xbet" / "1xbet_futures.json"
         
         futures_file = None
         has_proper_odds = False
@@ -985,7 +986,7 @@ async def get_fanduel_live_optic_odds():
 async def get_oddsmagnet_football():
     """Get all OddsMagnet football matches (all leagues - 117 leagues)"""
     try:
-        oddsmagnet_file = BASE_DIR / "oddsmagnet" / "oddsmagnet_realtime.json"
+        oddsmagnet_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime.json"
         if not oddsmagnet_file.exists():
             return {
                 'error': 'OddsMagnet data not available',
@@ -1028,7 +1029,7 @@ async def get_oddsmagnet_top10():
             'portugal-primeira-liga'
         ]
         
-        oddsmagnet_file = BASE_DIR / "oddsmagnet" / "oddsmagnet_realtime.json"
+        oddsmagnet_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime.json"
         if not oddsmagnet_file.exists():
             return {
                 'error': 'OddsMagnet data not available',

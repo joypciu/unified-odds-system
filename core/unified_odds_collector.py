@@ -59,26 +59,27 @@ class UnifiedOddsCollector:
     """Combines odds data from Bet365, FanDuel, and 1xBet into a unified database"""
     
     def __init__(self):
-        # Paths to data sources
-        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        # Paths to data sources - base_dir is project root
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.base_dir = os.path.dirname(script_dir)  # Go up from core/ to project root
         
         # Bet365 sources
-        self.bet365_pregame_file = os.path.join(self.base_dir, "bet365", "bet365_current_pregame.json")
-        self.bet365_live_file = os.path.join(self.base_dir, "bet365", "bet365_live_current.json")
+        self.bet365_pregame_file = os.path.join(self.base_dir, "bookmakers", "bet365", "bet365_current_pregame.json")
+        self.bet365_live_file = os.path.join(self.base_dir, "bookmakers", "bet365", "bet365_live_current.json")
 
         # FanDuel sources
-        self.fanduel_pregame_file = os.path.join(self.base_dir, "fanduel", "fanduel_pregame.json")
-        self.fanduel_live_file = os.path.join(self.base_dir, "fanduel", "fanduel_live.json")
+        self.fanduel_pregame_file = os.path.join(self.base_dir, "bookmakers", "fanduel", "fanduel_pregame.json")
+        self.fanduel_live_file = os.path.join(self.base_dir, "bookmakers", "fanduel", "fanduel_live.json")
 
         # 1xBet sources
-        self.xbet_pregame_file = os.path.join(self.base_dir, "1xbet", "1xbet_pregame.json")
-        self.xbet_live_file = os.path.join(self.base_dir, "1xbet", "1xbet_live.json")
+        self.xbet_pregame_file = os.path.join(self.base_dir, "bookmakers", "1xbet", "1xbet_pregame.json")
+        self.xbet_live_file = os.path.join(self.base_dir, "bookmakers", "1xbet", "1xbet_live.json")
         
         # Cache file
-        self.cache_file = os.path.join(self.base_dir, "cache_data.json")
+        self.cache_file = os.path.join(self.base_dir, "data", "cache_data.json")
         
-        # Output file
-        self.unified_output_file = os.path.join(self.base_dir, "unified_odds.json")
+        # Output file - should be in data/ folder
+        self.unified_output_file = os.path.join(self.base_dir, "data", "unified_odds.json")
         
         # File write lock to prevent concurrent writes
         self.file_lock = threading.Lock()
