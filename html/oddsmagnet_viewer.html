@@ -769,8 +769,7 @@
                                         <a href="${odd.clickout_url || '#'}" 
                                            target="_blank" 
                                            class="odds-button ${odd.is_best_odds ? 'best-odds' : ''} ${priceClass}"
-                                           ${!odd.clickout_url ? 'onclick="return false;"' : ''}>`
-                                    }).join('')}
+                                           ${!odd.clickout_url ? 'onclick="return false;"' : ''}>
                                             <div class="bookmaker-logo">${odd.bookmaker_name || 'Unknown'}</div>
                                             <div class="odds-value">${odd.decimal_odds || 'N/A'}</div>
                                             ${odd.odds_movement ? `
@@ -780,11 +779,11 @@
                                                 </div>
                                             ` : ''}
                                             <div class="odds-meta">
-                                                <span>\${odd.fractional_odds || ''}</span>
-                                                \${odd.is_best_odds ? '<span style="color: #10b981;">Best</span>' : ''}
+                                                <span>${odd.fractional_odds || ''}</span>
+                                                ${odd.is_best_odds ? '<span style="color: #10b981;">Best</span>' : ''}
                                             </div>
                                         </a>
-                                    `;
+                                        `;
                                     }).join('')}
                                 </div>
                             </div>
