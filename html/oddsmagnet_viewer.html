@@ -503,12 +503,13 @@
         }
 
         .odds-arrow {
-            font-size: 10px;
+            font-size: 11px;
             animation: bounce 0.3s ease-out;
             display: inline-block;
-            margin-left: 4px;
+            margin-left: 6px;
             vertical-align: middle;
             font-weight: bold;
+            opacity: 1;
         }
 
         .odds-arrow.up {
@@ -1627,10 +1628,15 @@
             const oddKey = `${matchName}-${bookmakerCode}-${selection}`;
             const prevOdd = previousOdds.get(oddKey);
             let arrowHtml = '';
+            let cellExtraClass = '';
 
-            if (prevOdd && prevOdd !== odd.decimal_odds) {
+            if (prevOdd !== undefined && prevOdd !== odd.decimal_odds) {
                 const isUp = odd.decimal_odds > prevOdd;
-                arrowHtml = ` <i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
+                arrowHtml = `<i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
+                cellExtraClass = isUp ? 'flash-up' : 'flash-down';
+                
+                // Debug log for arrow display
+                console.log(`Odd changed: ${oddKey} - ${prevOdd} → ${odd.decimal_odds} (${isUp ? 'UP' : 'DOWN'})`);
             }
 
             previousOdds.set(oddKey, odd.decimal_odds);
@@ -1645,7 +1651,7 @@
 
             return `
                 <td>
-                    <div class="odds-cell ${cellClass}" ${clickHandler}>
+                    <div class="odds-cell ${cellClass} ${cellExtraClass}" ${clickHandler}>
                         <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>${arrowHtml}
                     </div>
                 </td>
