@@ -431,16 +431,18 @@
         }
 
         .odds-arrow {
-            font-size: 10px;
+            font-size: 12px;
             animation: bounce 0.3s ease-out;
+            display: inline-block;
+            margin-right: 3px;
         }
 
         .odds-arrow.up {
-            color: var(--green-light);
+            color: #10b981 !important;
         }
 
         .odds-arrow.down {
-            color: var(--red-light);
+            color: #ef4444 !important;
         }
 
         @keyframes bounce {
@@ -675,32 +677,119 @@
             animation: flashRed 0.6s ease-out;
         }
 
-        /* Date buttons */
-        .date-buttons {
-            display: flex;
-            gap: 6px;
+        /* Date Calendar Picker */
+        .date-picker-wrapper {
+            position: relative;
         }
 
-        .date-btn {
-            padding: 6px 12px;
+        .date-calendar {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            min-width: 280px;
+            z-index: 10000;
+            display: none;
+        }
+
+        .date-calendar.active {
+            display: block;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .calendar-nav {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .calendar-nav:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 4px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .calendar-day:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .calendar-day.today {
+            border: 2px solid var(--accent-primary);
+        }
+
+        .calendar-day.selected {
+            background: var(--accent-primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.4;
+        }
+
+        .calendar-footer {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-btn {
+            flex: 1;
+            padding: 6px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 4px;
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .date-btn:hover {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
-        }
-
-        .date-btn.active {
+        .calendar-btn:hover {
             background: var(--accent-primary);
-            border-color: var(--accent-primary);
             color: white;
         }
     </style>
@@ -740,8 +829,26 @@
                 </div>
             </div>
 
-            <div class="date-buttons" id="dateButtons">
-                <!-- Populated dynamically -->
+            <div class="date-picker-wrapper">
+                <button class="filter-btn" id="dateBtn">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="dateLabel">All Dates</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="date-calendar" id="dateCalendar">
+                    <div class="calendar-header">
+                        <div class="calendar-nav" id="prevMonth"><i class="fas fa-chevron-left"></i></div>
+                        <div id="calendarMonth">Month Year</div>
+                        <div class="calendar-nav" id="nextMonth"><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <div class="calendar-footer">
+                        <button class="calendar-btn" id="todayBtn">Today</button>
+                        <button class="calendar-btn" id="allDatesBtn">All Dates</button>
+                    </div>
+                </div>
             </div>
 
             <button class="filter-btn" id="refreshBtn">
@@ -836,40 +943,189 @@
 
             // League dropdown
             setupDropdown('leagueBtn', 'leagueMenu');
+            
+            // Date calendar picker
+            setupCalendar();
+        }
+
+        function setupCalendar() {
+            const dateBtn = document.getElementById('dateBtn');
+            const calendar = document.getElementById('dateCalendar');
+            const prevMonth = document.getElementById('prevMonth');
+            const nextMonth = document.getElementById('nextMonth');
+            const todayBtn = document.getElementById('todayBtn');
+            const allDatesBtn = document.getElementById('allDatesBtn');
+            
+            let currentMonth = new Date();
+            let selectedDate = null;
+            
+            dateBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
+                calendar.classList.toggle('active');
+                renderCalendar();
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!dateBtn.contains(e.target) && !calendar.contains(e.target)) {
+                    calendar.classList.remove('active');
+                }
+            });
+            
+            prevMonth.addEventListener('click', () => {
+                currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1);
+                renderCalendar();
+            });
+            
+            nextMonth.addEventListener('click', () => {
+                currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
+                renderCalendar();
+            });
+            
+            todayBtn.addEventListener('click', () => {
+                selectedDate = new Date();
+                selectedDate.setHours(0, 0, 0, 0);
+                selectedLeague = 'all';
+                selectedDate = selectedDate.toDateString();
+                updateDateLabel(selectedDate);
+                applyFilters();
+                calendar.classList.remove('active');
+            });
+            
+            allDatesBtn.addEventListener('click', () => {
+                selectedDate = 'all';
+                updateDateLabel('All Dates');
+                applyFilters();
+                calendar.classList.remove('active');
+            });
+            
+            function renderCalendar() {
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+                const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+                
+                document.getElementById('calendarMonth').textContent = 
+                    `${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
+                
+                const grid = document.getElementById('calendarGrid');
+                grid.innerHTML = '';
+                
+                // Add day headers
+                dayNames.forEach(day => {
+                    const header = document.createElement('div');
+                    header.className = 'calendar-day-header';
+                    header.textContent = day;
+                    grid.appendChild(header);
+                });
+                
+                // Get first day of month and number of days
+                const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+                const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+                const prevLastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0);
+                
+                const firstDayIndex = firstDay.getDay();
+                const numberOfDays = lastDay.getDate();
+                const prevNumberOfDays = prevLastDay.getDate();
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Previous month days
+                for (let i = firstDayIndex - 1; i >= 0; i--) {
+                    const day = document.createElement('div');
+                    day.className = 'calendar-day other-month';
+                    day.textContent = prevNumberOfDays - i;
+                    grid.appendChild(day);
+                }
+                
+                // Current month days
+                for (let i = 1; i <= numberOfDays; i++) {
+                    const day = document.createElement('div');
+                    day.className = 'calendar-day';
+                    day.textContent = i;
+                    
+                    const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
+                    dayDate.setHours(0, 0, 0, 0);
+                    
+                    if (dayDate.getTime() === today.getTime()) {
+                        day.classList.add('today');
+                    }
+                    
+                    if (selectedDate && selectedDate !== 'all' && dayDate.toDateString() === selectedDate) {
+                        day.classList.add('selected');
+                    }
+                    
+                    day.addEventListener('click', () => {
+                        selectedDate = dayDate.toDateString();
+                        updateDateLabel(dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                        applyFilters();
+                        calendar.classList.remove('active');
+                    });
+                    
+                    grid.appendChild(day);
+                }
+                
+                // Next month days to fill grid
+                const totalCells = grid.children.length - 7; // Exclude headers
+                const remainingCells = 42 - totalCells; // 6 rows * 7 days
+                for (let i = 1; i <= remainingCells; i++) {
+                    const day = document.createElement('div');
+                    day.className = 'calendar-day other-month';
+                    day.textContent = i;
+                    grid.appendChild(day);
+                }
+            }
+            
+            function updateDateLabel(label) {
+                document.getElementById('dateLabel').textContent = label;
+            }
         }
 
         function setupDropdown(buttonId, menuId) {
             const button = document.getElementById(buttonId);
             const menu = document.getElementById(menuId);
 
+            if (!button || !menu) return;
+
             button.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
-                document.querySelectorAll('.dropdown-menu').forEach(m => {
+                
+                // Close all other dropdowns
+                document.querySelectorAll('.dropdown-menu, .date-calendar').forEach(m => {
                     if (m !== menu) m.classList.remove('active');
                 });
+                
                 menu.classList.toggle('active');
             });
 
-            document.addEventListener('click', () => {
-                menu.classList.remove('active');
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!button.contains(e.target) && !menu.contains(e.target)) {
+                    menu.classList.remove('active');
+                }
             });
 
+            // Handle dropdown item selection
             menu.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (e.target.classList.contains('dropdown-item')) {
-                    menu.querySelectorAll('.dropdown-item').forEach(item => {
-                        item.classList.remove('selected');
+                const item = e.target.closest('.dropdown-item');
+                if (item) {
+                    menu.querySelectorAll('.dropdown-item').forEach(i => {
+                        i.classList.remove('selected');
                     });
-                    e.target.classList.add('selected');
-
-                    if (menuId === 'leagueMenu') {
-                        selectedLeague = e.target.dataset.value;
-                        document.getElementById('leagueLabel').textContent =
-                            e.target.textContent;
-                        applyFilters();
+                    item.classList.add('selected');
+                    
+                    // Get value and update
+                    const value = item.dataset.value;
+                    if (buttonId === 'leagueBtn') {
+                        selectedLeague = value;
+                        document.getElementById('leagueLabel').textContent = value === 'all' ? 'All Leagues' : value;
                     }
-
+                    
                     menu.classList.remove('active');
+                    applyFilters();
                 }
             });
         }
@@ -886,7 +1142,6 @@
                 extractBookmakers();
                 extractMarketCategories();
                 populateLeagueDropdown();
-                populateDateButtons();
                 populateMarketTabs();
                 applyFilters();
                 updateStatus('Live');
@@ -960,46 +1215,19 @@
             ).join('')}
             `;
 
-            document.getElementById('totalLeagues').textContent = leagues.length;
-        }
-
-        function populateDateButtons() {
-            const dates = new Map();
-
-            allMatches.forEach(match => {
-                if (match.match_date) {
-                    const date = new Date(match.match_date);
-                    const dateStr = date.toDateString();
-                    const shortDate = `${date.getMonth() + 1}/${date.getDate()}`;
-                    dates.set(dateStr, shortDate);
-                }
-            });
-
-            const sortedDates = Array.from(dates.entries()).sort((a, b) =>
-                new Date(a[0]) - new Date(b[0])
-            );
-
-            const dateButtons = document.getElementById('dateButtons');
-            const today = new Date().toDateString();
-
-            dateButtons.innerHTML = `
-                <button class="date-btn active" data-date="all">All Dates</button>
-                ${sortedDates.map(([fullDate, shortDate]) => {
-                const isToday = fullDate === today;
-                const label = isToday ? 'Today' : shortDate;
-                return `<button class="date-btn" data-date="${fullDate}">${label}</button>`;
-            }).join('')}
-            `;
-
-            // Add event listeners
-            dateButtons.querySelectorAll('.date-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    dateButtons.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    selectedDate = btn.dataset.date;
+            // Add click handlers for league items
+            menu.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = item.dataset.value;
+                    selectedLeague = value;
+                    document.getElementById('leagueLabel').textContent = value === 'all' ? 'All Leagues' : value;
+                    menu.classList.remove('active');
                     applyFilters();
                 });
             });
+
+            document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
         function populateMarketTabs() {
