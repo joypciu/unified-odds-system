@@ -12,11 +12,12 @@ from typing import Dict, List, Optional
 
 class OddsMagnetMultiMarketScraper:
     
-    # Bookmaker code to full name mapping (based on OddsMagnet's actual codes)
+    # Bookmaker code to full name mapping
     BOOKMAKER_NAMES = {
         'bh': 'Bet-at-Home',
         'eb': '10Bet',
         'ee': '888sport',
+        'fr': 'Betfred',
         'nt': 'Netbet',
         'tn': 'Tonybet',
         'vb': 'Vbet',

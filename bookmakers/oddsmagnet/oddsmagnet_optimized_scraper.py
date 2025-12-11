@@ -41,6 +41,7 @@ class OddsMagnetOptimizedScraper:
         'bh': 'Bet-at-Home',
         'eb': '10Bet',
         'ee': '888sport',
+        'fr': 'Betfred',
         'nt': 'Netbet',
         'tn': 'Tonybet',
         'vb': 'Vbet',

@@ -215,8 +215,6 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             opacity: 1;
-            display: flex;
-            flex-direction: column;
         }
 
         .match-card:hover {
@@ -280,48 +278,15 @@
             gap: 6px;
         }
 
-        .match-content {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
-
         .match-teams {
-            flex: 0 0 220px;
-            padding: 16px;
-            background: rgba(79, 172, 254, 0.08);
-            border-radius: 6px;
-            border: 1px solid rgba(79, 172, 254, 0.15);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            margin-bottom: 16px;
         }
 
         .team-name {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             color: #ffffff;
-            padding: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .team-name::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #4facfe;
-            flex-shrink: 0;
-        }
-
-        .team-name:first-child::before {
-            background: #10b981;
-        }
-
-        .team-name:last-child::before {
-            background: #f59e0b;
+            padding: 4px 0;
         }
 
         .team-name:first-child {
@@ -329,17 +294,16 @@
         }
 
         .vs-separator {
-            font-size: 9px;
+            font-size: 10px;
             color: #6b7280;
             font-weight: 700;
             text-align: center;
-            margin: 8px 0;
-            letter-spacing: 2px;
+            margin: 4px 0;
+            letter-spacing: 1px;
         }
 
         /* Markets Section */
         .markets-container {
-            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -597,8 +561,6 @@
             .filters { flex-direction: column; }
             .stats-bar { flex-direction: column; width: 100%; }
             .odds-grid { grid-template-columns: 1fr 1fr; }
-            .match-content { flex-direction: column; }
-            .match-teams { flex: 1; width: 100%; }
         }
     </style>
 </head>
@@ -633,46 +595,27 @@
             <div class="filters">
                 <div class="filter-group">
                     <label class="filter-label">League</label>
-                    <select class="filter-select" id="leagueFilter" onchange="applyFilters()">
+                    <select class="filter-select" id="leagueFilter">
                         <option value="">All Leagues</option>
-                        <option value="england-premier-league">England - Premier League</option>
-                        <option value="spain-laliga">Spain - La Liga</option>
-                        <option value="italy-serie-a">Italy - Serie A</option>
-                        <option value="germany-bundesliga">Germany - Bundesliga</option>
-                        <option value="france-ligue-1">France - Ligue 1</option>
-                        <option value="england-championship">England - Championship</option>
-                        <option value="netherlands-eredivisie">Netherlands - Eredivisie</option>
-                        <option value="portugal-primeira-liga">Portugal - Primeira Liga</option>
-                        <option value="brazil-serie-a">Brazil - Serie A</option>
-                        <option value="argentina-primera-division">Argentina - Primera Division</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Market Type</label>
-                    <select class="filter-select" id="marketTypeFilter" onchange="applyFilters()">
-                        <option value="">All Markets</option>
-                        <option value="win" selected>Match Winner</option>
-                        <option value="btts">Both Teams To Score</option>
-                        <option value="over-under">Over/Under Goals</option>
-                        <option value="handicap">Handicap</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Date</label>
-                    <select class="filter-select" id="dateFilter" onchange="applyFilters()">
-                        <option value="">All Dates</option>
-                        <option value="today">Today</option>
-                        <option value="tomorrow">Tomorrow</option>
-                        <option value="week">This Week</option>
+                        <option value="premier">Premier League</option>
+                        <option value="laliga">La Liga</option>
+                        <option value="serie-a">Serie A</option>
+                        <option value="bundesliga">Bundesliga</option>
+                        <option value="ligue-1">Ligue 1</option>
+                        <option value="champions">Champions League</option>
+                        <option value="europa">Europa League</option>
+                        <option value="championship">Championship</option>
+                        <option value="eredivisie">Eredivisie</option>
+                        <option value="primeira">Primeira Liga</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Search Teams</label>
-                    <input type="text" class="filter-input" id="searchInput" placeholder="Search..." oninput="debouncedSearch()">
+                    <input type="text" class="filter-input" id="searchInput" placeholder="Search...">
                 </div>
                 <div class="filter-group" style="max-width: 140px;">
                     <label class="filter-label">Per Page</label>
-                    <select class="filter-select" id="pageSizeSelect" onchange="applyFilters()">
+                    <select class="filter-select" id="pageSizeSelect">
                         <option value="10">10</option>
                         <option value="25" selected>25</option>
                         <option value="50">50</option>
@@ -680,8 +623,14 @@
                 </div>
                 <div class="filter-group" style="flex: 0; min-width: auto;">
                     <label class="filter-label">&nbsp;</label>
-                    <button class="btn" onclick="location.reload()">
-                        <i class="fas fa-sync-alt"></i> Reload
+                    <button class="btn" onclick="applyFilters()">
+                        <i class="fas fa-filter"></i> Apply
+                    </button>
+                </div>
+                <div class="filter-group" style="flex: 0; min-width: auto;">
+                    <label class="filter-label">&nbsp;</label>
+                    <button class="btn btn-secondary" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Clear
                     </button>
                 </div>
             </div>
@@ -702,19 +651,6 @@
         let currentData = null;
         let previousOdds = new Map(); // Track odds changes
         let isLoading = false;
-        let searchTimeout = null;
-
-        // Debounced search to avoid too many requests
-        function debouncedSearch() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                applyFilters();
-            }, 500); // Wait 500ms after user stops typing
-        }
-
-        function applyFilters() {
-            loadMatches(1); // Reset to page 1 when filters change
-        }
 
         async function loadMatches(page = 1, silent = false) {
             if (isLoading) return;
@@ -732,8 +668,7 @@
                     page_size: pageSize
                 });
 
-                // Note: League and date filtering done client-side for instant response
-                // Only search goes to server
+                if (league) params.append('league', league);
                 if (search) params.append('search', search);
 
                 const response = await fetch(`/oddsmagnet/football/top10?${params}`);
@@ -791,66 +726,16 @@
                 return;
             }
 
-            const marketTypeFilter = document.getElementById('marketTypeFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
-            const leagueFilter = document.getElementById('leagueFilter').value;
-
-            let filteredMatches = data.matches.filter(match => {
-                // Filter by league (client-side)
-                if (leagueFilter && match.league_slug !== leagueFilter) {
-                    return false;
-                }
-
-                // Filter by date
-                if (dateFilter && match.match_date) {
-                    const matchDate = new Date(match.match_date);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    const weekEnd = new Date(today);
-                    weekEnd.setDate(weekEnd.getDate() + 7);
-
-                    if (dateFilter === 'today' && matchDate.toDateString() !== today.toDateString()) return false;
-                    if (dateFilter === 'tomorrow' && matchDate.toDateString() !== tomorrow.toDateString()) return false;
-                    if (dateFilter === 'week' && (matchDate < today || matchDate > weekEnd)) return false;
-                }
-
-                return true;
-            });
-
-            if (filteredMatches.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state fade-in">
-                        <div class="empty-icon"><i class="fas fa-filter"></i></div>
-                        <div class="empty-title">No Matches Found</div>
-                        <div style="color: #6b7280; margin-top: 8px;">Try adjusting your filters</div>
-                    </div>
-                `;
-                return;
-            }
-
-            const html = filteredMatches.map(match => {
-                const teams = match.match_name ? match.match_name.split(' v ') : ['Team 1', 'Team 2'];
+            const html = data.matches.map(match => {
+                const teams = match.match_name ? match.match_name.split(' v ') : ['', ''];
                 const popularMarkets = match.markets?.['popular markets'] || [];
-                
-                // Filter by market type
-                let targetMarket;
-                if (marketTypeFilter === 'win' || !marketTypeFilter) {
-                    targetMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('win'));
-                } else if (marketTypeFilter === 'btts') {
-                    targetMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('both teams'));
-                } else if (marketTypeFilter === 'over-under') {
-                    targetMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('over') || m.market_name?.toLowerCase().includes('under'));
-                } else if (marketTypeFilter === 'handicap') {
-                    targetMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('handicap'));
-                }
+                const winMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('win'));
                 
                 let marketsHtml = '';
-                if (targetMarket && targetMarket.odds) {
+                if (winMarket && winMarket.odds) {
                     // Group odds by selection
                     const oddsGrouped = {};
-                    targetMarket.odds.forEach(odd => {
+                    winMarket.odds.forEach(odd => {
                         const selection = odd.selection || 'unknown';
                         if (!oddsGrouped[selection]) {
                             oddsGrouped[selection] = [];
@@ -923,15 +808,13 @@
                                 }) : 'TBD'}
                             </div>
                         </div>
-                        <div class="match-content">
-                            <div class="match-teams">
-                                <div class="team-name">${teams[0]}</div>
-                                <div class="vs-separator">VS</div>
-                                <div class="team-name">${teams[1]}</div>
-                            </div>
-                            <div class="markets-container">
-                                ${marketsHtml || '<div style="text-align: center; color: #6b7280; padding: 20px;">No odds available</div>'}
-                            </div>
+                        <div class="match-teams">
+                            <div class="team-name">${teams[0] || 'Team 1'}</div>
+                            <div class="vs-separator">VS</div>
+                            <div class="team-name">${teams[1] || 'Team 2'}</div>
+                        </div>
+                        <div class="markets-container">
+                            ${marketsHtml || '<div style="text-align: center; color: #6b7280; padding: 20px;">No odds available</div>'}
                         </div>
                     </div>
                 `;
@@ -1002,36 +885,8 @@
         }
 
         function updateStats(data) {
-            const leagueFilter = document.getElementById('leagueFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
-            
-            let filteredCount = data.matches ? data.matches.length : 0;
-            
-            // Apply client-side filters to get accurate count
-            if (data.matches && (leagueFilter || dateFilter)) {
-                filteredCount = data.matches.filter(match => {
-                    if (leagueFilter && match.league_slug !== leagueFilter) return false;
-                    
-                    if (dateFilter && match.match_date) {
-                        const matchDate = new Date(match.match_date);
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const tomorrow = new Date(today);
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const weekEnd = new Date(today);
-                        weekEnd.setDate(weekEnd.getDate() + 7);
-
-                        if (dateFilter === 'today' && matchDate.toDateString() !== today.toDateString()) return false;
-                        if (dateFilter === 'tomorrow' && matchDate.toDateString() !== tomorrow.toDateString()) return false;
-                        if (dateFilter === 'week' && (matchDate < today || matchDate > weekEnd)) return false;
-                    }
-                    
-                    return true;
-                }).length;
-            }
-            
             document.getElementById('totalMatches').textContent = data.total_matches_top10 || 0;
-            document.getElementById('showingMatches').textContent = filteredCount;
+            document.getElementById('showingMatches').textContent = data.matches?.length || 0;
             
             if (data.timestamp) {
                 const time = new Date(data.timestamp).toLocaleTimeString('en-US', { 
@@ -1041,6 +896,21 @@
                 document.getElementById('lastUpdate').textContent = time;
             }
         }
+
+        function applyFilters() {
+            loadMatches(1);
+        }
+
+        function clearFilters() {
+            document.getElementById('leagueFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('pageSizeSelect').value = '25';
+            loadMatches(1);
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') applyFilters();
+        });
 
         // Auto-refresh every 15 seconds (silent mode for smooth updates)
         setInterval(() => {
