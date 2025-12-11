@@ -852,6 +852,31 @@
             opacity: 0.4;
         }
 
+        .calendar-day.has-matches {
+            position: relative;
+            font-weight: 600;
+        }
+
+        .calendar-day.has-matches::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+        }
+
+        .calendar-day.has-matches:hover::after {
+            background: var(--text-primary);
+        }
+
+        .calendar-day.selected.has-matches::after {
+            background: white;
+        }
+
         .calendar-footer {
             margin-top: 12px;
             padding-top: 12px;
@@ -1170,6 +1195,16 @@
                 const grid = document.getElementById('calendarGrid');
                 grid.innerHTML = '';
                 
+                // Build set of dates that have matches for highlighting
+                const datesWithMatches = new Set();
+                for (const match of allMatches) {
+                    if (match.match_date) {
+                        const matchDate = new Date(match.match_date);
+                        matchDate.setHours(0, 0, 0, 0);
+                        datesWithMatches.add(matchDate.toDateString());
+                    }
+                }
+                
                 // Add day headers
                 dayNames.forEach(day => {
                     const header = document.createElement('div');
@@ -1213,6 +1248,12 @@
                     
                     if (selectedDateValue && selectedDateValue !== 'all' && dayDate.toDateString() === selectedDateValue) {
                         day.classList.add('selected');
+                    }
+                    
+                    // Highlight dates with matches
+                    if (datesWithMatches.has(dayDate.toDateString())) {
+                        day.classList.add('has-matches');
+                        day.title = 'Has matches';
                     }
                     
                     day.addEventListener('click', () => {
