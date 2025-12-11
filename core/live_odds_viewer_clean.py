@@ -983,9 +983,25 @@ async def get_fanduel_live_optic_odds():
 
 
 @app.get("/oddsmagnet/football")
-async def get_oddsmagnet_football():
-    """Get all OddsMagnet football matches (all leagues - 117 leagues)"""
+async def get_oddsmagnet_football(
+    page: int = 1,
+    page_size: int = 50,
+    league: str = None,
+    search: str = None
+):
+    """Get all OddsMagnet football matches with pagination and filtering
+    
+    Query Parameters:
+    - page: Page number (default: 1)
+    - page_size: Items per page (default: 50, max: 200)
+    - league: Filter by league name (partial match, case-insensitive)
+    - search: Search in match name (partial match, case-insensitive)
+    """
     try:
+        # Validate pagination parameters
+        page = max(1, page)
+        page_size = min(max(1, page_size), 200)  # Max 200 per page
+        
         oddsmagnet_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime.json"
         if not oddsmagnet_file.exists():
             return {
@@ -997,12 +1013,49 @@ async def get_oddsmagnet_football():
         with open(oddsmagnet_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
+        all_matches = data.get('matches', [])
+        
+        # Apply filters
+        filtered_matches = all_matches
+        if league:
+            league_lower = league.lower()
+            filtered_matches = [
+                m for m in filtered_matches 
+                if league_lower in m.get('league', '').lower()
+            ]
+        
+        if search:
+            search_lower = search.lower()
+            filtered_matches = [
+                m for m in filtered_matches 
+                if search_lower in m.get('match_name', '').lower()
+            ]
+        
+        # Calculate pagination
+        total_filtered = len(filtered_matches)
+        total_pages = (total_filtered + page_size - 1) // page_size if total_filtered > 0 else 1
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_matches = filtered_matches[start_idx:end_idx]
+        
         return {
             'source': 'oddsmagnet',
             'timestamp': data.get('timestamp'),
             'iteration': data.get('iteration'),
-            'total_matches': len(data.get('matches', [])),
-            'matches': data.get('matches', [])
+            'pagination': {
+                'page': page,
+                'page_size': page_size,
+                'total_items': total_filtered,
+                'total_pages': total_pages,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            },
+            'filters': {
+                'league': league,
+                'search': search
+            },
+            'total_matches': len(all_matches),
+            'matches': paginated_matches
         }
     except Exception as e:
         return {
@@ -1012,9 +1065,25 @@ async def get_oddsmagnet_football():
 
 
 @app.get("/oddsmagnet/football/top10")
-async def get_oddsmagnet_top10():
-    """Get OddsMagnet football matches from top 10 leagues only (faster response)"""
+async def get_oddsmagnet_top10(
+    page: int = 1,
+    page_size: int = 50,
+    league: str = None,
+    search: str = None
+):
+    """Get OddsMagnet football matches from top 10 leagues with pagination and filtering
+    
+    Query Parameters:
+    - page: Page number (default: 1)
+    - page_size: Items per page (default: 50, max: 200)
+    - league: Filter by specific league from top 10 (partial match)
+    - search: Search in match name (partial match, case-insensitive)
+    """
     try:
+        # Validate pagination parameters
+        page = max(1, page)
+        page_size = min(max(1, page_size), 200)
+        
         # Top 10 football leagues for faster endpoint
         TOP_10_LEAGUES = [
             'england-premier-league',
@@ -1053,13 +1122,49 @@ async def get_oddsmagnet_top10():
                     if league_slug in TOP_10_LEAGUES:
                         top10_matches.append(match)
         
+        # Apply additional filters
+        filtered_matches = top10_matches
+        if league:
+            league_lower = league.lower()
+            filtered_matches = [
+                m for m in filtered_matches 
+                if league_lower in m.get('league', '').lower() or 
+                   league_lower in m.get('match_uri', '').lower()
+            ]
+        
+        if search:
+            search_lower = search.lower()
+            filtered_matches = [
+                m for m in filtered_matches 
+                if search_lower in m.get('match_name', '').lower()
+            ]
+        
+        # Calculate pagination
+        total_filtered = len(filtered_matches)
+        total_pages = (total_filtered + page_size - 1) // page_size if total_filtered > 0 else 1
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_matches = filtered_matches[start_idx:end_idx]
+        
         return {
             'source': 'oddsmagnet_top10',
             'timestamp': data.get('timestamp'),
             'iteration': data.get('iteration'),
-            'total_matches': len(top10_matches),
+            'pagination': {
+                'page': page,
+                'page_size': page_size,
+                'total_items': total_filtered,
+                'total_pages': total_pages,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            },
+            'filters': {
+                'league': league,
+                'search': search
+            },
+            'total_matches_top10': len(top10_matches),
             'leagues_included': TOP_10_LEAGUES,
-            'matches': top10_matches
+            'matches': paginated_matches
         }
     except Exception as e:
         return {
