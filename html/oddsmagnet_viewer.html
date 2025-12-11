@@ -53,37 +53,48 @@
         }
 
         .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #ffffff;
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
+        .header h1 i {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; }
 
         .stat-card {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            padding: 10px 16px;
+            background: linear-gradient(135deg, #1e2139 0%, #14161f 100%);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 10px;
+            padding: 12px 20px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .stat-label {
-            font-size: 10px;
-            color: #6b7280;
+            font-size: 11px;
+            color: #9ca3af;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
 
         .stat-value {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -93,24 +104,29 @@
         .live-status {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            gap: 10px;
+            padding: 10px 18px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid rgba(16, 185, 129, 0.4);
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
         }
 
         .live-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background: #10b981;
             animation: pulse 2s infinite;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
         }
 
-        .live-status.fetching .live-dot { background: #f59e0b; }
+        .live-status.fetching .live-dot { 
+            background: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+        }
 
         .filters {
             display: flex;
@@ -138,54 +154,59 @@
 
         .filter-input, .filter-select {
             background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 8px 12px;
+            border: 2px solid #2a2a3e;
+            border-radius: 8px;
+            padding: 10px 14px;
             color: #ffffff;
-            font-size: 13px;
-            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .filter-input:focus, .filter-select:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.15);
+            background: #1e2139;
         }
 
         .btn {
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
+            border-radius: 8px;
+            padding: 10px 18px;
             color: #ffffff;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
         .btn:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
         }
 
         .matches-grid { display: grid; gap: 16px; }
 
         .match-card {
             background: linear-gradient(135deg, #1a1f3a 0%, #0f1729 100%);
-            border: 1px solid rgba(79, 172, 254, 0.15);
-            border-radius: 8px;
-            padding: 16px;
-            transition: all 0.3s;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .match-card:hover {
-            border-color: #4facfe;
-            box-shadow: 0 8px 24px rgba(79, 172, 254, 0.2);
-            transform: translateY(-2px);
+            border-color: rgba(79, 172, 254, 0.6);
+            box-shadow: 0 12px 35px rgba(79, 172, 254, 0.25);
+            transform: translateY(-4px);
         }
 
         .match-header {
@@ -198,18 +219,18 @@
         }
 
         .match-league {
-            font-size: 10px;
-            color: #6b7280;
-            font-weight: 700;
+            font-size: 11px;
+            color: #3b82f6;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(59, 130, 246, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            gap: 8px;
+            background: rgba(59, 130, 246, 0.15);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .match-time {
@@ -227,24 +248,26 @@
         }
 
         .match-teams {
-            flex: 0 0 220px;
-            padding: 16px;
-            background: rgba(79, 172, 254, 0.08);
-            border-radius: 6px;
-            border: 1px solid rgba(79, 172, 254, 0.15);
+            flex: 0 0 240px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(79, 172, 254, 0.05) 100%);
+            border-radius: 8px;
+            border: 2px solid rgba(79, 172, 254, 0.2);
             display: flex;
             flex-direction: column;
             justify-content: center;
+            box-shadow: 0 2px 10px rgba(79, 172, 254, 0.1);
         }
 
         .team-name {
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             color: #ffffff;
-            padding: 8px 0;
+            padding: 10px 0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            letter-spacing: 0.3px;
         }
 
         .team-name::before {
@@ -260,12 +283,32 @@
         .team-name:last-child::before { background: #f59e0b; }
 
         .vs-separator {
-            font-size: 9px;
-            color: #6b7280;
-            font-weight: 700;
+            font-size: 10px;
+            color: #9ca3af;
+            font-weight: 800;
             text-align: center;
-            margin: 8px 0;
-            letter-spacing: 2px;
+            margin: 12px 0;
+            letter-spacing: 3px;
+            position: relative;
+        }
+
+        .vs-separator::before,
+        .vs-separator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 30%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #4facfe);
+        }
+
+        .vs-separator::before {
+            left: 0;
+        }
+
+        .vs-separator::after {
+            right: 0;
+            background: linear-gradient(to left, transparent, #4facfe);
         }
 
         .markets-container {
@@ -276,10 +319,11 @@
         }
 
         .market-block {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 12px;
+            background: linear-gradient(135deg, #1e2139 0%, #14161f 100%);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .market-header {
@@ -290,14 +334,17 @@
         }
 
         .market-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #9ca3af 0%, #d1d5db 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .market-count {
@@ -316,52 +363,59 @@
 
         .odds-button {
             background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%);
-            border: 1px solid rgba(79, 172, 254, 0.2);
-            border-radius: 6px;
-            padding: 10px;
+            border: 2px solid rgba(79, 172, 254, 0.25);
+            border-radius: 8px;
+            padding: 14px 12px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             text-decoration: none;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
             position: relative;
         }
 
         .odds-button:hover {
             border-color: #4facfe;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+            background: linear-gradient(135deg, #141a2e 0%, #1f2544 100%);
         }
 
         .odds-button.best-odds {
             border-color: #10b981;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.12) 100%);
         }
 
         .odds-button.best-odds::before {
             content: '⭐';
             position: absolute;
-            top: 4px;
-            right: 4px;
-            font-size: 10px;
+            top: 6px;
+            right: 6px;
+            font-size: 12px;
+        }
+
+        .odds-button.best-odds:hover {
+            border-color: #10b981;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
         }
 
         .bookmaker-logo {
-            font-size: 10px;
-            color: #6b7280;
-            font-weight: 600;
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
         }
 
         .odds-value {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: 0.5px;
         }
 
         .odds-meta {
@@ -558,11 +612,11 @@
                 const response = await fetch('/oddsmagnet/football/top10?page_size=200');
                 const data = await response.json();
                 allMatches = data.matches || [];
-                const leagues = [...new Set(allMatches.map(m => m.league_slug))].sort();
+                const leagues = [...new Set(allMatches.map(m => m.league_slug).filter(Boolean))].sort();
                 const leagueSelect = document.getElementById('leagueFilter');
                 const currentValue = leagueSelect.value;
                 leagueSelect.innerHTML = '<option value="">All Leagues</option>' + leagues.map(slug => {
-                    const name = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                    const name = slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Unknown';
                     return `<option value="${slug}">${name}</option>`;
                 }).join('');
                 leagueSelect.value = currentValue;
