@@ -448,6 +448,63 @@
             transform: scale(1.05);
         }
 
+        .odds-selections {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .odds-selection-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 4px 6px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+        }
+
+        .selection-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            min-width: 45px;
+            text-align: left;
+        }
+
+        .selection-odds {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .odds-arrow {
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .odds-arrow.up {
+            color: var(--green-light);
+        }
+
+        .odds-arrow.down {
+            color: var(--red-light);
+        }
+
+        .best-odds-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: linear-gradient(135deg, var(--green-light), var(--green-dark));
+            color: white;
+            font-size: 9px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+
         .odds-value {
             font-size: 15px;
             font-weight: 700;
@@ -1041,6 +1098,7 @@
             tableHead.innerHTML = `
                 <tr>
                     <th>Match</th>
+                    <th style="background: rgba(16, 185, 129, 0.1); color: var(--green-light);">Best Odds</th>
                     ${bookmakers.map(bm => `
                         <th>
                             <div class="bookmaker-header">
@@ -1064,8 +1122,11 @@
                 `${matchDate.getMonth() + 1}/${matchDate.getDate()} - ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
                 'TBD';
 
-            // Get odds for this match
-            const oddsMap = getMatchOdds(match, currentMarket);
+            // Get odds for all selections (home, draw, away)
+            const selectionsOdds = getMatchOddsAllSelections(match, currentMarket);
+            
+            // Get best odds for each selection
+            const bestOdds = getBestOddsPerSelection(selectionsOdds);
 
             return `
                 <tr>
@@ -1082,78 +1143,157 @@
                             <div class="match-league">${match.league || 'Unknown'}</div>
                         </div>
                     </td>
+                    ${renderBestOddsCell(bestOdds, match.match_name)}
                     ${bookmakers.map(bm => {
-                const odd = oddsMap.get(bm.code);
-                return renderOddsCell(odd, match.match_name, bm.code);
-            }).join('')}
+                        return renderBookmakerOddsCell(selectionsOdds, bm.code, match.match_name, bestOdds);
+                    }).join('')}
                 </tr>
             `;
         }
 
-        function getMatchOdds(match, marketType) {
-            const oddsMap = new Map();
+        function getMatchOddsAllSelections(match, marketType) {
+            // Returns structure: { home: Map(bookmaker -> odd), draw: Map(), away: Map() }
+            const result = {
+                home: new Map(),
+                draw: new Map(),
+                away: new Map()
+            };
 
             if (!match.markets || !match.markets['popular markets']) {
-                return oddsMap;
+                return result;
             }
 
-            // Find the right market (looking for "win" or "match winner" market)
-            const winMarket = match.markets['popular markets'].find(m =>
-                m.market_name?.toLowerCase().includes('win') ||
-                m.market_name?.toLowerCase().includes('match winner') ||
-                m.market_name?.toLowerCase().includes('1x2')
-            );
+            // Find the right market based on marketType
+            let targetMarket = null;
+            const markets = match.markets['popular markets'];
+            
+            if (marketType === 'moneyline' || marketType === '1x2') {
+                targetMarket = markets.find(m =>
+                    m.market_name?.toLowerCase().includes('win') ||
+                    m.market_name?.toLowerCase().includes('match winner') ||
+                    m.market_name?.toLowerCase().includes('1x2')
+                );
+            } else if (marketType === 'spread') {
+                targetMarket = markets.find(m =>
+                    m.market_name?.toLowerCase().includes('spread') ||
+                    m.market_name?.toLowerCase().includes('handicap')
+                );
+            } else if (marketType === 'totals') {
+                targetMarket = markets.find(m =>
+                    m.market_name?.toLowerCase().includes('total') ||
+                    m.market_name?.toLowerCase().includes('over') ||
+                    m.market_name?.toLowerCase().includes('under')
+                );
+            }
 
-            if (winMarket && winMarket.odds) {
-                // Group odds by bookmaker, showing the best selection for each
-                const bookmakerBest = new Map();
+            if (targetMarket && targetMarket.odds) {
+                targetMarket.odds.forEach(odd => {
+                    if (!odd.bookmaker_code || !odd.decimal_odds) return;
+                    
+                    const selection = odd.selection?.toLowerCase() || '';
+                    
+                    // Categorize by selection type
+                    if (selection.includes('home') || selection === '1') {
+                        result.home.set(odd.bookmaker_code, odd);
+                    } else if (selection.includes('draw') || selection === 'x') {
+                        result.draw.set(odd.bookmaker_code, odd);
+                    } else if (selection.includes('away') || selection === '2') {
+                        result.away.set(odd.bookmaker_code, odd);
+                    }
+                });
+            }
+
+            return result;
+        }
+
+        function getBestOddsPerSelection(selectionsOdds) {
+            const best = { home: null, draw: null, away: null };
+            
+            // Find highest odds for each selection
+            ['home', 'draw', 'away'].forEach(sel => {
+                let maxOdds = 0;
+                let bestOdd = null;
                 
-                winMarket.odds.forEach(odd => {
-                    if (odd.bookmaker_code) {
-                        const existingOdd = bookmakerBest.get(odd.bookmaker_code);
-                        // Keep the highest odds for each bookmaker
-                        if (!existingOdd || (odd.decimal_odds > existingOdd.decimal_odds)) {
-                            bookmakerBest.set(odd.bookmaker_code, odd);
-                        }
+                selectionsOdds[sel].forEach(odd => {
+                    if (odd.decimal_odds > maxOdds) {
+                        maxOdds = odd.decimal_odds;
+                        bestOdd = odd;
                     }
                 });
                 
-                // Convert to oddsMap
-                bookmakerBest.forEach((odd, code) => {
-                    oddsMap.set(code, odd);
-                });
-            }
-
-            return oddsMap;
+                best[sel] = bestOdd;
+            });
+            
+            return best;
         }
 
-        function renderOddsCell(odd, matchName, bookmakerCode) {
-            if (!odd || !odd.decimal_odds) {
+        function renderBestOddsCell(bestOdds, matchName) {
+            return `
+                <td style="background: rgba(16, 185, 129, 0.05);">
+                    <div class="odds-selections">
+                        ${renderSingleSelection('Home', bestOdds.home, matchName, 'best-home', null, true)}
+                        ${renderSingleSelection('Draw', bestOdds.draw, matchName, 'best-draw', null, true)}
+                        ${renderSingleSelection('Away', bestOdds.away, matchName, 'best-away', null, true)}
+                    </div>
+                </td>
+            `;
+        }
+
+        function renderBookmakerOddsCell(selectionsOdds, bookmakerCode, matchName, bestOdds) {
+            const homeOdd = selectionsOdds.home.get(bookmakerCode);
+            const drawOdd = selectionsOdds.draw.get(bookmakerCode);
+            const awayOdd = selectionsOdds.away.get(bookmakerCode);
+
+            if (!homeOdd && !drawOdd && !awayOdd) {
                 return '<td><div class="odds-cell locked"></div></td>';
             }
 
-            const oddKey = `${matchName}-${bookmakerCode}`;
-            const prevOdd = previousOdds.get(oddKey);
-            let flashClass = '';
+            return `
+                <td>
+                    <div class="odds-selections">
+                        ${renderSingleSelection('Home', homeOdd, matchName, `${bookmakerCode}-home`, bestOdds.home)}
+                        ${renderSingleSelection('Draw', drawOdd, matchName, `${bookmakerCode}-draw`, bestOdds.draw)}
+                        ${renderSingleSelection('Away', awayOdd, matchName, `${bookmakerCode}-away`, bestOdds.away)}
+                    </div>
+                </td>
+            `;
+        }
 
-            if (prevOdd && prevOdd !== odd.decimal_odds) {
-                flashClass = odd.decimal_odds > prevOdd ? 'flash-up' : 'flash-down';
+        function renderSingleSelection(label, odd, matchName, oddKey, bestOdd, isBestColumn = false) {
+            if (!odd || !odd.decimal_odds) {
+                return `
+                    <div class="odds-selection-row">
+                        <span class="selection-label">${label}</span>
+                        <span class="selection-odds" style="color: var(--text-muted);">-</span>
+                    </div>
+                `;
             }
 
-            previousOdds.set(oddKey, odd.decimal_odds);
+            const fullKey = `${matchName}-${oddKey}`;
+            const prevOdds = previousOdds.get(fullKey);
+            let arrowHtml = '';
 
-            const rankClass = odd.is_best_odds ? 'best' : 'average';
+            if (prevOdds && prevOdds !== odd.decimal_odds) {
+                const isUp = odd.decimal_odds > prevOdds;
+                arrowHtml = `<span class="odds-arrow ${isUp ? 'up' : 'down'}"><i class="fas fa-arrow-${isUp ? 'up' : 'down'}"></i></span>`;
+            }
+
+            previousOdds.set(fullKey, odd.decimal_odds);
+
+            const isBest = bestOdd && odd.decimal_odds === bestOdd.decimal_odds && !isBestColumn;
             const clickoutUrl = odd.clickout_url || '#';
 
             return `
-                <td>
+                <div class="odds-selection-row" style="${isBest ? 'background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);' : ''}">
+                    <span class="selection-label">${label}</span>
                     <a href="${clickoutUrl}" target="_blank" style="text-decoration: none;">
-                        <div class="odds-cell ${rankClass} ${flashClass}">
-                            <div class="odds-value">${formatOdds(odd.decimal_odds)}</div>
-                            ${odd.fractional_odds ? `<div style="font-size: 10px; color: var(--text-muted);">${odd.fractional_odds}</div>` : ''}
-                        </div>
+                        <span class="selection-odds">
+                            ${formatOdds(odd.decimal_odds)}
+                            ${arrowHtml}
+                            ${isBest ? '<span style="color: var(--green-light); font-size: 10px; margin-left: 4px;">★</span>' : ''}
+                        </span>
                     </a>
-                </td>
+                </div>
             `;
         }
 
