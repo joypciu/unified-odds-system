@@ -1010,6 +1010,7 @@
         let selectedDate = 'all';
         let searchQuery = '';
         let previousOdds = new Map();
+        let isLoading = false;
 
         // Bookmaker logo mapping
         const bookmakerLogos = {
@@ -1243,72 +1244,84 @@
         }
 
         function populateLeagueDropdown() {
-            const leagueMenu = document.getElementById('leagueMenu');
-            const leagues = new Set();
+            const leagueSet = new Set();
+            for (const match of allMatches) {
+                if (match.league) leagueSet.add(match.league);
+            }
+            
+            const leagues = Array.from(leagueSet).sort();
+            const menu = document.getElementById('leagueMenu');
 
-            allMatches.forEach(match => {
-                if (match.league) leagues.add(match.league);
-            });
-
-            const sortedLeagues = Array.from(leagues).sort();
-
-            let html = `<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>`;
-            sortedLeagues.forEach(league => {
-                html += `<div class="dropdown-item" data-value="${league}"><i class="fas fa-check"></i>${league}</div>`;
-            });
-
-            leagueMenu.innerHTML = html;
-            document.getElementById('totalLeagues').textContent = sortedLeagues.length;
+            // Build HTML more efficiently
+            const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>'];
+            for (const league of leagues) {
+                items.push(`<div class="dropdown-item" data-value="${league}"><i class="fas fa-check"></i>${league}</div>`);
+            }
+            
+            menu.innerHTML = items.join('');
+            document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
-        // Load Data
+        // Load Data with performance optimization
         async function loadData() {
+            if (isLoading) return; // Prevent concurrent loads
+            
+            isLoading = true;
             updateStatus('Fetching...');
+            const startTime = performance.now();
 
             try {
                 const response = await fetch('/oddsmagnet/football/top10');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
                 const data = await response.json();
-
                 allMatches = data.matches || [];
+                
+                // Process data efficiently
                 extractBookmakers();
                 extractMarketCategories();
                 populateLeagueDropdown();
                 populateMarketTabs();
                 applyFilters();
+                
+                const loadTime = (performance.now() - startTime).toFixed(0);
+                console.log(`Data loaded in ${loadTime}ms`);
                 updateStatus('Live');
             } catch (error) {
                 console.error('Error loading data:', error);
                 updateStatus('Error');
                 showEmptyState('error');
+            } finally {
+                isLoading = false;
             }
         }
 
         function extractBookmakers() {
-            const bookmakerSet = new Set();
+            const bookmakerMap = new Map();
 
-            allMatches.forEach(match => {
-                if (match.markets) {
-                    Object.values(match.markets).forEach(marketList => {
-                        if (Array.isArray(marketList)) {
-                            marketList.forEach(market => {
-                                if (market.odds) {
-                                    market.odds.forEach(odd => {
-                                        if (odd.bookmaker_code) {
-                                            bookmakerSet.add(JSON.stringify({
-                                                code: odd.bookmaker_code,
-                                                name: odd.bookmaker_name || odd.bookmaker_code
-                                            }));
-                                        }
-                                    });
-                                }
-                            });
+            // Use Map instead of Set+JSON for better performance
+            for (const match of allMatches) {
+                if (!match.markets) continue;
+                
+                for (const marketList of Object.values(match.markets)) {
+                    if (!Array.isArray(marketList)) continue;
+                    
+                    for (const market of marketList) {
+                        if (!market.odds) continue;
+                        
+                        for (const odd of market.odds) {
+                            if (odd.bookmaker_code && !bookmakerMap.has(odd.bookmaker_code)) {
+                                bookmakerMap.set(odd.bookmaker_code, {
+                                    code: odd.bookmaker_code,
+                                    name: odd.bookmaker_name || odd.bookmaker_code
+                                });
+                            }
                         }
-                    });
+                    }
                 }
-            });
+            }
 
-            bookmakers = Array.from(bookmakerSet)
-                .map(b => JSON.parse(b))
+            bookmakers = Array.from(bookmakerMap.values())
                 .sort((a, b) => a.code.localeCompare(b.code));
 
             document.getElementById('totalBookmakers').textContent = bookmakers.length;
@@ -1317,13 +1330,13 @@
         function extractMarketCategories() {
             const categoriesSet = new Set();
 
-            allMatches.forEach(match => {
+            for (const match of allMatches) {
                 if (match.markets) {
-                    Object.keys(match.markets).forEach(category => {
+                    for (const category of Object.keys(match.markets)) {
                         categoriesSet.add(category);
-                    });
+                    }
                 }
-            });
+            }
 
             marketCategories = Array.from(categoriesSet).sort();
 
@@ -1380,16 +1393,17 @@
             });
         }
 
-        // Filters with performance optimization
+        // Optimized Filters with early returns
         const applyFilters = debounce(function() {
-            let matches = [...allMatches];
-
-            // League filter
+            const startTime = performance.now();
+            
+            let matches = allMatches;
+            
+            // Apply filters with early returns for better performance
             if (selectedLeague !== 'all') {
                 matches = matches.filter(m => m.league === selectedLeague);
             }
 
-            // Date filter
             if (selectedDate !== 'all') {
                 matches = matches.filter(m => {
                     if (!m.match_date) return false;
@@ -1397,58 +1411,71 @@
                 });
             }
 
-            // Search filter
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
-                matches = matches.filter(m =>
-                    m.match_name?.toLowerCase().includes(query) ||
-                    m.league?.toLowerCase().includes(query) ||
-                    m.home_team?.toLowerCase().includes(query) ||
-                    m.away_team?.toLowerCase().includes(query)
-                );
+                matches = matches.filter(m => {
+                    const matchName = m.match_name?.toLowerCase();
+                    const league = m.league?.toLowerCase();
+                    const homeTeam = m.home_team?.toLowerCase();
+                    const awayTeam = m.away_team?.toLowerCase();
+                    
+                    return matchName?.includes(query) ||
+                           league?.includes(query) ||
+                           homeTeam?.includes(query) ||
+                           awayTeam?.includes(query);
+                });
             }
 
             filteredMatches = matches;
 
-            // Update stats
-            document.getElementById('totalMatches').textContent = filteredMatches.length;
+            // Batch DOM updates
+            requestAnimationFrame(() => {
+                document.getElementById('totalMatches').textContent = filteredMatches.length;
+                renderTable();
+                const filterTime = (performance.now() - startTime).toFixed(0);
+                console.log(`Filtered and rendered in ${filterTime}ms`);
+            });
+        }, 150);
 
-            // Render with requestAnimationFrame for smooth performance
-            requestAnimationFrame(() => renderTable());
-        }, 100);
-
-        // Render Table
+        // Optimized Render Table with batch updates and lazy loading
         function renderTable() {
             const tableHead = document.getElementById('tableHead');
             const tableBody = document.getElementById('tableBody');
 
             if (filteredMatches.length === 0) {
+                tableHead.innerHTML = '';
                 showEmptyState('no-results');
                 return;
             }
 
-            // Render header with bookmakers
-            tableHead.innerHTML = `
-                <tr>
-                    <th>Match</th>
-                    <th style="width: 80px;">Type</th>
-                    ${bookmakers.map(bm => `
+            // Render header only if bookmakers changed
+            if (!tableHead.dataset.rendered || tableHead.dataset.bookmakerCount !== String(bookmakers.length)) {
+                const headerCells = ['<th>Match</th>', '<th style="width: 80px;">Type</th>'];
+                
+                for (const bm of bookmakers) {
+                    const logo = bookmakerLogos[bm.code] || `https://ui-avatars.com/api/?name=${encodeURIComponent(bm.name)}&size=80`;
+                    headerCells.push(`
                         <th>
                             <div class="bookmaker-header">
-                                <img src="${bookmakerLogos[bm.code] || 'https://ui-avatars.com/api/?name=' + bm.name + '&size=80'}" 
-                                     alt="${bm.name}" class="bookmaker-logo" />
+                                <img src="${logo}" alt="${bm.name}" class="bookmaker-logo" loading="lazy" />
                                 <div class="bookmaker-name">${bm.name}</div>
                             </div>
                         </th>
-                    `).join('')}
-                </tr>
-            `;
+                    `);
+                }
+                
+                tableHead.innerHTML = `<tr>${headerCells.join('')}</tr>`;
+                tableHead.dataset.rendered = 'true';
+                tableHead.dataset.bookmakerCount = bookmakers.length;
+            }
 
-            // Render body rows
-            const rows = filteredMatches.map(match => renderMatchRow(match)).join('');
-            tableBody.innerHTML = rows;
+            // Use array for faster string concatenation
+            const rows = [];
+            for (const match of filteredMatches) {
+                rows.push(renderMatchRow(match));
+            }
             
-            // Apply fade-in animation
+            tableBody.innerHTML = rows.join('');
             tableBody.classList.add('fade-in');
         }
 
@@ -1462,6 +1489,17 @@
             // Get odds map by selection (home/draw/away) for current market
             const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
 
+            // Pre-build odds cells for better performance
+            const homeCells = [];
+            const drawCells = [];
+            const awayCells = [];
+            
+            for (const bm of bookmakers) {
+                homeCells.push(renderOddsCell(homeOdds.get(bm.code), match.match_name, bm.code, 'home'));
+                drawCells.push(renderOddsCell(drawOdds.get(bm.code), match.match_name, bm.code, 'draw'));
+                awayCells.push(renderOddsCell(awayOdds.get(bm.code), match.match_name, bm.code, 'away'));
+            }
+
             // Create 3 rows: one for home, one for draw, one for away
             return `
                 <tr style="border-top: 2px solid var(--border-color);">
@@ -1473,15 +1511,15 @@
                         </div>
                     </td>
                     <td><span class="selection-type">Home</span></td>
-                    ${bookmakers.map(bm => renderOddsCell(homeOdds.get(bm.code), match.match_name, bm.code, 'home')).join('')}
+                    ${homeCells.join('')}
                 </tr>
                 <tr>
                     <td><span class="selection-type">Draw</span></td>
-                    ${bookmakers.map(bm => renderOddsCell(drawOdds.get(bm.code), match.match_name, bm.code, 'draw')).join('')}
+                    ${drawCells.join('')}
                 </tr>
                 <tr>
                     <td><span class="selection-type">Away</span></td>
-                    ${bookmakers.map(bm => renderOddsCell(awayOdds.get(bm.code), match.match_name, bm.code, 'away')).join('')}
+                    ${awayCells.join('')}
                 </tr>
             `;
         }
@@ -1498,30 +1536,35 @@
             const markets = match.markets[currentMarket];
             if (!Array.isArray(markets)) return { homeOdds, drawOdds, awayOdds };
 
-            // Find the main market (win market)
-            const mainMarket = markets.find(m =>
-                m.market_name?.toLowerCase().includes('win') ||
-                m.market_name?.toLowerCase().includes('match winner') ||
-                m.market_name?.toLowerCase().includes('moneyline')
-            ) || markets[0];
+            // Find the main market (win market) - optimized search
+            let mainMarket = null;
+            for (const m of markets) {
+                const marketName = m.market_name?.toLowerCase();
+                if (marketName && (marketName.includes('win') || marketName.includes('match winner') || marketName.includes('moneyline'))) {
+                    mainMarket = m;
+                    break;
+                }
+            }
+            mainMarket = mainMarket || markets[0];
 
             if (mainMarket && mainMarket.odds) {
-                mainMarket.odds.forEach(odd => {
-                    if (!odd.bookmaker_code || !odd.decimal_odds) return;
+                const homeTeam = match.home_team?.toLowerCase();
+                const awayTeam = match.away_team?.toLowerCase();
+                
+                for (const odd of mainMarket.odds) {
+                    if (!odd.bookmaker_code || !odd.decimal_odds) continue;
                     
                     const selection = odd.selection?.toLowerCase();
-                    const homeTeam = match.home_team?.toLowerCase();
-                    const awayTeam = match.away_team?.toLowerCase();
                     
                     // Categorize by selection
                     if (selection === 'draw') {
                         drawOdds.set(odd.bookmaker_code, odd);
-                    } else if (selection === homeTeam || selection?.includes(homeTeam)) {
+                    } else if (homeTeam && (selection === homeTeam || selection?.includes(homeTeam))) {
                         homeOdds.set(odd.bookmaker_code, odd);
-                    } else if (selection === awayTeam || selection?.includes(awayTeam)) {
+                    } else if (awayTeam && (selection === awayTeam || selection?.includes(awayTeam))) {
                         awayOdds.set(odd.bookmaker_code, odd);
                     }
-                });
+                }
             }
 
             return { homeOdds, drawOdds, awayOdds };
