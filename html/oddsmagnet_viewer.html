@@ -295,287 +295,163 @@
             color: var(--text-primary);
         }
 
-        /* Main Container */
+        /* Main Table Container */
         .table-container {
             position: relative;
-            padding: 24px;
+            overflow-x: auto;
+            padding: 0;
         }
 
-        /* Matches Grid */
-        .matches-grid {
-            display: grid;
-            gap: 16px;
-        }
-
-        /* Animations */
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-
+        /* Subtle animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .updating {
-            animation: pulseCard 0.5s ease-in-out;
+        .fade-in {
+            animation: fadeIn 0.2s ease-out;
         }
 
-        @keyframes pulseCard {
-            0%, 100% { border-color: rgba(79, 172, 254, 0.15); }
-            50% { border-color: rgba(79, 172, 254, 0.5); box-shadow: 0 0 20px rgba(79, 172, 254, 0.3); }
+        /* Table */
+        .odds-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
         }
 
-        /* Match Card */
-        .match-card {
-            background: linear-gradient(135deg, #1a1f3a 0%, #0f1729 100%);
-            border: 1px solid rgba(79, 172, 254, 0.15);
-            border-radius: 8px;
-            padding: 16px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-
-        .match-card:hover {
-            border-color: #4facfe;
-            box-shadow: 0 8px 24px rgba(79, 172, 254, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .match-card::before {
-            content: '';
-            position: absolute;
+        .odds-table thead {
+            position: sticky;
             top: 0;
+            z-index: 10;
+            background: var(--bg-secondary);
+        }
+
+        .odds-table th {
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .odds-table th:first-child {
+            text-align: left;
+            padding-left: 16px;
+            position: sticky;
             left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #4facfe, #00f2fe);
-            opacity: 0;
-            transition: opacity 0.3s;
+            z-index: 11;
         }
 
-        .match-card:hover::before { opacity: 1; }
-
-        /* Match Header */
-        .match-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #1f1f2e;
+        .odds-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s ease;
         }
 
-        .match-league {
-            font-size: 10px;
-            color: #6b7280;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .odds-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .odds-table td {
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .odds-table td:first-child {
+            text-align: left;
+            padding-left: 16px;
+            position: sticky;
+            left: 0;
+            background: var(--bg-primary);
+            z-index: 5;
+        }
+
+        .odds-table tbody tr:hover td:first-child {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Match Cell */
+        .match-info {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(59, 130, 246, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            flex-direction: column;
+            gap: 4px;
+            min-width: 200px;
+        }
+
+        .match-teams {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 13px;
+            line-height: 1.4;
         }
 
         .match-time {
             font-size: 11px;
-            color: #9ca3af;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            color: var(--text-muted);
         }
 
-        .match-teams {
-            margin-bottom: 16px;
-        }
-
-        .team-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
-            padding: 4px 0;
-        }
-
-        .team-name:first-child {
-            margin-bottom: 4px;
-        }
-
-        .vs-separator {
+        .match-league {
             font-size: 10px;
-            color: #6b7280;
-            font-weight: 700;
-            text-align: center;
-            margin: 4px 0;
-            letter-spacing: 1px;
+            color: var(--text-secondary);
         }
 
-        /* Markets Section */
-        .markets-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .market-block {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 12px;
-        }
-
-        .market-header-block {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .market-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        /* Odds Cell */
+        .odds-cell {
             display: flex;
             align-items: center;
-            gap: 6px;
-        }
-
-        .market-count {
-            font-size: 10px;
-            color: #6b7280;
-            background: #14141f;
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-
-        .odds-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 8px;
-        }
-
-        /* Odds Buttons */
-        .odds-button {
-            background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%);
-            border: 1px solid rgba(79, 172, 254, 0.2);
-            border-radius: 6px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
+            justify-content: center;
             gap: 4px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .odds-button::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(79, 172, 254, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .odds-button:hover::after {
-            left: 100%;
-        }
-
-        .odds-button:hover {
-            border-color: #4facfe;
-            background: linear-gradient(135deg, #1a1f3a 0%, #0f1729 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
-        }
-
-        .odds-button.best-odds {
-            border-color: #10b981;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
-        }
-
-        .odds-button.best-odds::before {
-            content: '⭐';
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            font-size: 10px;
-            animation: twinkle 2s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-
-        .odds-button.price-up {
-            animation: priceUp 0.6s ease-out;
-        }
-
-        .odds-button.price-down {
-            animation: priceDown 0.6s ease-out;
-        }
-
-        @keyframes priceUp {
-            0% { background: rgba(16, 185, 129, 0.2); }
-            100% { background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%); }
-        }
-
-        @keyframes priceDown {
-            0% { background: rgba(239, 68, 68, 0.2); }
-            100% { background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%); }
-        }
-
-        .bookmaker-logo-text {
-            font-size: 10px;
-            color: #6b7280;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
+            color: var(--text-primary);
+            transition: color 0.15s ease;
         }
 
-        .selection-name {
-            font-size: 12px;
+        .odds-cell:hover {
+            color: var(--accent-primary);
+        }
+
+        .odds-arrow {
+            font-size: 10px;
+            animation: bounce 0.3s ease-out;
+        }
+
+        .odds-arrow.up {
+            color: var(--green-light);
+        }
+
+        .odds-arrow.down {
+            color: var(--red-light);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+
+        .best-odds {
+            color: var(--green-light);
+            font-weight: 700;
+        }
+
+        /* Bookmaker Header */
+        .bookmaker-name {
+            font-size: 11px;
             font-weight: 600;
-            color: #e5e7eb;
-            margin: 4px 0;
+            color: var(--text-secondary);
         }
 
         .odds-value {
-            font-size: 18px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .odds-movement {
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-top: 4px;
-        }
-
-        .odds-movement.up { color: #10b981; }
-        .odds-movement.down { color: #ef4444; }
-
-        .odds-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 9px;
-            color: #6b7280;
-            margin-top: 4px;
+        .locked {
+            opacity: 0.4;
+            color: var(--text-muted);
         }
 
         /* Empty State */
@@ -600,44 +476,6 @@
 
         .empty-description {
             font-size: 14px;
-        }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(10, 14, 26, 0.85);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9998;
-            pointer-events: none;
-        }
-
-        .loading-overlay.active {
-            display: flex;
-            pointer-events: all;
-        }
-
-        .loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid var(--border-color);
-            border-top-color: var(--accent-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-text {
-            position: absolute;
-            margin-top: 80px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 600;
         }
 
         @keyframes spin {
@@ -843,17 +681,14 @@
 
     <!-- Main Content -->
     <div class="table-container" id="tableContainer">
-        <div id="matchesContainer">
-            <!-- Populated dynamically -->
-        </div>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div>
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Loading odds data...</div>
-        </div>
+        <table class="odds-table">
+            <thead id="tableHead">
+                <!-- Populated dynamically -->
+            </thead>
+            <tbody id="tableBody">
+                <!-- Populated dynamically -->
+            </tbody>
+        </table>
     </div>
 
     <script>
@@ -942,43 +777,25 @@
             });
         }
 
-        // Load Data with performance optimization
+        // Load Data
         async function loadData() {
-            showLoading(true);
             updateStatus('Fetching...');
 
             try {
                 const response = await fetch('/oddsmagnet/football/top10');
                 const data = await response.json();
 
-                // Use requestIdleCallback for non-critical processing
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(() => {
-                        allMatches = data.matches || [];
-                        extractBookmakers();
-                        extractMarketCategories();
-                        populateLeagueDropdown();
-                        populateDateButtons();
-                        populateMarketTabs();
-                        applyFilters();
-                        updateStatus('Live');
-                        showLoading(false);
-                    });
-                } else {
-                    allMatches = data.matches || [];
-                    extractBookmakers();
-                    extractMarketCategories();
-                    populateLeagueDropdown();
-                    populateDateButtons();
-                    populateMarketTabs();
-                    applyFilters();
-                    updateStatus('Live');
-                    showLoading(false);
-                }
+                allMatches = data.matches || [];
+                extractBookmakers();
+                extractMarketCategories();
+                populateLeagueDropdown();
+                populateDateButtons();
+                populateMarketTabs();
+                applyFilters();
+                updateStatus('Live');
             } catch (error) {
                 console.error('Error loading data:', error);
                 updateStatus('Error');
-                showLoading(false);
                 showEmptyState('error');
             }
         }
@@ -1144,188 +961,139 @@
             requestAnimationFrame(() => renderTable());
         }, 100);
 
-        // Render Matches with optimized card-based layout
+        // Render Table
         function renderTable() {
-            const container = document.getElementById('matchesContainer');
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
 
             if (filteredMatches.length === 0) {
                 showEmptyState('no-results');
                 return;
             }
 
-            // Use requestAnimationFrame and document fragment for optimal performance
-            requestAnimationFrame(() => {
-                const fragment = document.createDocumentFragment();
-                const gridDiv = document.createElement('div');
-                gridDiv.className = 'matches-grid fade-in';
-
-                // Batch rendering in chunks for better performance with large datasets
-                const BATCH_SIZE = 20;
-                let currentBatch = 0;
-
-                function renderBatch() {
-                    const start = currentBatch * BATCH_SIZE;
-                    const end = Math.min(start + BATCH_SIZE, filteredMatches.length);
-
-                    for (let i = start; i < end; i++) {
-                        const matchCard = createMatchCard(filteredMatches[i]);
-                        gridDiv.appendChild(matchCard);
-                    }
-
-                    currentBatch++;
-
-                    if (end < filteredMatches.length) {
-                        // Continue rendering next batch in next frame
-                        requestAnimationFrame(renderBatch);
-                    } else {
-                        // All done - add to DOM
-                        fragment.appendChild(gridDiv);
-                        container.innerHTML = '';
-                        container.appendChild(fragment);
-                    }
-                }
-
-                // Start first batch
-                renderBatch();
-            });
-        }
-
-        function createMatchCard(match) {
-            const card = document.createElement('div');
-            card.className = 'match-card';
-
-            const teams = match.match_name ? match.match_name.split(' v ') : ['Team 1', 'Team 2'];
-            const matchDate = match.match_date ? new Date(match.match_date) : null;
-            const timeStr = matchDate ?
-                `${matchDate.getMonth() + 1}/${matchDate.getDate()} - ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
-                'TBD';
-
-            // Get the popular markets
-            const popularMarkets = match.markets?.['popular markets'] || [];
-            const winMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('win'));
-
-            let marketsHtml = '';
-            if (winMarket && winMarket.odds) {
-                // Group odds by selection
-                const oddsGrouped = {};
-                winMarket.odds.forEach(odd => {
-                    const selection = odd.selection || 'unknown';
-                    if (!oddsGrouped[selection]) {
-                        oddsGrouped[selection] = [];
-                    }
-                    oddsGrouped[selection].push(odd);
-                });
-
-                // Render each selection group
-                marketsHtml = Object.entries(oddsGrouped).map(([selection, odds]) => {
-                    const sortedOdds = odds.sort((a, b) => (b.decimal_odds || 0) - (a.decimal_odds || 0));
-
-                    return `
-                        <div class="market-block">
-                            <div class="market-header-block">
-                                <div class="market-title">
-                                    <i class="fas fa-trophy"></i>
-                                    ${selection.charAt(0).toUpperCase() + selection.slice(1)}
-                                </div>
-                                <div class="market-count">${odds.length} bookmakers</div>
-                            </div>
-                            <div class="odds-grid">
-                                ${sortedOdds.map(odd => {
-                        const oddKey = `${match.match_name}-${selection}-${odd.bookmaker_code}`;
-                        const prevOdd = previousOdds.get(oddKey);
-                        const priceClass = prevOdd && prevOdd !== odd.decimal_odds ?
-                            (odd.decimal_odds > prevOdd ? 'price-up' : 'price-down') : '';
-                        previousOdds.set(oddKey, odd.decimal_odds);
-
-                        return `
-                                        <a href="${odd.clickout_url || '#'}" 
-                                           target="_blank" 
-                                           class="odds-button ${odd.is_best_odds ? 'best-odds' : ''} ${priceClass}"
-                                           ${!odd.clickout_url ? 'onclick="return false;"' : ''}>
-                                            <div class="bookmaker-logo-text">${odd.bookmaker_name || 'Unknown'}</div>
-                                            <div class="odds-value">${odd.decimal_odds || 'N/A'}</div>
-                                            ${odd.odds_movement ? `
-                                                <div class="odds-movement ${odd.odds_movement}">
-                                                    <i class="fas fa-arrow-${odd.odds_movement === 'up' ? 'up' : 'down'}"></i>
-                                                    ${odd.odds_change ? (odd.odds_change > 0 ? '+' : '') + odd.odds_change.toFixed(2) : ''}
-                                                </div>
-                                            ` : ''}
-                                            <div class="odds-meta">
-                                                <span>${odd.fractional_odds || ''}</span>
-                                                ${odd.is_best_odds ? '<span style="color: #10b981;">Best</span>' : ''}
-                                            </div>
-                                        </a>
-                                        `;
-                    }).join('')}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            card.innerHTML = `
-                <div class="match-header">
-                    <div class="match-league">
-                        <i class="fas fa-flag"></i>
-                        ${match.league || 'Unknown'}
-                    </div>
-                    <div class="match-time">
-                        <i class="fas fa-clock"></i>
-                        ${timeStr}
-                    </div>
-                </div>
-                <div class="match-teams">
-                    <div class="team-name">${teams[0] || 'Team 1'}</div>
-                    <div class="vs-separator">VS</div>
-                    <div class="team-name">${teams[1] || 'Team 2'}</div>
-                </div>
-                <div class="markets-container">
-                    ${marketsHtml || '<div style="text-align: center; color: #6b7280; padding: 20px;">No odds available</div>'}
-                </div>
+            // Render header
+            tableHead.innerHTML = `
+                <tr>
+                    <th>Match</th>
+                    ${bookmakers.map(bm => `
+                        <th><div class="bookmaker-name">${bm.name}</div></th>
+                    `).join('')}
+                </tr>
             `;
 
-            return card;
+            // Render body rows
+            const rows = filteredMatches.map(match => renderMatchRow(match)).join('');
+            tableBody.innerHTML = rows;
+            
+            // Apply fade-in animation
+            tableBody.classList.add('fade-in');
+        }
+
+        function renderMatchRow(match) {
+            const teams = match.match_name || 'Unknown Match';
+            const matchDate = match.match_date ? new Date(match.match_date) : null;
+            const timeStr = matchDate ?
+                `${matchDate.getMonth() + 1}/${matchDate.getDate()} ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
+                'TBD';
+
+            // Get odds for current market
+            const oddsMap = getMatchOdds(match);
+
+            return `
+                <tr>
+                    <td>
+                        <div class="match-info">
+                            <div class="match-teams">${teams}</div>
+                            <div class="match-time">${timeStr}</div>
+                            <div class="match-league">${match.league || 'Unknown'}</div>
+                        </div>
+                    </td>
+                    ${bookmakers.map(bm => {
+                        const odd = oddsMap.get(bm.code);
+                        return renderOddsCell(odd, match.match_name, bm.code);
+                    }).join('')}
+                </tr>
+            `;
+        }
+
+        function getMatchOdds(match) {
+            const oddsMap = new Map();
+            
+            if (!match.markets || !match.markets[currentMarket]) {
+                return oddsMap;
+            }
+
+            const markets = match.markets[currentMarket];
+            if (!Array.isArray(markets)) return oddsMap;
+
+            // Find the main market
+            const mainMarket = markets.find(m =>
+                m.market_name?.toLowerCase().includes('win') ||
+                m.market_name?.toLowerCase().includes('match winner') ||
+                m.market_name?.toLowerCase().includes('moneyline')
+            ) || markets[0];
+
+            if (mainMarket && mainMarket.odds) {
+                mainMarket.odds.forEach(odd => {
+                    if (odd.bookmaker_code && odd.decimal_odds) {
+                        oddsMap.set(odd.bookmaker_code, odd);
+                    }
+                });
+            }
+
+            return oddsMap;
+        }
+
+        function renderOddsCell(odd, matchName, bookmakerCode) {
+            if (!odd || !odd.decimal_odds) {
+                return '<td><span class="locked">-</span></td>';
+            }
+
+            const oddKey = `${matchName}-${bookmakerCode}`;
+            const prevOdd = previousOdds.get(oddKey);
+            let arrowHtml = '';
+
+            if (prevOdd && prevOdd !== odd.decimal_odds) {
+                const isUp = odd.decimal_odds > prevOdd;
+                arrowHtml = `<i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
+            }
+
+            previousOdds.set(oddKey, odd.decimal_odds);
+
+            // Find if this is best odds
+            const isBest = odd.is_best_odds;
+            const cellClass = isBest ? 'best-odds' : '';
+
+            return `
+                <td>
+                    <div class="odds-cell ${cellClass}">
+                        ${arrowHtml}
+                        <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>
+                    </div>
+                </td>
+            `;
         }
 
         // Utilities
-        function getBookmakerLogo(code) {
-            const cleanCode = code.toLowerCase();
-            return bookmakerLogos[cleanCode] || `https://ui-avatars.com/api/?name=${code}&background=random&size=80`;
-        }
-
-        function getBookmakerInitials(code) {
-            return code.substring(0, 2).toUpperCase();
-        }
-
-        function formatOdds(odds) {
-            if (!odds) return '-';
-            return odds.toFixed(2);
-        }
-
         function showEmptyState(type) {
-            const container = document.getElementById('matchesContainer');
+            const tableBody = document.getElementById('tableBody');
             const icon = type === 'error' ? 'fa-exclamation-triangle' : 'fa-search';
             const title = type === 'error' ? 'Error Loading Data' : 'No Matches Found';
             const description = type === 'error' ?
                 'There was an error loading the data. Please try again.' :
                 'Try adjusting your filters or search query.';
 
-            container.innerHTML = `
-                <div class="empty-state fade-in">
-                    <div class="empty-icon"><i class="fas ${icon}"></i></div>
-                    <div class="empty-title">${title}</div>
-                    <div class="empty-description">${description}</div>
-                </div>
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="100%">
+                        <div class="empty-state fade-in">
+                            <div class="empty-icon"><i class="fas ${icon}"></i></div>
+                            <div class="empty-title">${title}</div>
+                            <div class="empty-description">${description}</div>
+                        </div>
+                    </td>
+                </tr>
             `;
-        }
-
-        function showLoading(show) {
-            const overlay = document.getElementById('loadingOverlay');
-            if (show) {
-                overlay.classList.add('active');
-            } else {
-                overlay.classList.remove('active');
-            }
         }
 
         function updateStatus(text) {
@@ -1346,9 +1114,7 @@
 
         // Auto-refresh every 30 seconds
         setInterval(() => {
-            if (!document.getElementById('loadingOverlay').classList.contains('active')) {
-                loadData();
-            }
+            loadData();
         }, 30000);
     </script>
 </body>
