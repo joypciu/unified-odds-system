@@ -27,6 +27,10 @@ jobs:
             git fetch origin
             git reset --hard origin/main
 
+            # Install/Update Python dependencies
+            source venv/bin/activate
+            pip install -r config/requirements.txt --upgrade
+
             # Copy updated service file
             sudo cp deployment/unified-odds.service /etc/systemd/system/unified-odds.service
             sudo systemctl daemon-reload

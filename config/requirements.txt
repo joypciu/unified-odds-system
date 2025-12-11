@@ -7,6 +7,9 @@ patchright
 playwright
 psutil
 pydantic
+requests
+selenium
 uvicorn
 watchdog
+webdriver-manager
 zstandard
