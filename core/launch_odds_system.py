@@ -125,7 +125,8 @@ def main():
         has_pregame = True
         has_live = True
     
-    base_dir = Path(__file__).parent
+    # base_dir should be project root, not core/
+    base_dir = Path(__file__).parent.parent
     
     print("=" * 80)
     print("⚡ UNIFIED ODDS COLLECTION & VIEWING SYSTEM")
@@ -140,7 +141,7 @@ def main():
         print("   - Email alerts on failures")
         print()
         
-        monitoring_script = base_dir / "monitoring_system.py"
+        monitoring_script = base_dir / "core" / "monitoring_system.py"
         if monitoring_script.exists():
             try:
                 # For debugging, don't detach the process so we can see output
@@ -178,7 +179,7 @@ def main():
     print("   - Generating unified_odds.json with real-time updates")
     print()
 
-    unified_script = base_dir / "run_unified_system.py"
+    unified_script = base_dir / "core" / "run_unified_system.py"
     if not unified_script.exists():
         print(f"❌ Error: {unified_script} not found!")
         sys.exit(1)
@@ -258,7 +259,7 @@ def main():
     print("   - Email alerts configured")
     print()
     
-    viewer_script = base_dir / "live_odds_viewer_clean.py"
+    viewer_script = base_dir / "core" / "live_odds_viewer_clean.py"
     if not viewer_script.exists():
         print(f"❌ Error: {viewer_script} not found!")
         unified_process.terminate()
@@ -336,7 +337,7 @@ def main():
                 if monitoring_status is not None:
                     print(f"\n⚠️  Monitoring system exited with code {monitoring_status}")
                     print("🔄 Restarting monitoring system...")
-                    monitoring_script = base_dir / "monitoring_system.py"
+                    monitoring_script = base_dir / "core" / "monitoring_system.py"
                     monitoring_process = subprocess.Popen(
                         [sys.executable, str(monitoring_script)],
                         cwd=str(base_dir),
