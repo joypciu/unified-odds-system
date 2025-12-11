@@ -197,31 +197,91 @@
             font-size: 12px;
         }
 
-        .dropdown-menu {
-            position: absolute;
-            top: calc(100% + 8px);
+        /* Modal-based Dropdown */
+        .filter-modal {
+            position: fixed;
+            top: 0;
             left: 0;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            min-width: 250px;
-            max-height: 400px;
-            overflow-y: auto;
-            z-index: 10001;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
             display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 100px;
+            overflow-y: auto;
         }
 
-        .dropdown-menu.active {
-            display: block;
+        .filter-modal.active {
+            display: flex;
+        }
+
+        .filter-modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            min-width: 320px;
+            max-width: 90vw;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .filter-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .filter-modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .filter-modal-body {
+            overflow-y: auto;
+            flex: 1;
         }
 
         .dropdown-item {
-            padding: 10px 16px;
+            padding: 12px 20px;
             cursor: pointer;
             transition: background 0.2s;
             font-size: 14px;
             color: var(--text-secondary);
+            border-bottom: 1px solid rgba(30, 39, 56, 0.3);
         }
 
         .dropdown-item:hover {
@@ -230,8 +290,18 @@
         }
 
         .dropdown-item.selected {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(59, 130, 246, 0.15);
             color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .dropdown-item i {
+            margin-right: 8px;
+            opacity: 0;
+        }
+
+        .dropdown-item.selected i {
+            opacity: 1;
         }
 
         /* Market Tabs */
@@ -433,11 +503,12 @@
         }
 
         .odds-arrow {
-            font-size: 12px;
+            font-size: 10px;
             animation: bounce 0.3s ease-out;
             display: inline-block;
             margin-left: 4px;
             vertical-align: middle;
+            font-weight: bold;
         }
 
         .odds-arrow.up {
@@ -547,15 +618,15 @@
             background: #2a3548;
         }
 
-        .dropdown-menu::-webkit-scrollbar {
+        .filter-modal-body::-webkit-scrollbar {
             width: 6px;
         }
 
-        .dropdown-menu::-webkit-scrollbar-track {
+        .filter-modal-body::-webkit-scrollbar-track {
             background: var(--bg-tertiary);
         }
 
-        .dropdown-menu::-webkit-scrollbar-thumb {
+        .filter-modal-body::-webkit-scrollbar-thumb {
             background: var(--border-color);
             border-radius: 3px;
         }
@@ -680,27 +751,37 @@
             animation: flashRed 0.6s ease-out;
         }
 
-        /* Date Calendar Picker */
+        /* Date Calendar Picker - Modal Based */
         .date-picker-wrapper {
             position: relative;
         }
 
-        .date-calendar {
-            position: absolute;
-            top: calc(100% + 8px);
+        .date-calendar-modal {
+            position: fixed;
+            top: 0;
             left: 0;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            min-width: 280px;
-            z-index: 10001;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
             display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 100px;
         }
 
-        .date-calendar.active {
-            display: block;
+        .date-calendar-modal.active {
+            display: flex;
+        }
+
+        .date-calendar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            min-width: 320px;
+            animation: slideDown 0.2s ease-out;
         }
 
         .calendar-header {
@@ -827,9 +908,6 @@
                     <span id="leagueLabel">All Leagues</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
-                <div class="dropdown-menu" id="leagueMenu">
-                    <!-- Populated dynamically -->
-                </div>
             </div>
 
             <div class="date-picker-wrapper">
@@ -838,20 +916,6 @@
                     <span id="dateLabel">All Dates</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
-                <div class="date-calendar" id="dateCalendar">
-                    <div class="calendar-header">
-                        <div class="calendar-nav" id="prevMonth"><i class="fas fa-chevron-left"></i></div>
-                        <div id="calendarMonth">Month Year</div>
-                        <div class="calendar-nav" id="nextMonth"><i class="fas fa-chevron-right"></i></div>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid">
-                        <!-- Populated dynamically -->
-                    </div>
-                    <div class="calendar-footer">
-                        <button class="calendar-btn" id="todayBtn">Today</button>
-                        <button class="calendar-btn" id="allDatesBtn">All Dates</button>
-                    </div>
-                </div>
             </div>
 
             <button class="filter-btn" id="refreshBtn">
@@ -896,6 +960,43 @@
                 <!-- Populated dynamically -->
             </tbody>
         </table>
+    </div>
+
+    <!-- League Filter Modal -->
+    <div class="filter-modal" id="leagueModal">
+        <div class="filter-modal-content">
+            <div class="filter-modal-header">
+                <div class="filter-modal-title">
+                    <i class="fas fa-trophy" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                    Select League
+                </div>
+                <button class="filter-modal-close" id="leagueModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-modal-body" id="leagueMenu">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Filter Modal -->
+    <div class="date-calendar-modal" id="dateModal">
+        <div class="date-calendar">
+            <div class="calendar-header">
+                <div class="calendar-nav" id="prevMonth"><i class="fas fa-chevron-left"></i></div>
+                <div id="calendarMonth">Month Year</div>
+                <div class="calendar-nav" id="nextMonth"><i class="fas fa-chevron-right"></i></div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="calendar-footer">
+                <button class="calendar-btn" id="todayBtn">Today</button>
+                <button class="calendar-btn" id="allDatesBtn">All Dates</button>
+                <button class="calendar-btn" id="dateModalClose">Close</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -944,35 +1045,86 @@
                 loadData();
             });
 
-            // League dropdown
-            setupDropdown('leagueBtn', 'leagueMenu');
+            // League modal
+            setupLeagueModal();
             
-            // Date calendar picker
-            setupCalendar();
+            // Date calendar modal
+            setupCalendarModal();
         }
 
-        function setupCalendar() {
+        function setupLeagueModal() {
+            const leagueBtn = document.getElementById('leagueBtn');
+            const leagueModal = document.getElementById('leagueModal');
+            const leagueModalClose = document.getElementById('leagueModalClose');
+            const leagueMenu = document.getElementById('leagueMenu');
+
+            leagueBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                leagueModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            leagueModalClose.addEventListener('click', () => {
+                leagueModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            leagueModal.addEventListener('click', (e) => {
+                if (e.target === leagueModal) {
+                    leagueModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            leagueMenu.addEventListener('click', (e) => {
+                const item = e.target.closest('.dropdown-item');
+                if (item) {
+                    leagueMenu.querySelectorAll('.dropdown-item').forEach(i => {
+                        i.classList.remove('selected');
+                    });
+                    item.classList.add('selected');
+                    
+                    const value = item.dataset.value;
+                    selectedLeague = value;
+                    document.getElementById('leagueLabel').textContent = value === 'all' ? 'All Leagues' : value;
+                    
+                    leagueModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    applyFilters();
+                }
+            });
+        }
+
+        function setupCalendarModal() {
             const dateBtn = document.getElementById('dateBtn');
-            const calendar = document.getElementById('dateCalendar');
+            const dateModal = document.getElementById('dateModal');
+            const dateModalClose = document.getElementById('dateModalClose');
             const prevMonth = document.getElementById('prevMonth');
             const nextMonth = document.getElementById('nextMonth');
             const todayBtn = document.getElementById('todayBtn');
             const allDatesBtn = document.getElementById('allDatesBtn');
             
             let currentMonth = new Date();
-            let selectedDate = null;
+            let selectedDateValue = null;
             
             dateBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
-                calendar.classList.toggle('active');
+                dateModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
                 renderCalendar();
             });
             
-            document.addEventListener('click', (e) => {
-                if (!dateBtn.contains(e.target) && !calendar.contains(e.target)) {
-                    calendar.classList.remove('active');
+            dateModalClose.addEventListener('click', () => {
+                dateModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            dateModal.addEventListener('click', (e) => {
+                if (e.target === dateModal) {
+                    dateModal.classList.remove('active');
+                    document.body.style.overflow = '';
                 }
             });
             
@@ -987,20 +1139,23 @@
             });
             
             todayBtn.addEventListener('click', () => {
-                selectedDate = new Date();
-                selectedDate.setHours(0, 0, 0, 0);
-                selectedLeague = 'all';
-                selectedDate = selectedDate.toDateString();
-                updateDateLabel(selectedDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                selectedDateValue = today.toDateString();
+                selectedDate = selectedDateValue;
+                updateDateLabel(today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
                 applyFilters();
-                calendar.classList.remove('active');
+                dateModal.classList.remove('active');
+                document.body.style.overflow = '';
             });
             
             allDatesBtn.addEventListener('click', () => {
+                selectedDateValue = 'all';
                 selectedDate = 'all';
                 updateDateLabel('All Dates');
                 applyFilters();
-                calendar.classList.remove('active');
+                dateModal.classList.remove('active');
+                document.body.style.overflow = '';
             });
             
             function renderCalendar() {
@@ -1055,15 +1210,17 @@
                         day.classList.add('today');
                     }
                     
-                    if (selectedDate && selectedDate !== 'all' && dayDate.toDateString() === selectedDate) {
+                    if (selectedDateValue && selectedDateValue !== 'all' && dayDate.toDateString() === selectedDateValue) {
                         day.classList.add('selected');
                     }
                     
                     day.addEventListener('click', () => {
-                        selectedDate = dayDate.toDateString();
+                        selectedDateValue = dayDate.toDateString();
+                        selectedDate = selectedDateValue;
                         updateDateLabel(dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
                         applyFilters();
-                        calendar.classList.remove('active');
+                        dateModal.classList.remove('active');
+                        document.body.style.overflow = '';
                     });
                     
                     grid.appendChild(day);
@@ -1085,52 +1242,23 @@
             }
         }
 
-        function setupDropdown(buttonId, menuId) {
-            const button = document.getElementById(buttonId);
-            const menu = document.getElementById(menuId);
+        function populateLeagueDropdown() {
+            const leagueMenu = document.getElementById('leagueMenu');
+            const leagues = new Set();
 
-            if (!button || !menu) return;
-
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Close all other dropdowns
-                document.querySelectorAll('.dropdown-menu, .date-calendar').forEach(m => {
-                    if (m !== menu) m.classList.remove('active');
-                });
-                
-                menu.classList.toggle('active');
+            allMatches.forEach(match => {
+                if (match.league) leagues.add(match.league);
             });
 
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!button.contains(e.target) && !menu.contains(e.target)) {
-                    menu.classList.remove('active');
-                }
+            const sortedLeagues = Array.from(leagues).sort();
+
+            let html = `<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>`;
+            sortedLeagues.forEach(league => {
+                html += `<div class="dropdown-item" data-value="${league}"><i class="fas fa-check"></i>${league}</div>`;
             });
 
-            // Handle dropdown item selection
-            menu.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const item = e.target.closest('.dropdown-item');
-                if (item) {
-                    menu.querySelectorAll('.dropdown-item').forEach(i => {
-                        i.classList.remove('selected');
-                    });
-                    item.classList.add('selected');
-                    
-                    // Get value and update
-                    const value = item.dataset.value;
-                    if (buttonId === 'leagueBtn') {
-                        selectedLeague = value;
-                        document.getElementById('leagueLabel').textContent = value === 'all' ? 'All Leagues' : value;
-                    }
-                    
-                    menu.classList.remove('active');
-                    applyFilters();
-                }
-            });
+            leagueMenu.innerHTML = html;
+            document.getElementById('totalLeagues').textContent = sortedLeagues.length;
         }
 
         // Load Data
