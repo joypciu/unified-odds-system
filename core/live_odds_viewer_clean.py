@@ -494,7 +494,7 @@ async def send_email_alert(alert_data: EmailAlert):
 @app.get("/", response_class=HTMLResponse)
 async def get_home():
     """Serve the main HTML page"""
-    template_path = BASE_DIR / 'data' / 'odds_viewer_template.html'
+    template_path = BASE_DIR / 'html' / 'odds_viewer_template.html'
     html_content = open(template_path, 'r', encoding='utf-8').read()
     return HTMLResponse(content=html_content)
 
