@@ -45,7 +45,7 @@
             border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 50;
             backdrop-filter: blur(10px);
         }
 
@@ -206,7 +206,7 @@
             min-width: 250px;
             max-height: 400px;
             overflow-y: auto;
-            z-index: 1000;
+            z-index: 9999;
             display: none;
         }
 
@@ -340,12 +340,14 @@
 
         /* Best Odds Column */
         .best-odds-col {
-            background: rgba(16, 185, 129, 0.05) !important;
-            border-left: 2px solid rgba(16, 185, 129, 0.3);
-            border-right: 2px solid rgba(16, 185, 129, 0.3);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1)) !important;
+            border-left: 2px solid rgba(16, 185, 129, 0.4);
+            border-right: 2px solid rgba(16, 185, 129, 0.4);
             position: sticky;
             left: 280px;
             z-index: 11;
+            font-weight: 700;
+            color: var(--green-light) !important;
         }
 
         /* Outcome Headers */
@@ -492,30 +494,34 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 6px;
-            padding: 6px 8px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 4px;
+            gap: 8px;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 5px;
             transition: all 0.2s;
+            border: 1px solid transparent;
         }
 
         .odds-selection-row:hover {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(59, 130, 246, 0.12);
             transform: translateX(2px);
+            border-color: rgba(59, 130, 246, 0.3);
         }
 
         .selection-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            min-width: 40px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            min-width: 45px;
             text-align: left;
-            font-weight: 500;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .selection-odds {
-            font-weight: 700;
+            font-weight: 800;
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 15px;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -618,6 +624,17 @@
             font-weight: 800;
         }
 
+        .best-odds-col-cell .selection-label {
+            color: var(--green-light);
+            font-weight: 700;
+        }
+
+        .best-odds-col-cell .selection-odds {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--green-light);
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -649,16 +666,18 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(10, 14, 26, 0.8);
+            background: rgba(10, 14, 26, 0.85);
             backdrop-filter: blur(4px);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 9998;
+            pointer-events: none;
         }
 
         .loading-overlay.active {
             display: flex;
+            pointer-events: all;
         }
 
         .loading-spinner {
@@ -668,6 +687,14 @@
             border-top-color: var(--accent-primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            position: absolute;
+            margin-top: 80px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
         }
 
         @keyframes spin {
@@ -885,7 +912,10 @@
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
+        <div>
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading odds data...</div>
+        </div>
     </div>
 
     <script>
