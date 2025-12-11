@@ -218,6 +218,36 @@ def main():
         print(f"❌ Error starting unified system: {e}")
         sys.exit(1)
     
+    # Start OddsMagnet Real-Time Collector
+    print("⚽ Starting OddsMagnet Real-Time Collector...")
+    print("   - Tracking 1 match per league (117+ leagues)")
+    print("   - Update interval: 1 second")
+    print("   - Output: oddsmagnet/oddsmagnet_realtime.json")
+    print()
+    
+    oddsmagnet_script = base_dir / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
+    if oddsmagnet_script.exists():
+        try:
+            # Start OddsMagnet collector in background
+            oddsmagnet_process = subprocess.Popen(
+                [sys.executable, str(oddsmagnet_script), "--auto"],
+                cwd=str(base_dir / "oddsmagnet")
+            )
+            processes.append(oddsmagnet_process)
+            print("✅ OddsMagnet collector started (PID: {})".format(oddsmagnet_process.pid))
+            print()
+            
+            # Give it a moment to initialize
+            time.sleep(3)
+            
+        except Exception as e:
+            print(f"⚠️  Could not start OddsMagnet collector: {e}")
+            print("   Continuing without OddsMagnet...")
+            print()
+    else:
+        print("⚠️  oddsmagnet_realtime_collector.py not found, skipping OddsMagnet")
+        print()
+    
     # Start the web viewer
     print("🌐 Starting Web Viewer UI...")
     print("   - Real-time monitoring dashboard")
@@ -261,7 +291,8 @@ def main():
             print("   2. Unified Odds Collector - PREGAME ONLY fetching from enabled sources")
         else:
             print("   2. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
-        print("   3. Web Viewer - Real-time dashboard with monitoring")
+        print("   3. OddsMagnet Real-Time Collector - 117+ leagues, 1s updates")
+        print("   4. Web Viewer - Real-time dashboard with monitoring")
     else:
         if args.live_only:
             print("   1. Unified Odds Collector - LIVE ONLY fetching from all sources")
@@ -269,7 +300,8 @@ def main():
             print("   1. Unified Odds Collector - PREGAME ONLY fetching from all sources")
         else:
             print("   1. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
-        print("   2. Web Viewer - Real-time dashboard")
+        print("   2. OddsMagnet Real-Time Collector - 117+ leagues, 1s updates")
+        print("   3. Web Viewer - Real-time dashboard")
     print()
     print("💡 Features Available:")
     if not args.no_monitoring:
@@ -283,6 +315,7 @@ def main():
     else:
         print("   • Real-time PREGAME odds updates (scraped continuously)")
         print("   • Real-time LIVE odds updates (scraped continuously)")
+    print("   • OddsMagnet: 117+ leagues, 9 bookmakers, 69 markets per match")
     print("   • Advanced filtering and search")
     print("   • Pagination for large datasets")
     print("   • System health monitoring dashboard")
@@ -342,6 +375,22 @@ def main():
                     )
                     processes[unified_idx] = unified_process
                     print(f"✅ Unified system restarted (PID: {unified_process.pid})")
+            
+            # Check OddsMagnet collector (if running)
+            oddsmagnet_idx = 2 if not args.no_monitoring else 1
+            if len(processes) > oddsmagnet_idx + 1:  # Has OddsMagnet + viewer
+                oddsmagnet_status = processes[oddsmagnet_idx].poll()
+                if oddsmagnet_status is not None:
+                    print(f"\n⚠️  OddsMagnet collector exited with code {oddsmagnet_status}")
+                    print("🔄 Restarting OddsMagnet collector...")
+                    oddsmagnet_script = base_dir / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
+                    if oddsmagnet_script.exists():
+                        oddsmagnet_process = subprocess.Popen(
+                            [sys.executable, str(oddsmagnet_script), "--auto"],
+                            cwd=str(base_dir / "oddsmagnet")
+                        )
+                        processes[oddsmagnet_idx] = oddsmagnet_process
+                        print(f"✅ OddsMagnet collector restarted (PID: {oddsmagnet_process.pid})")
             
             # Check viewer (last process)
             viewer_idx = len(processes) - 1

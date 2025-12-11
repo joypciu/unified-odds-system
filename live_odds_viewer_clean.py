@@ -976,6 +976,86 @@ async def get_fanduel_live_optic_odds():
     return optic_format
 
 
+@app.get("/oddsmagnet/football")
+async def get_oddsmagnet_football():
+    """Get all OddsMagnet football matches (all leagues - 117 leagues)"""
+    try:
+        oddsmagnet_file = BASE_DIR / "oddsmagnet" / "oddsmagnet_realtime.json"
+        if not oddsmagnet_file.exists():
+            return {
+                'error': 'OddsMagnet data not available',
+                'message': 'Real-time collector not running',
+                'matches': []
+            }
+        
+        with open(oddsmagnet_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        return {
+            'source': 'oddsmagnet',
+            'timestamp': data.get('timestamp'),
+            'iteration': data.get('iteration'),
+            'total_matches': len(data.get('matches', [])),
+            'matches': data.get('matches', [])
+        }
+    except Exception as e:
+        return {
+            'error': str(e),
+            'matches': []
+        }
+
+
+@app.get("/oddsmagnet/football/top10")
+async def get_oddsmagnet_top10():
+    """Get OddsMagnet football matches from top 10 leagues only (faster response)"""
+    try:
+        # Top 10 football leagues for faster endpoint
+        TOP_10_LEAGUES = [
+            'england-premier-league',
+            'spain-laliga',
+            'italy-serie-a', 
+            'germany-bundesliga',
+            'france-ligue-1',
+            'uefa-champions-league',
+            'uefa-europa-league',
+            'england-championship',
+            'netherlands-eredivisie',
+            'portugal-primeira-liga'
+        ]
+        
+        oddsmagnet_file = BASE_DIR / "oddsmagnet" / "oddsmagnet_realtime.json"
+        if not oddsmagnet_file.exists():
+            return {
+                'error': 'OddsMagnet data not available',
+                'message': 'Real-time collector not running',
+                'matches': []
+            }
+        
+        with open(oddsmagnet_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Filter matches for top 10 leagues only
+        all_matches = data.get('matches', [])
+        top10_matches = [
+            match for match in all_matches
+            if match.get('league_slug', '').lower() in TOP_10_LEAGUES
+        ]
+        
+        return {
+            'source': 'oddsmagnet_top10',
+            'timestamp': data.get('timestamp'),
+            'iteration': data.get('iteration'),
+            'total_matches': len(top10_matches),
+            'leagues_included': TOP_10_LEAGUES,
+            'matches': top10_matches
+        }
+    except Exception as e:
+        return {
+            'error': str(e),
+            'matches': []
+        }
+
+
 @app.get("/bet365")
 async def get_bet365_optic_odds():
     """Get all Bet365 odds in OpticOdds format (default)"""
