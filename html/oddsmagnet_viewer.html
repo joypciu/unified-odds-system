@@ -427,6 +427,27 @@
             margin-top: 4px;
         }
 
+        .odds-movement {
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        .odds-movement.up {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .odds-movement.down {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
         .loading {
             text-align: center;
             padding: 60px;
@@ -530,6 +551,7 @@
         <div id="matchesContainer">
             <div class="loading"><div class="spinner"></div><div>Loading matches...</div></div>
         </div>
+        <div id="paginationContainer"></div>
     </div>
     <script>
         const BOOKMAKER_NAMES = {
@@ -538,39 +560,90 @@
             'wh': 'William Hill', 'xb': '1xBet'
         };
 
+        let currentPage = 1;
+        let currentData = null;
+        let previousOdds = new Map();
         let allMatches = [], searchTimeout = null, isLoading = false;
 
         function debouncedSearch() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => filterMatches(), 500);
+            searchTimeout = setTimeout(() => loadMatches(1), 500);
         }
 
-        function filterMatches() {
-            if (!allMatches.length) return;
-            const leagueFilter = document.getElementById('leagueFilter').value.toLowerCase();
-            const dateFilter = document.getElementById('dateFilter').value;
-            const searchFilter = document.getElementById('searchInput').value.toLowerCase();
-
-            let filtered = allMatches.filter(match => {
-                if (leagueFilter && !match.league_slug.includes(leagueFilter)) return false;
-                if (dateFilter && match.match_date) {
-                    const matchDate = new Date(match.match_date);
-                    const today = new Date(); today.setHours(0, 0, 0, 0);
-                    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-                    const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
-                    if (dateFilter === 'today' && matchDate.toDateString() !== today.toDateString()) return false;
-                    if (dateFilter === 'tomorrow' && matchDate.toDateString() !== tomorrow.toDateString()) return false;
-                    if (dateFilter === 'week' && (matchDate < today || matchDate > weekEnd)) return false;
+        async function loadMatches(page = 1, silent = false) {
+            if (isLoading) return;
+            try {
+                isLoading = true;
+                if (!silent) {
+                    document.getElementById('liveStatus').classList.add('fetching');
+                    document.getElementById('statusText').textContent = 'Updating...';
                 }
-                if (searchFilter && !match.match_name.toLowerCase().includes(searchFilter)) return false;
-                return true;
-            });
 
-            renderMatches(filtered);
-            document.getElementById('showingMatches').textContent = filtered.length;
+                const league = document.getElementById('leagueFilter').value;
+                const dateFilter = document.getElementById('dateFilter').value;
+                const search = document.getElementById('searchInput').value;
+
+                const params = new URLSearchParams({
+                    page: page,
+                    page_size: 50
+                });
+
+                if (league) params.append('league', league);
+                if (search) params.append('search', search);
+
+                const response = await fetch(`/oddsmagnet/football/top10?${params}`);
+                const data = await response.json();
+
+                currentData = data;
+                currentPage = page;
+                allMatches = data.matches || [];
+
+                // Update league filter only if not filtering
+                if (!league) {
+                    const leagues = [...new Set(allMatches.map(m => m.league_slug).filter(Boolean))].sort();
+                    const leagueSelect = document.getElementById('leagueFilter');
+                    const currentValue = leagueSelect.value;
+                    leagueSelect.innerHTML = '<option value="">All Leagues</option>' + leagues.map(slug => {
+                        const name = slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Unknown';
+                        return `<option value="${slug}">${name}</option>`;
+                    }).join('');
+                    leagueSelect.value = currentValue;
+                }
+
+                // Filter by date
+                let filtered = allMatches;
+                if (dateFilter) {
+                    filtered = allMatches.filter(match => {
+                        if (!match.match_date) return false;
+                        const matchDate = new Date(match.match_date);
+                        const today = new Date(); today.setHours(0, 0, 0, 0);
+                        const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+                        const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
+                        if (dateFilter === 'today') return matchDate.toDateString() === today.toDateString();
+                        if (dateFilter === 'tomorrow') return matchDate.toDateString() === tomorrow.toDateString();
+                        if (dateFilter === 'week') return matchDate >= today && matchDate <= weekEnd;
+                        return true;
+                    });
+                }
+
+                renderMatches(filtered, silent);
+                renderPagination(data);
+                
+                document.getElementById('totalMatches').textContent = data.total_matches || filtered.length;
+                document.getElementById('showingMatches').textContent = filtered.length;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+                
+                document.getElementById('liveStatus').classList.remove('fetching');
+                document.getElementById('statusText').textContent = 'Live';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('matchesContainer').innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="empty-title">Error Loading Data</div></div>';
+            } finally {
+                isLoading = false;
+            }
         }
 
-        function renderMatches(matches) {
+        function renderMatches(matches, silent = false) {
             const container = document.getElementById('matchesContainer');
             if (!matches.length) {
                 container.innerHTML = '<div class="empty-state fade-in"><div class="empty-icon"><i class="fas fa-search"></i></div><div class="empty-title">No Matches Found</div><div style="color:#6b7280;margin-top:8px">Try adjusting filters</div></div>';
@@ -593,47 +666,70 @@
                     });
                     return Object.entries(grouped).map(([selection, selOdds]) => {
                         const sorted = selOdds.sort((a, b) => (b.decimal_odds || 0) - (a.decimal_odds || 0));
-                        return `<div class="market-block"><div class="market-header"><div class="market-title"><i class="fas fa-trophy"></i> ${selection.charAt(0).toUpperCase() + selection.slice(1)}</div><div class="market-count">${sorted.length} bookmakers</div></div><div class="odds-grid">${sorted.map(odd => `<a href="${odd.clickout_url || '#'}" target="_blank" class="odds-button ${odd.is_best_odds ? 'best-odds' : ''}" ${!odd.clickout_url ? 'onclick="return false;"' : ''}><div class="bookmaker-logo">${odd.displayName}</div><div class="odds-value">${odd.decimal_odds || 'N/A'}</div><div class="odds-meta"><span>${odd.fractional_odds || ''}</span>${odd.is_best_odds ? '<span style="color:#10b981">Best</span>' : ''}</div></a>`).join('')}</div></div>`;
+                        const selectionIcon = selection.toLowerCase().includes('home') ? 'fa-home' : 
+                                             selection.toLowerCase().includes('away') ? 'fa-plane' : 
+                                             selection.toLowerCase().includes('draw') ? 'fa-handshake' : 'fa-trophy';
+                        return `<div class="market-block"><div class="market-header"><div class="market-title"><i class="fas ${selectionIcon}"></i> ${selection.charAt(0).toUpperCase() + selection.slice(1)}</div><div class="market-count">${sorted.length} bookmakers</div></div><div class="odds-grid">${sorted.map(odd => {
+                            const oddKey = `${match.match_name}-${selection}-${odd.bookmaker_code}`;
+                            const prevOdd = previousOdds.get(oddKey);
+                            let movementHtml = '';
+                            if (prevOdd && prevOdd !== odd.decimal_odds) {
+                                const isUp = odd.decimal_odds > prevOdd;
+                                const change = (odd.decimal_odds - prevOdd).toFixed(2);
+                                movementHtml = `<div class="odds-movement ${isUp ? 'up' : 'down'}"><i class="fas fa-arrow-${isUp ? 'up' : 'down'}"></i> ${isUp ? '+' : ''}${change}</div>`;
+                            }
+                            previousOdds.set(oddKey, odd.decimal_odds);
+                            return `<a href="${odd.clickout_url || '#'}" target="_blank" class="odds-button ${odd.is_best_odds ? 'best-odds' : ''}" ${!odd.clickout_url ? 'onclick="return false;"' : ''}><div class="bookmaker-logo">${odd.displayName}</div><div class="odds-value">${odd.decimal_odds || 'N/A'}</div>${movementHtml}<div class="odds-meta"><span>${odd.fractional_odds || ''}</span>${odd.is_best_odds ? '<span style="color:#10b981">Best</span>' : ''}</div></a>`;
+                        }).join('')}</div></div>`;
                     }).join('');
                 }).join('') || '<div style="text-align:center;color:#6b7280;padding:20px">No odds available</div>';
 
                 return `<div class="match-card"><div class="match-header"><div class="match-league"><i class="fas fa-flag"></i> ${match.league || 'Unknown'}</div><div class="match-time"><i class="fas fa-clock"></i> ${match.match_date ? new Date(match.match_date).toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : 'TBD'}</div></div><div class="match-content"><div class="match-teams"><div class="team-name">${teams[0]}</div><div class="vs-separator">VS</div><div class="team-name">${teams[1]}</div></div><div class="markets-container">${marketsHtml}</div></div></div>`;
             }).join('');
 
-            container.innerHTML = `<div class="matches-grid fade-in">${html}</div>`;
-        }
-
-        async function loadMatches() {
-            if (isLoading) return;
-            try {
-                isLoading = true;
-                document.getElementById('liveStatus').classList.add('fetching');
-                document.getElementById('statusText').textContent = 'Updating...';
-                const response = await fetch('/oddsmagnet/football/top10?page_size=200');
-                const data = await response.json();
-                allMatches = data.matches || [];
-                const leagues = [...new Set(allMatches.map(m => m.league_slug).filter(Boolean))].sort();
-                const leagueSelect = document.getElementById('leagueFilter');
-                const currentValue = leagueSelect.value;
-                leagueSelect.innerHTML = '<option value="">All Leagues</option>' + leagues.map(slug => {
-                    const name = slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Unknown';
-                    return `<option value="${slug}">${name}</option>`;
-                }).join('');
-                leagueSelect.value = currentValue;
-                document.getElementById('totalMatches').textContent = allMatches.length;
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
-                filterMatches();
-                document.getElementById('liveStatus').classList.remove('fetching');
-                document.getElementById('statusText').textContent = 'Live';
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('matchesContainer').innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="empty-title">Error Loading Data</div></div>';
-            } finally {
-                isLoading = false;
+            const existingGrid = container.querySelector('.matches-grid');
+            if (existingGrid && silent) {
+                existingGrid.innerHTML = html;
+            } else {
+                container.innerHTML = `<div class="matches-grid fade-in">${html}</div>`;
             }
         }
 
-        setInterval(loadMatches, 15000);
+        function renderPagination(data) {
+            const container = document.getElementById('paginationContainer');
+            const pagination = data.pagination;
+
+            if (!pagination || pagination.total_pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(pagination.total_pages, startPage + maxVisible - 1);
+
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            const pages = [];
+            for (let i = startPage; i <= endPage; i++) {
+                pages.push(i);
+            }
+
+            container.innerHTML = `<div class="pagination" style="display:flex;justify-content:center;gap:8px;margin-top:24px;">
+                ${currentPage > 1 ? `<button class="btn" onclick="loadMatches(1)"><i class="fas fa-angle-double-left"></i></button><button class="btn" onclick="loadMatches(${currentPage - 1})"><i class="fas fa-angle-left"></i></button>` : ''}
+                ${pages.map(p => `<button class="btn ${p === currentPage ? 'active' : ''}" onclick="loadMatches(${p})" style="${p === currentPage ? 'background:#10b981;' : ''}">${p}</button>`).join('')}
+                ${currentPage < pagination.total_pages ? `<button class="btn" onclick="loadMatches(${currentPage + 1})"><i class="fas fa-angle-right"></i></button><button class="btn" onclick="loadMatches(${pagination.total_pages})"><i class="fas fa-angle-double-right"></i></button>` : ''}
+            </div>`;
+        }
+
+        function filterMatches() {
+            loadMatches(1);
+        }
+
+        // Silent reload every 30 seconds to avoid annoying users
+        setInterval(() => loadMatches(currentPage, true), 30000);
         loadMatches();
     </script>
 </body>
