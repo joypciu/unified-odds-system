@@ -18,13 +18,8 @@
 
         .container { max-width: 1920px; margin: 0 auto; padding: 24px; }
 
-        /* Smooth transitions for all updates */
         .fade-in {
             animation: fadeIn 0.3s ease-in;
-        }
-
-        .fade-out {
-            animation: fadeOut 0.2s ease-out;
         }
 
         @keyframes fadeIn {
@@ -32,21 +27,13 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-
-        .pulse {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
+        .pulse { animation: pulse 1.5s ease-in-out infinite; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, #1a1f3a 0%, #0f1729 100%);
             border: 1px solid rgba(79, 172, 254, 0.2);
@@ -74,11 +61,7 @@
             gap: 12px;
         }
 
-        .stats-bar {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
+        .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; }
 
         .stat-card {
             background: #1a1a27;
@@ -104,6 +87,7 @@
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .live-status {
@@ -126,11 +110,8 @@
             animation: pulse 2s infinite;
         }
 
-        .live-status.fetching .live-dot {
-            background: #f59e0b;
-        }
+        .live-status.fetching .live-dot { background: #f59e0b; }
 
-        /* Filters */
         .filters {
             display: flex;
             gap: 12px;
@@ -184,7 +165,6 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            justify-content: center;
         }
 
         .btn:hover {
@@ -192,60 +172,20 @@
             transform: translateY(-1px);
         }
 
-        .btn-secondary {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-        }
-
-        .btn-secondary:hover {
-            background: #2a2a3e;
-        }
-
-        /* Matches Grid */
-        .matches-grid {
-            display: grid;
-            gap: 16px;
-        }
+        .matches-grid { display: grid; gap: 16px; }
 
         .match-card {
             background: linear-gradient(135deg, #1a1f3a 0%, #0f1729 100%);
             border: 1px solid rgba(79, 172, 254, 0.15);
             border-radius: 8px;
             padding: 16px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            opacity: 1;
-            display: flex;
-            flex-direction: column;
+            transition: all 0.3s;
         }
 
         .match-card:hover {
             border-color: #4facfe;
             box-shadow: 0 8px 24px rgba(79, 172, 254, 0.2);
             transform: translateY(-2px);
-        }
-
-        .match-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #4facfe, #00f2fe);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .match-card:hover::before { opacity: 1; }
-
-        .match-card.updating {
-            animation: pulseCard 0.5s ease-in-out;
-        }
-
-        @keyframes pulseCard {
-            0%, 100% { border-color: rgba(79, 172, 254, 0.15); }
-            50% { border-color: rgba(79, 172, 254, 0.5); box-shadow: 0 0 20px rgba(79, 172, 254, 0.3); }
         }
 
         .match-header {
@@ -316,17 +256,8 @@
             flex-shrink: 0;
         }
 
-        .team-name:first-child::before {
-            background: #10b981;
-        }
-
-        .team-name:last-child::before {
-            background: #f59e0b;
-        }
-
-        .team-name:first-child {
-            margin-bottom: 4px;
-        }
+        .team-name:first-child::before { background: #10b981; }
+        .team-name:last-child::before { background: #f59e0b; }
 
         .vs-separator {
             font-size: 9px;
@@ -337,7 +268,6 @@
             letter-spacing: 2px;
         }
 
-        /* Markets Section */
         .markets-container {
             flex: 1;
             display: flex;
@@ -390,33 +320,16 @@
             border-radius: 6px;
             padding: 10px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
             text-decoration: none;
             display: flex;
             flex-direction: column;
             gap: 4px;
             position: relative;
-            overflow: hidden;
-        }
-
-        .odds-button::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(79, 172, 254, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .odds-button:hover::after {
-            left: 100%;
         }
 
         .odds-button:hover {
             border-color: #4facfe;
-            background: linear-gradient(135deg, #1a1f3a 0%, #0f1729 100%);
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
         }
@@ -432,30 +345,6 @@
             top: 4px;
             right: 4px;
             font-size: 10px;
-            animation: twinkle 2s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-
-        .odds-button.price-up {
-            animation: priceUp 0.6s ease-out;
-        }
-
-        .odds-button.price-down {
-            animation: priceDown 0.6s ease-out;
-        }
-
-        @keyframes priceUp {
-            0% { background: rgba(16, 185, 129, 0.2); }
-            100% { background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%); }
-        }
-
-        @keyframes priceDown {
-            0% { background: rgba(239, 68, 68, 0.2); }
-            100% { background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%); }
         }
 
         .bookmaker-logo {
@@ -466,31 +355,14 @@
             letter-spacing: 0.3px;
         }
 
-        .selection-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: #e5e7eb;
-            margin: 4px 0;
-        }
-
         .odds-value {
             font-size: 18px;
             font-weight: 700;
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-
-        .odds-movement {
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-top: 4px;
-        }
-
-        .odds-movement.up { color: #10b981; }
-        .odds-movement.down { color: #ef4444; }
 
         .odds-meta {
             display: flex;
@@ -501,54 +373,6 @@
             margin-top: 4px;
         }
 
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 24px;
-            padding: 20px;
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 8px;
-        }
-
-        .page-btn {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 6px 12px;
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-width: 36px;
-        }
-
-        .page-btn:hover:not(:disabled) {
-            background: #2a2a3e;
-            border-color: #3b82f6;
-        }
-
-        .page-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .page-btn.active {
-            background: #3b82f6;
-            border-color: #3b82f6;
-        }
-
-        .page-info {
-            font-size: 13px;
-            color: #9ca3af;
-            padding: 0 12px;
-        }
-
-        /* Loading */
         .loading {
             text-align: center;
             padding: 60px;
@@ -565,11 +389,8 @@
             margin: 0 auto 16px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 80px 20px;
@@ -588,10 +409,8 @@
             font-size: 18px;
             font-weight: 600;
             color: #9ca3af;
-            margin-bottom: 8px;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .header h1 { font-size: 18px; }
             .filters { flex-direction: column; }
@@ -606,17 +425,14 @@
     <div class="container">
         <div class="header">
             <div class="header-top">
-                <h1>
-                    <i class="fas fa-futbol"></i>
-                    OddsMagnet - Top 10 Leagues
-                </h1>
+                <h1><i class="fas fa-futbol"></i> OddsMagnet - Top 10 Leagues</h1>
                 <div class="stats-bar">
                     <div class="live-status" id="liveStatus">
                         <div class="live-dot"></div>
                         <span id="statusText">Live</span>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Matches</div>
+                        <div class="stat-label">Total</div>
                         <div class="stat-value" id="totalMatches">0</div>
                     </div>
                     <div class="stat-card">
@@ -629,37 +445,16 @@
                     </div>
                 </div>
             </div>
-
             <div class="filters">
                 <div class="filter-group">
                     <label class="filter-label">League</label>
-                    <select class="filter-select" id="leagueFilter" onchange="applyFilters()">
+                    <select class="filter-select" id="leagueFilter" onchange="filterMatches()">
                         <option value="">All Leagues</option>
-                        <option value="england-premier-league">England - Premier League</option>
-                        <option value="spain-laliga">Spain - La Liga</option>
-                        <option value="italy-serie-a">Italy - Serie A</option>
-                        <option value="germany-bundesliga">Germany - Bundesliga</option>
-                        <option value="france-ligue-1">France - Ligue 1</option>
-                        <option value="england-championship">England - Championship</option>
-                        <option value="netherlands-eredivisie">Netherlands - Eredivisie</option>
-                        <option value="portugal-primeira-liga">Portugal - Primeira Liga</option>
-                        <option value="brazil-serie-a">Brazil - Serie A</option>
-                        <option value="argentina-primera-division">Argentina - Primera Division</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Market Type</label>
-                    <select class="filter-select" id="marketTypeFilter" onchange="applyFilters()">
-                        <option value="">All Markets</option>
-                        <option value="win" selected>Match Winner</option>
-                        <option value="btts">Both Teams To Score</option>
-                        <option value="over-under">Over/Under Goals</option>
-                        <option value="handicap">Handicap</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Date</label>
-                    <select class="filter-select" id="dateFilter" onchange="applyFilters()">
+                    <select class="filter-select" id="dateFilter" onchange="filterMatches()">
                         <option value="">All Dates</option>
                         <option value="today">Today</option>
                         <option value="tomorrow">Tomorrow</option>
@@ -667,16 +462,8 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label class="filter-label">Search Teams</label>
-                    <input type="text" class="filter-input" id="searchInput" placeholder="Search..." oninput="debouncedSearch()">
-                </div>
-                <div class="filter-group" style="max-width: 140px;">
-                    <label class="filter-label">Per Page</label>
-                    <select class="filter-select" id="pageSizeSelect" onchange="applyFilters()">
-                        <option value="10">10</option>
-                        <option value="25" selected>25</option>
-                        <option value="50">50</option>
-                    </select>
+                    <label class="filter-label">Search</label>
+                    <input type="text" class="filter-input" id="searchInput" placeholder="Team names..." oninput="debouncedSearch()">
                 </div>
                 <div class="filter-group" style="flex: 0; min-width: auto;">
                     <label class="filter-label">&nbsp;</label>
@@ -686,371 +473,114 @@
                 </div>
             </div>
         </div>
-
         <div id="matchesContainer">
-            <div class="loading">
-                <div class="spinner"></div>
-                <div>Loading matches...</div>
-            </div>
+            <div class="loading"><div class="spinner"></div><div>Loading matches...</div></div>
         </div>
-
-        <div id="paginationContainer"></div>
     </div>
-
     <script>
-        let currentPage = 1;
-        let currentData = null;
-        let previousOdds = new Map(); // Track odds changes
-        let isLoading = false;
-        let searchTimeout = null;
+        const BOOKMAKER_NAMES = {
+            'bh': 'Bet-at-Home', 'eb': '10Bet', 'ee': '888sport', 'fr': 'Betfred',
+            'nt': 'Netbet', 'tn': 'Tonybet', 'vb': 'Vbet', 'vc': 'BetVictor',
+            'wh': 'William Hill', 'xb': '1xBet'
+        };
 
-        // Debounced search to avoid too many requests
+        let allMatches = [], searchTimeout = null, isLoading = false;
+
         function debouncedSearch() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                applyFilters();
-            }, 500); // Wait 500ms after user stops typing
+            searchTimeout = setTimeout(() => filterMatches(), 500);
         }
 
-        function applyFilters() {
-            loadMatches(1); // Reset to page 1 when filters change
+        function filterMatches() {
+            if (!allMatches.length) return;
+            const leagueFilter = document.getElementById('leagueFilter').value.toLowerCase();
+            const dateFilter = document.getElementById('dateFilter').value;
+            const searchFilter = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allMatches.filter(match => {
+                if (leagueFilter && !match.league_slug.includes(leagueFilter)) return false;
+                if (dateFilter && match.match_date) {
+                    const matchDate = new Date(match.match_date);
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+                    const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
+                    if (dateFilter === 'today' && matchDate.toDateString() !== today.toDateString()) return false;
+                    if (dateFilter === 'tomorrow' && matchDate.toDateString() !== tomorrow.toDateString()) return false;
+                    if (dateFilter === 'week' && (matchDate < today || matchDate > weekEnd)) return false;
+                }
+                if (searchFilter && !match.match_name.toLowerCase().includes(searchFilter)) return false;
+                return true;
+            });
+
+            renderMatches(filtered);
+            document.getElementById('showingMatches').textContent = filtered.length;
         }
 
-        async function loadMatches(page = 1, silent = false) {
+        function renderMatches(matches) {
+            const container = document.getElementById('matchesContainer');
+            if (!matches.length) {
+                container.innerHTML = '<div class="empty-state fade-in"><div class="empty-icon"><i class="fas fa-search"></i></div><div class="empty-title">No Matches Found</div><div style="color:#6b7280;margin-top:8px">Try adjusting filters</div></div>';
+                return;
+            }
+
+            const html = matches.map(match => {
+                const teams = match.match_name ? match.match_name.split(' v ') : ['Team 1', 'Team 2'];
+                const markets = match.markets?.['popular markets'] || [];
+                let marketsHtml = markets.map(market => {
+                    const odds = market.odds || [];
+                    if (!odds.length) return '';
+                    const grouped = {};
+                    odds.forEach(odd => {
+                        const sel = odd.selection || 'unknown';
+                        if (!grouped[sel]) grouped[sel] = [];
+                        const code = (odd.bookmaker_code || '').toLowerCase();
+                        const displayName = BOOKMAKER_NAMES[code] || odd.bookmaker_name || odd.bookmaker_code?.toUpperCase() || 'Unknown';
+                        grouped[sel].push({...odd, displayName});
+                    });
+                    return Object.entries(grouped).map(([selection, selOdds]) => {
+                        const sorted = selOdds.sort((a, b) => (b.decimal_odds || 0) - (a.decimal_odds || 0));
+                        return `<div class="market-block"><div class="market-header"><div class="market-title"><i class="fas fa-trophy"></i> ${selection.charAt(0).toUpperCase() + selection.slice(1)}</div><div class="market-count">${sorted.length} bookmakers</div></div><div class="odds-grid">${sorted.map(odd => `<a href="${odd.clickout_url || '#'}" target="_blank" class="odds-button ${odd.is_best_odds ? 'best-odds' : ''}" ${!odd.clickout_url ? 'onclick="return false;"' : ''}><div class="bookmaker-logo">${odd.displayName}</div><div class="odds-value">${odd.decimal_odds || 'N/A'}</div><div class="odds-meta"><span>${odd.fractional_odds || ''}</span>${odd.is_best_odds ? '<span style="color:#10b981">Best</span>' : ''}</div></a>`).join('')}</div></div>`;
+                    }).join('');
+                }).join('') || '<div style="text-align:center;color:#6b7280;padding:20px">No odds available</div>';
+
+                return `<div class="match-card"><div class="match-header"><div class="match-league"><i class="fas fa-flag"></i> ${match.league || 'Unknown'}</div><div class="match-time"><i class="fas fa-clock"></i> ${match.match_date ? new Date(match.match_date).toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : 'TBD'}</div></div><div class="match-content"><div class="match-teams"><div class="team-name">${teams[0]}</div><div class="vs-separator">VS</div><div class="team-name">${teams[1]}</div></div><div class="markets-container">${marketsHtml}</div></div></div>`;
+            }).join('');
+
+            container.innerHTML = `<div class="matches-grid fade-in">${html}</div>`;
+        }
+
+        async function loadMatches() {
             if (isLoading) return;
-            
             try {
                 isLoading = true;
-                if (!silent) updateStatus('fetching');
-
-                const league = document.getElementById('leagueFilter').value;
-                const search = document.getElementById('searchInput').value;
-                const pageSize = document.getElementById('pageSizeSelect').value;
-
-                const params = new URLSearchParams({
-                    page: page,
-                    page_size: pageSize
-                });
-
-                // Note: League and date filtering done client-side for instant response
-                // Only search goes to server
-                if (search) params.append('search', search);
-
-                const response = await fetch(`/oddsmagnet/football/top10?${params}`);
+                document.getElementById('liveStatus').classList.add('fetching');
+                document.getElementById('statusText').textContent = 'Updating...';
+                const response = await fetch('/oddsmagnet/football/top10?page_size=200');
                 const data = await response.json();
-
-                currentData = data;
-                currentPage = page;
-
-                renderMatches(data, silent);
-                renderPagination(data);
-                updateStats(data);
-                updateStatus('live');
+                allMatches = data.matches || [];
+                const leagues = [...new Set(allMatches.map(m => m.league_slug))].sort();
+                const leagueSelect = document.getElementById('leagueFilter');
+                const currentValue = leagueSelect.value;
+                leagueSelect.innerHTML = '<option value="">All Leagues</option>' + leagues.map(slug => {
+                    const name = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                    return `<option value="${slug}">${name}</option>`;
+                }).join('');
+                leagueSelect.value = currentValue;
+                document.getElementById('totalMatches').textContent = allMatches.length;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+                filterMatches();
+                document.getElementById('liveStatus').classList.remove('fetching');
+                document.getElementById('statusText').textContent = 'Live';
             } catch (error) {
-                console.error('Error loading matches:', error);
-                updateStatus('error');
-                if (!silent) {
-                    document.getElementById('matchesContainer').innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="empty-title">Error Loading Data</div>
-                        </div>
-                    `;
-                }
+                console.error('Error:', error);
+                document.getElementById('matchesContainer').innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="empty-title">Error Loading Data</div></div>';
             } finally {
                 isLoading = false;
             }
         }
 
-        function updateStatus(status) {
-            const statusEl = document.getElementById('liveStatus');
-            const textEl = document.getElementById('statusText');
-            
-            statusEl.classList.remove('fetching');
-            
-            if (status === 'fetching') {
-                statusEl.classList.add('fetching');
-                textEl.textContent = 'Updating...';
-            } else if (status === 'live') {
-                textEl.textContent = 'Live';
-            } else if (status === 'error') {
-                textEl.textContent = 'Error';
-            }
-        }
-
-        function renderMatches(data, silent = false) {
-            const container = document.getElementById('matchesContainer');
-
-            if (!data.matches || data.matches.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state fade-in">
-                        <div class="empty-icon"><i class="fas fa-search"></i></div>
-                        <div class="empty-title">No Matches Found</div>
-                    </div>
-                `;
-                return;
-            }
-
-            const marketTypeFilter = document.getElementById('marketTypeFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
-            const leagueFilter = document.getElementById('leagueFilter').value;
-
-            let filteredMatches = data.matches.filter(match => {
-                // Filter by league (client-side)
-                if (leagueFilter && match.league_slug !== leagueFilter) {
-                    return false;
-                }
-
-                // Filter by date
-                if (dateFilter && match.match_date) {
-                    const matchDate = new Date(match.match_date);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    const weekEnd = new Date(today);
-                    weekEnd.setDate(weekEnd.getDate() + 7);
-
-                    if (dateFilter === 'today' && matchDate.toDateString() !== today.toDateString()) return false;
-                    if (dateFilter === 'tomorrow' && matchDate.toDateString() !== tomorrow.toDateString()) return false;
-                    if (dateFilter === 'week' && (matchDate < today || matchDate > weekEnd)) return false;
-                }
-
-                return true;
-            });
-
-            if (filteredMatches.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state fade-in">
-                        <div class="empty-icon"><i class="fas fa-filter"></i></div>
-                        <div class="empty-title">No Matches Found</div>
-                        <div style="color: #6b7280; margin-top: 8px;">Try adjusting your filters</div>
-                    </div>
-                `;
-                return;
-            }
-
-            const html = filteredMatches.map(match => {
-                const teams = match.match_name ? match.match_name.split(' v ') : ['Team 1', 'Team 2'];
-                const popularMarkets = match.markets?.['popular markets'] || [];
-                
-                // Filter by market type
-                let targetMarket;
-                if (marketTypeFilter === 'win' || !marketTypeFilter) {
-                    targetMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('win'));
-                } else if (marketTypeFilter === 'btts') {
-                    targetMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('both teams'));
-                } else if (marketTypeFilter === 'over-under') {
-                    targetMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('over') || m.market_name?.toLowerCase().includes('under'));
-                } else if (marketTypeFilter === 'handicap') {
-                    targetMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('handicap'));
-                }
-                
-                let marketsHtml = '';
-                if (targetMarket && targetMarket.odds) {
-                    // Group odds by selection
-                    const oddsGrouped = {};
-                    targetMarket.odds.forEach(odd => {
-                        const selection = odd.selection || 'unknown';
-                        if (!oddsGrouped[selection]) {
-                            oddsGrouped[selection] = [];
-                        }
-                        oddsGrouped[selection].push(odd);
-                    });
-
-                    // Render each selection group - SHOW ALL BOOKMAKERS
-                    marketsHtml = Object.entries(oddsGrouped).map(([selection, odds]) => {
-                        const sortedOdds = odds.sort((a, b) => (b.decimal_odds || 0) - (a.decimal_odds || 0));
-                        const topOdds = sortedOdds; // Show ALL bookmakers
-                        
-                        return `
-                            <div class="market-block">
-                                <div class="market-header">
-                                    <div class="market-title">
-                                        <i class="fas fa-trophy"></i>
-                                        ${selection.charAt(0).toUpperCase() + selection.slice(1)}
-                                    </div>
-                                    <div class="market-count">${odds.length} bookmakers</div>
-                                </div>
-                                <div class="odds-grid">
-                                    ${topOdds.map(odd => {
-                                        const oddKey = `${match.match_name}-${selection}-${odd.bookmaker_code}`;
-                                        const prevOdd = previousOdds.get(oddKey);
-                                        const priceClass = prevOdd && prevOdd !== odd.decimal_odds ? 
-                                            (odd.decimal_odds > prevOdd ? 'price-up' : 'price-down') : '';
-                                        previousOdds.set(oddKey, odd.decimal_odds);
-                                        
-                                        return `
-                                        <a href="${odd.clickout_url || '#'}" 
-                                           target="_blank" 
-                                           class="odds-button ${odd.is_best_odds ? 'best-odds' : ''} ${priceClass}"
-                                           ${!odd.clickout_url ? 'onclick="return false;"' : ''}>
-                                            <div class="bookmaker-logo">${odd.bookmaker_name || 'Unknown'}</div>
-                                            <div class="odds-value">${odd.decimal_odds || 'N/A'}</div>
-                                            ${odd.odds_movement ? `
-                                                <div class="odds-movement ${odd.odds_movement}">
-                                                    <i class="fas fa-arrow-${odd.odds_movement === 'up' ? 'up' : 'down'}"></i>
-                                                    ${odd.odds_change ? (odd.odds_change > 0 ? '+' : '') + odd.odds_change.toFixed(2) : ''}
-                                                </div>
-                                            ` : ''}
-                                            <div class="odds-meta">
-                                                <span>${odd.fractional_odds || ''}</span>
-                                                ${odd.is_best_odds ? '<span style="color: #10b981;">Best</span>' : ''}
-                                            </div>
-                                        </a>
-                                        `;
-                                    }).join('')}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                return `
-                    <div class="match-card">
-                        <div class="match-header">
-                            <div class="match-league">
-                                <i class="fas fa-flag"></i>
-                                ${match.league || 'Unknown'}
-                            </div>
-                            <div class="match-time">
-                                <i class="fas fa-clock"></i>
-                                ${match.match_date ? new Date(match.match_date).toLocaleString('en-US', { 
-                                    month: 'short', 
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                }) : 'TBD'}
-                            </div>
-                        </div>
-                        <div class="match-content">
-                            <div class="match-teams">
-                                <div class="team-name">${teams[0]}</div>
-                                <div class="vs-separator">VS</div>
-                                <div class="team-name">${teams[1]}</div>
-                            </div>
-                            <div class="markets-container">
-                                ${marketsHtml || '<div style="text-align: center; color: #6b7280; padding: 20px;">No odds available</div>'}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            // Smooth update without flickering
-            const existingGrid = container.querySelector('.matches-grid');
-            if (existingGrid && silent) {
-                existingGrid.innerHTML = html;
-                // Add updating animation to changed cards
-                existingGrid.querySelectorAll('.match-card').forEach((card, idx) => {
-                    setTimeout(() => card.classList.add('fade-in'), idx * 20);
-                });
-            } else {
-                container.innerHTML = `<div class="matches-grid fade-in">${html}</div>`;
-            }
-        }
-
-        function renderPagination(data) {
-            const container = document.getElementById('paginationContainer');
-            const pagination = data.pagination;
-
-            if (!pagination || pagination.total_pages <= 1) {
-                container.innerHTML = '';
-                return;
-            }
-
-            const pages = [];
-            const maxVisible = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-            let endPage = Math.min(pagination.total_pages, startPage + maxVisible - 1);
-
-            if (endPage - startPage < maxVisible - 1) {
-                startPage = Math.max(1, endPage - maxVisible + 1);
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                pages.push(i);
-            }
-
-            container.innerHTML = `
-                <div class="pagination">
-                    <button class="page-btn" onclick="loadMatches(1)" ${!pagination.has_prev ? 'disabled' : ''}>
-                        <i class="fas fa-angle-double-left"></i>
-                    </button>
-                    <button class="page-btn" onclick="loadMatches(${currentPage - 1})" ${!pagination.has_prev ? 'disabled' : ''}>
-                        <i class="fas fa-angle-left"></i>
-                    </button>
-                    
-                    ${pages.map(p => `
-                        <button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="loadMatches(${p})">
-                            ${p}
-                        </button>
-                    `).join('')}
-                    
-                    <button class="page-btn" onclick="loadMatches(${currentPage + 1})" ${!pagination.has_next ? 'disabled' : ''}>
-                        <i class="fas fa-angle-right"></i>
-                    </button>
-                    <button class="page-btn" onclick="loadMatches(${pagination.total_pages})" ${!pagination.has_next ? 'disabled' : ''}>
-                        <i class="fas fa-angle-double-right"></i>
-                    </button>
-                    
-                    <div class="page-info">
-                        ${currentPage}/${pagination.total_pages} (${pagination.total_items})
-                    </div>
-                </div>
-            `;
-        }
-
-        function updateStats(data) {
-            const leagueFilter = document.getElementById('leagueFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
-            
-            let filteredCount = data.matches ? data.matches.length : 0;
-            
-            // Apply client-side filters to get accurate count
-            if (data.matches && (leagueFilter || dateFilter)) {
-                filteredCount = data.matches.filter(match => {
-                    if (leagueFilter && match.league_slug !== leagueFilter) return false;
-                    
-                    if (dateFilter && match.match_date) {
-                        const matchDate = new Date(match.match_date);
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const tomorrow = new Date(today);
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const weekEnd = new Date(today);
-                        weekEnd.setDate(weekEnd.getDate() + 7);
-
-                        if (dateFilter === 'today' && matchDate.toDateString() !== today.toDateString()) return false;
-                        if (dateFilter === 'tomorrow' && matchDate.toDateString() !== tomorrow.toDateString()) return false;
-                        if (dateFilter === 'week' && (matchDate < today || matchDate > weekEnd)) return false;
-                    }
-                    
-                    return true;
-                }).length;
-            }
-            
-            document.getElementById('totalMatches').textContent = data.total_matches_top10 || 0;
-            document.getElementById('showingMatches').textContent = filteredCount;
-            
-            if (data.timestamp) {
-                const time = new Date(data.timestamp).toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                document.getElementById('lastUpdate').textContent = time;
-            }
-        }
-
-        // Auto-refresh every 15 seconds (silent mode for smooth updates)
-        setInterval(() => {
-            if (currentPage && !isLoading) {
-                loadMatches(currentPage, true); // Silent refresh
-            }
-        }, 15000);
-
-        // Initial load
-        loadMatches(1);
+        setInterval(loadMatches, 15000);
+        loadMatches();
     </script>
 </body>
 </html>
