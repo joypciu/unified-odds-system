@@ -18,13 +18,15 @@ import json
 import logging
 import random
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 from collections import defaultdict
 
 from patchright.async_api import async_playwright
-from chrome_helper import setup_chrome_browser
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from utils.helpers.chrome_helper import setup_chrome_browser
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

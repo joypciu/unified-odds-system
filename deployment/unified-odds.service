@@ -8,7 +8,7 @@ User=ubuntu
 WorkingDirectory=/home/ubuntu/services/unified-odds
 Environment="PATH=/home/ubuntu/services/unified-odds/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="DISPLAY=:99"
-ExecStart=/usr/bin/xvfb-run -a /home/ubuntu/services/unified-odds/venv/bin/python launch_odds_system.py --include-live
+ExecStart=/usr/bin/xvfb-run -a /home/ubuntu/services/unified-odds/venv/bin/python core/launch_odds_system.py --include-live
 Restart=always
 RestartSec=30
 StandardOutput=journal

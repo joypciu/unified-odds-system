@@ -25,8 +25,12 @@ import psutil
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from unified_odds_collector import UnifiedOddsCollector
-from secure_config import SecureConfig
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from core.unified_odds_collector import UnifiedOddsCollector
+from utils.security.secure_config import SecureConfig
 
 # Import cache auto-update hook for automatic background updates
 try:

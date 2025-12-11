@@ -34,6 +34,7 @@ This ensures maximum accuracy and eliminates duplicates like:
 
 import json
 import os
+import sys
 import time
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -42,13 +43,15 @@ import re
 import threading
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # Import enhanced cache system
 try:
-    from enhanced_cache_manager import EnhancedCacheManager
+    from utils.cache_manager.enhanced_cache_manager import EnhancedCacheManager
     USE_ENHANCED_CACHE = True
 except ImportError:
     print("[WARN] Enhanced cache not available, falling back to legacy cache")
-    from dynamic_cache_manager import DynamicCacheManager
+    from utils.cache_manager.dynamic_cache_manager import DynamicCacheManager
     USE_ENHANCED_CACHE = False
 
 

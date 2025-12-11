@@ -26,8 +26,8 @@ import argparse
 
 from patchright.async_api import async_playwright
 # Import from parent directory
-sys.path.append(str(Path(__file__).parent.parent))
-from chrome_helper import setup_chrome_browser, dismiss_bet365_popups, verify_bet365_loaded
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from utils.helpers.chrome_helper import setup_chrome_browser, dismiss_bet365_popups, verify_bet365_loaded
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

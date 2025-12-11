@@ -1,11 +1,15 @@
 """
+"""
 Encrypt existing config.json with sensitive email credentials
 Run this once to encrypt your config, then the system will use encrypted values
 """
 
-from secure_config import SecureConfig
-import json
+import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from utils.security.secure_config import SecureConfig
+import json
 
 def main():
     config_file = Path("config.json")

@@ -15,6 +15,9 @@ import atexit
 from pathlib import Path
 import json
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # Track processes
 processes = []
 shutdown_in_progress = False
@@ -222,16 +225,16 @@ def main():
     print("⚽ Starting OddsMagnet Real-Time Collector...")
     print("   - Tracking 1 match per league (117+ leagues)")
     print("   - Update interval: 1 second")
-    print("   - Output: oddsmagnet/oddsmagnet_realtime.json")
+    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_realtime.json")
     print()
     
-    oddsmagnet_script = base_dir / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
+    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
     if oddsmagnet_script.exists():
         try:
             # Start OddsMagnet collector in background
             oddsmagnet_process = subprocess.Popen(
                 [sys.executable, str(oddsmagnet_script), "--auto"],
-                cwd=str(base_dir / "oddsmagnet")
+                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
             )
             processes.append(oddsmagnet_process)
             print("✅ OddsMagnet collector started (PID: {})".format(oddsmagnet_process.pid))
@@ -383,11 +386,11 @@ def main():
                 if oddsmagnet_status is not None:
                     print(f"\n⚠️  OddsMagnet collector exited with code {oddsmagnet_status}")
                     print("🔄 Restarting OddsMagnet collector...")
-                    oddsmagnet_script = base_dir / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
+                    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
                     if oddsmagnet_script.exists():
                         oddsmagnet_process = subprocess.Popen(
                             [sys.executable, str(oddsmagnet_script), "--auto"],
-                            cwd=str(base_dir / "oddsmagnet")
+                            cwd=str(base_dir / "bookmakers" / "oddsmagnet")
                         )
                         processes[oddsmagnet_idx] = oddsmagnet_process
                         print(f"✅ OddsMagnet collector restarted (PID: {oddsmagnet_process.pid})")

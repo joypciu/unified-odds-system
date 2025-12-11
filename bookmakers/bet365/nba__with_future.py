@@ -11,13 +11,16 @@ import asyncio
 import json
 import logging
 import random
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 from collections import defaultdict
 
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from patchright.async_api import async_playwright
-from chrome_helper import setup_chrome_browser, dismiss_bet365_popups, verify_bet365_loaded
+from utils.helpers.chrome_helper import setup_chrome_browser, dismiss_bet365_popups, verify_bet365_loaded
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

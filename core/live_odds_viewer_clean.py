@@ -15,11 +15,16 @@ from datetime import datetime
 from typing import Dict, List, Optional
 from contextlib import asynccontextmanager
 import uvicorn
+import sys
+from pathlib import Path as PathlibPath
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(PathlibPath(__file__).parent.parent))
 
 # Import format converters
-from odds_format_converters import OpticOddsConverter, EternityFormatConverter, filter_by_bookmaker
-from history_manager import HistoryManager
-from secure_config import SecureConfig
+from utils.converters.odds_format_converters import OpticOddsConverter, EternityFormatConverter, filter_by_bookmaker
+from utils.helpers.history_manager import HistoryManager
+from utils.security.secure_config import SecureConfig
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -20,13 +20,16 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Dict, List, Optional
 
-from dynamic_cache_manager import DynamicCacheManager
-from monitoring_status_api import update_monitoring_status
-from secure_config import SecureConfig
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from utils.cache_manager.dynamic_cache_manager import DynamicCacheManager
+from core.monitoring_status_api import update_monitoring_status
+from utils.security.secure_config import SecureConfig
 
 # Try to import enhanced cache manager
 try:
-    from enhanced_cache_manager import EnhancedCacheManager
+    from utils.cache_manager.enhanced_cache_manager import EnhancedCacheManager
     USE_ENHANCED_CACHE = True
     print("✓ Using Enhanced Cache Manager with intelligent deduplication")
 except ImportError:

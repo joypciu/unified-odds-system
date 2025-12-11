@@ -7,13 +7,16 @@ Integrates with IntelligentNameMapper for superior name standardization
 import json
 import os
 import re
+import sys
 import threading
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Set, Optional, List, Tuple
 from collections import defaultdict
 
-from intelligent_name_mapper import IntelligentNameMapper
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from utils.mappers.intelligent_name_mapper import IntelligentNameMapper
 
 
 class EnhancedCacheManager:
