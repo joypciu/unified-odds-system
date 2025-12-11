@@ -918,7 +918,11 @@
                 const response = await fetch('/oddsmagnet/football/top10');
                 const data = await response.json();
 
+                console.log('API Response:', data); // Debug logging
+
                 allMatches = data.matches || [];
+                
+                console.log(`Loaded ${allMatches.length} matches`); // Debug logging
 
                 // Extract unique bookmakers
                 extractBookmakers();
@@ -963,6 +967,7 @@
                 .map(b => JSON.parse(b))
                 .sort((a, b) => a.code.localeCompare(b.code));
 
+            console.log(`Found ${bookmakers.length} bookmakers:`, bookmakers.map(b => b.code)); // Debug logging
             document.getElementById('totalBookmakers').textContent = bookmakers.length;
         }
 
@@ -1092,17 +1097,30 @@
                 return oddsMap;
             }
 
-            // Find the right market (simplified - looking for "win" market)
+            // Find the right market (looking for "win" or "match winner" market)
             const winMarket = match.markets['popular markets'].find(m =>
-                m.market_name?.toLowerCase().includes('win')
+                m.market_name?.toLowerCase().includes('win') ||
+                m.market_name?.toLowerCase().includes('match winner') ||
+                m.market_name?.toLowerCase().includes('1x2')
             );
 
             if (winMarket && winMarket.odds) {
-                // For now, we'll show home team odds
+                // Group odds by bookmaker, showing the best selection for each
+                const bookmakerBest = new Map();
+                
                 winMarket.odds.forEach(odd => {
-                    if (odd.bookmaker_code && odd.selection?.toLowerCase().includes('home')) {
-                        oddsMap.set(odd.bookmaker_code, odd);
+                    if (odd.bookmaker_code) {
+                        const existingOdd = bookmakerBest.get(odd.bookmaker_code);
+                        // Keep the highest odds for each bookmaker
+                        if (!existingOdd || (odd.decimal_odds > existingOdd.decimal_odds)) {
+                            bookmakerBest.set(odd.bookmaker_code, odd);
+                        }
                     }
+                });
+                
+                // Convert to oddsMap
+                bookmakerBest.forEach((odd, code) => {
+                    oddsMap.set(code, odd);
                 });
             }
 
@@ -1157,8 +1175,8 @@
 
         function formatOdds(odds) {
             if (!odds) return '-';
-            if (odds > 0) return `+${odds}`;
-            return odds.toString();
+            // OddsMagnet uses decimal odds format (e.g., 2.50, 1.85)
+            return parseFloat(odds).toFixed(2);
         }
 
         function showEmptyState(type) {
