@@ -331,8 +331,8 @@ def main():
                        help='Run in automated mode (production settings)')
     parser.add_argument('--leagues', type=str, nargs='+',
                        help='Specific league slugs to track (default: all leagues)')
-    parser.add_argument('--matches-per-league', type=int, default=1,
-                       help='Number of matches per league (default: 1)')
+    parser.add_argument('--matches-per-league', type=int, default=999,
+                       help='Number of matches per league (default: 999 = all available)')
     parser.add_argument('--interval', type=float, default=1.0,
                        help='Update interval in seconds (default: 1.0)')
     parser.add_argument('--workers', type=int, default=10,
@@ -358,11 +358,16 @@ def main():
     print(f"\nMode: {mode}")
     print(f"\nConfiguration:")
     print(f"  Update interval: {config['update_interval']}s")
-    print(f"  Matches per league: {config['matches_per_league']}")
+    print(f"  Matches per league: {config['matches_per_league']} {'(ALL available)' if config['matches_per_league'] >= 999 else ''}")
     print(f"  Max total matches: {config['max_total_matches'] or 'No limit'}")
     print(f"  Concurrent workers: {config['max_workers']}")
     print(f"  Rate limit: {config['requests_per_second']} req/s")
-    print(f"  Leagues: {'ALL available leagues' if not config['league_slugs'] else ', '.join(config['league_slugs'])}")
+    if config['league_slugs']:
+        print(f"  Leagues: {len(config['league_slugs'])} selected leagues")
+        for league in config['league_slugs']:
+            print(f"    - {league}")
+    else:
+        print(f"  Leagues: ALL available leagues")
     
     # Create collector
     collector = RealTimeOddsCollector(

@@ -224,17 +224,34 @@ def main():
     
     # Start OddsMagnet Real-Time Collector
     print("⚽ Starting OddsMagnet Real-Time Collector...")
-    print("   - Tracking 1 match per league (117+ leagues)")
-    print("   - Update interval: 1 second")
+    print("   - Tracking ALL matches from top 10 football leagues")
+    print("   - Update interval: 15 seconds")
     print("   - Output: bookmakers/oddsmagnet/oddsmagnet_realtime.json")
     print()
+    
+    # Top 10 football leagues
+    top_10_leagues = [
+        'england-premier-league',
+        'spain-la-liga',
+        'germany-bundesliga',
+        'italy-serie-a',
+        'france-ligue-1',
+        'england-championship',
+        'netherlands-eredivisie',
+        'portugal-primeira-liga',
+        'brazil-serie-a',
+        'argentina-primera-division'
+    ]
     
     oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
     if oddsmagnet_script.exists():
         try:
-            # Start OddsMagnet collector in background
+            # Start OddsMagnet collector in background - ALL matches from top 10 leagues
             oddsmagnet_process = subprocess.Popen(
-                [sys.executable, str(oddsmagnet_script), "--auto"],
+                [sys.executable, str(oddsmagnet_script), "--auto", 
+                 "--matches-per-league", "999",  # Fetch ALL matches per league
+                 "--interval", "15",  # Update every 15 seconds
+                 "--leagues"] + top_10_leagues,  # Top 10 leagues only
                 cwd=str(base_dir / "bookmakers" / "oddsmagnet")
             )
             processes.append(oddsmagnet_process)
@@ -295,7 +312,7 @@ def main():
             print("   2. Unified Odds Collector - PREGAME ONLY fetching from enabled sources")
         else:
             print("   2. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
-        print("   3. OddsMagnet Real-Time Collector - 117+ leagues, 1s updates")
+        print("   3. OddsMagnet Real-Time Collector - Top 10 leagues, ALL matches, 15s updates")
         print("   4. Web Viewer - Real-time dashboard with monitoring")
     else:
         if args.live_only:
@@ -304,7 +321,7 @@ def main():
             print("   1. Unified Odds Collector - PREGAME ONLY fetching from all sources")
         else:
             print("   1. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
-        print("   2. OddsMagnet Real-Time Collector - 117+ leagues, 1s updates")
+        print("   2. OddsMagnet Real-Time Collector - Top 10 leagues, ALL matches, 15s updates")
         print("   3. Web Viewer - Real-time dashboard")
     print()
     print("💡 Features Available:")
