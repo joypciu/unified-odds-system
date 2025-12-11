@@ -41,8 +41,13 @@ jobs:
             sleep 5
             sudo systemctl status unified-odds --no-pager || true
 
-            # Show recent logs
-            echo "=== Recent logs ==="
-            sudo journalctl -u unified-odds -n 50 --no-pager || true
+            # Show recent logs to see what's happening
+            echo "=== Recent system logs ==="
+            sudo journalctl -u unified-odds -n 100 --no-pager || true
+
+            # Check if data files are being created
+            echo "=== Checking for data files ==="
+            ls -lh /home/ubuntu/services/unified-odds/bookmakers/1xbet/*.json 2>/dev/null || echo "No 1xbet JSON files found"
+            ls -lh /home/ubuntu/services/unified-odds/data/*.json 2>/dev/null || echo "No data JSON files found"
 
             echo "Deployment completed successfully"
