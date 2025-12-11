@@ -582,10 +582,11 @@ class UnifiedSystemRunner:
     """Manages running scrapers and unified collector"""
 
     def __init__(self, include_live=False, live_only=False):
-        self.base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.bet365_dir = os.path.join(self.base_dir, "bet365")
-        self.fanduel_dir = os.path.join(self.base_dir, "fanduel")
-        self.xbet_dir = os.path.join(self.base_dir, "1xbet")
+        # Base dir is project root (parent of core/)
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.bet365_dir = os.path.join(self.base_dir, "bookmakers", "bet365")
+        self.fanduel_dir = os.path.join(self.base_dir, "bookmakers", "fanduel")
+        self.xbet_dir = os.path.join(self.base_dir, "bookmakers", "1xbet")
 
         # Load configuration to check which scrapers are enabled
         self.config = self._load_config()
