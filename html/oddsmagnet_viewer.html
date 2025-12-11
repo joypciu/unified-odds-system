@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 OddsMagnet Pro - Modern Odds Comparison</title>
+    <title>🎯 OddsMagnet Pro - Complete Odds Comparison</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -197,15 +197,14 @@
 
         .dropdown-menu {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 4px);
             left: 0;
-            margin-top: 4px;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
             min-width: 200px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             z-index: 200;
             display: none;
@@ -220,10 +219,12 @@
             cursor: pointer;
             transition: background 0.2s;
             font-size: 14px;
+            color: var(--text-secondary);
         }
 
         .dropdown-item:hover {
             background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .dropdown-item.selected {
@@ -250,7 +251,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            position: relative;
         }
 
         .market-tab:hover {
@@ -296,7 +296,7 @@
             position: relative;
             overflow-x: auto;
             overflow-y: auto;
-            max-height: calc(100vh - 280px);
+            max-height: calc(100vh - 300px);
         }
 
         /* Table */
@@ -334,25 +334,62 @@
             min-width: 280px;
         }
 
+        /* Best Odds Column */
+        .best-odds-col {
+            background: rgba(16, 185, 129, 0.05) !important;
+            border-left: 2px solid rgba(16, 185, 129, 0.3);
+            border-right: 2px solid rgba(16, 185, 129, 0.3);
+            position: sticky;
+            left: 280px;
+            z-index: 11;
+        }
+
+        /* Outcome Headers */
+        .outcome-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .outcome-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         /* Bookmaker Headers */
         .bookmaker-header {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             min-width: 90px;
         }
 
-        .bookmaker-logo {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
+        .bookmaker-logo-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
+            overflow: hidden;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+        }
+
+        .bookmaker-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 4px;
+        }
+
+        .bookmaker-name {
             font-size: 11px;
-            color: white;
+            color: var(--text-muted);
         }
 
         /* Table Rows */
@@ -384,6 +421,19 @@
             background: rgba(255, 255, 255, 0.02);
         }
 
+        .best-odds-col-cell {
+            background: rgba(16, 185, 129, 0.05) !important;
+            border-left: 2px solid rgba(16, 185, 129, 0.3);
+            border-right: 2px solid rgba(16, 185, 129, 0.3);
+            position: sticky;
+            left: 280px;
+            z-index: 5;
+        }
+
+        .odds-table tbody tr:hover .best-odds-col-cell {
+            background: rgba(16, 185, 129, 0.08) !important;
+        }
+
         /* Match Cell */
         .match-cell {
             display: flex;
@@ -397,23 +447,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .match-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            background: rgba(239, 68, 68, 0.1);
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--red-light);
-        }
-
-        .match-status.live {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--green-light);
         }
 
         .match-teams {
@@ -448,41 +481,20 @@
             transform: scale(1.05);
         }
 
-        .odds-selections {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .odds-selection-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 4px 6px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 4px;
-        }
-
-        .selection-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            min-width: 45px;
-            text-align: left;
-        }
-
-        .selection-odds {
+        .odds-value {
+            font-size: 15px;
             font-weight: 700;
             color: var(--text-primary);
-            font-size: 13px;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
         }
 
+        /* Movement Arrow */
         .odds-arrow {
             font-size: 10px;
-            font-weight: 700;
+            animation: bounce 0.6s ease-out;
         }
 
         .odds-arrow.up {
@@ -493,31 +505,16 @@
             color: var(--red-light);
         }
 
-        .best-odds-badge {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: linear-gradient(135deg, var(--green-light), var(--green-dark));
-            color: white;
-            font-size: 9px;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-weight: 700;
-        }
+        @keyframes bounce {
 
-        .odds-value {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
+            0%,
+            100% {
+                transform: translateY(0);
+            }
 
-        .odds-indicator {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            position: absolute;
-            top: 4px;
-            right: 4px;
+            50% {
+                transform: translateY(-3px);
+            }
         }
 
         /* Color Coding */
@@ -535,51 +532,33 @@
         }
 
         .odds-cell.average {
-            background: rgba(251, 191, 36, 0.1);
+            background: rgba(251, 191, 36, 0.05);
         }
 
         .odds-cell.below-average {
-            background: rgba(249, 115, 22, 0.1);
+            background: rgba(249, 115, 22, 0.05);
         }
 
         .odds-cell.worst {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.05);
         }
 
         .odds-cell.locked {
-            opacity: 0.5;
+            opacity: 0.3;
             cursor: not-allowed;
-            background: rgba(100, 100, 100, 0.1);
+            background: transparent;
         }
 
-        .odds-cell.locked::after {
-            content: '\f023';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 12px;
+        .odds-cell.locked .odds-value {
             color: var(--text-muted);
         }
 
-        /* Movement Indicators */
-        .odds-movement {
-            font-size: 10px;
-            margin-top: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-        }
-
-        .odds-movement.up {
-            color: var(--green-light);
-        }
-
-        .odds-movement.down {
-            color: var(--red-light);
+        /* Best Odds Cell Highlight */
+        .best-odds-highlight {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+            border: 2px solid var(--green-light);
+            font-size: 16px;
+            font-weight: 800;
         }
 
         /* Empty State */
@@ -659,6 +638,19 @@
             background: #2a3548;
         }
 
+        .dropdown-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dropdown-menu::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        .dropdown-menu::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .search-input {
@@ -721,45 +713,33 @@
             animation: flashRed 0.6s ease-out;
         }
 
-        /* Bookmaker color coding */
-        .bm-D {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        /* Date buttons */
+        .date-buttons {
+            display: flex;
+            gap: 6px;
         }
 
-        .bm-F {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        .date-btn {
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .bm-BM {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        .date-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
         }
 
-        .bm-C {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-
-        .bm-BE {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-        }
-
-        .bm-P {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-        }
-
-        .bm-B {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        }
-
-        .bm-1X {
-            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-        }
-
-        .bm-S {
-            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-        }
-
-        .bm-default {
-            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        .date-btn.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
         }
     </style>
 </head>
@@ -775,7 +755,8 @@
             <div class="header-actions">
                 <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search matches...">
+                    <input type="text" class="search-input" id="searchInput"
+                        placeholder="Search matches, teams, leagues...">
                 </div>
                 <div class="live-indicator">
                     <div class="live-dot"></div>
@@ -787,19 +768,6 @@
         <!-- Filters Bar -->
         <div class="filters-bar">
             <div class="filter-dropdown">
-                <button class="filter-btn" id="sportBtn">
-                    <i class="fas fa-futbol"></i>
-                    <span>Football</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="dropdown-menu" id="sportMenu">
-                    <div class="dropdown-item selected" data-value="football">Football</div>
-                    <div class="dropdown-item" data-value="basketball">Basketball</div>
-                    <div class="dropdown-item" data-value="tennis">Tennis</div>
-                </div>
-            </div>
-
-            <div class="filter-dropdown">
                 <button class="filter-btn" id="leagueBtn">
                     <i class="fas fa-trophy"></i>
                     <span id="leagueLabel">All Leagues</span>
@@ -810,15 +778,9 @@
                 </div>
             </div>
 
-            <button class="filter-btn" id="todayBtn">
-                <i class="fas fa-calendar-day"></i>
-                <span>Today</span>
-            </button>
-
-            <button class="filter-btn" id="liveOnlyBtn">
-                <i class="fas fa-circle" style="color: var(--green-light);"></i>
-                <span>Live Only</span>
-            </button>
+            <div class="date-buttons" id="dateButtons">
+                <!-- Populated dynamically -->
+            </div>
 
             <button class="filter-btn" id="refreshBtn">
                 <i class="fas fa-sync-alt"></i>
@@ -827,11 +789,8 @@
         </div>
 
         <!-- Market Tabs -->
-        <div class="market-tabs">
-            <button class="market-tab active" data-market="moneyline">Moneyline</button>
-            <button class="market-tab" data-market="spread">Point Spread</button>
-            <button class="market-tab" data-market="totals">Totals</button>
-            <button class="market-tab" data-market="props">Player Props</button>
+        <div class="market-tabs" id="marketTabs">
+            <!-- Populated dynamically -->
         </div>
 
         <!-- Stats Bar -->
@@ -849,8 +808,8 @@
                 <div class="stat-value" id="totalBookmakers">0</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Best Odds</div>
-                <div class="stat-value" id="bestOddsCount">0</div>
+                <div class="stat-label">Markets</div>
+                <div class="stat-value" id="totalMarkets">0</div>
             </div>
         </div>
     </header>
@@ -877,11 +836,26 @@
         let allMatches = [];
         let filteredMatches = [];
         let bookmakers = [];
-        let currentMarket = 'moneyline';
+        let marketCategories = [];
+        let currentMarket = '';
         let selectedLeague = 'all';
+        let selectedDate = 'all';
         let searchQuery = '';
-        let liveOnly = false;
         let previousOdds = new Map();
+
+        // Bookmaker logo mapping
+        const bookmakerLogos = {
+            'draftkings': 'https://www.draftkings.com/dkjs/header/v1/web/d7b0d4827ea7c9be1ba4d6a91cdcbf4f.svg',
+            'fanduel': 'https://sportsbook.fanduel.com/images/fanduel-logo-white.svg',
+            'betmgm': 'https://sports.betmgm.com/assets/images/betmgm-logo.svg',
+            'caesars': 'https://www.williamhill.com/us/static/images/logo.svg',
+            'pointsbet': 'https://www.pointsbet.com/content/dam/web/logos/logo-white.svg',
+            'barstool': 'https://www.barstoolsportsbook.com/logo.svg',
+            'unibet': 'https://b1.unibetcdn.com/client/content/images/client/brand/unibet-logo-red.svg',
+            'wynnbet': 'https://www.wynnbet.com/assets/images/logo.svg',
+            'bet365': 'https://www.bet365.com/images/shared/logo.svg',
+            'betrivers': 'https://www.betrivers.com/assets/images/logo.svg'
+        };
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -891,41 +865,19 @@
 
         // Event Listeners
         function setupEventListeners() {
-            // Search
+            // Search with debounce
             const searchInput = document.getElementById('searchInput');
             searchInput.addEventListener('input', debounce((e) => {
                 searchQuery = e.target.value.toLowerCase();
                 applyFilters();
             }, 300));
 
-            // Market Tabs
-            document.querySelectorAll('.market-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    currentMarket = tab.dataset.market;
-                    applyFilters();
-                });
-            });
-
-            // Filter Buttons
-            document.getElementById('todayBtn').addEventListener('click', () => {
-                document.getElementById('todayBtn').classList.toggle('active');
-                applyFilters();
-            });
-
-            document.getElementById('liveOnlyBtn').addEventListener('click', () => {
-                liveOnly = !liveOnly;
-                document.getElementById('liveOnlyBtn').classList.toggle('active');
-                applyFilters();
-            });
-
+            // Refresh button
             document.getElementById('refreshBtn').addEventListener('click', () => {
                 loadData();
             });
 
-            // Dropdown toggles
-            setupDropdown('sportBtn', 'sportMenu');
+            // League dropdown
             setupDropdown('leagueBtn', 'leagueMenu');
         }
 
@@ -971,21 +923,21 @@
             updateStatus('Fetching...');
 
             try {
-                // Fetch from API endpoint
                 const response = await fetch('/oddsmagnet/football/top10');
                 const data = await response.json();
 
-                console.log('API Response:', data); // Debug logging
-
                 allMatches = data.matches || [];
-                
-                console.log(`Loaded ${allMatches.length} matches`); // Debug logging
 
                 // Extract unique bookmakers
                 extractBookmakers();
 
-                // Populate league dropdown
+                // Extract market categories
+                extractMarketCategories();
+
+                // Populate filters
                 populateLeagueDropdown();
+                populateDateButtons();
+                populateMarketTabs();
 
                 // Apply filters and render
                 applyFilters();
@@ -1004,15 +956,19 @@
             const bookmakerSet = new Set();
 
             allMatches.forEach(match => {
-                if (match.markets && match.markets['popular markets']) {
-                    match.markets['popular markets'].forEach(market => {
-                        if (market.odds) {
-                            market.odds.forEach(odd => {
-                                if (odd.bookmaker_code) {
-                                    bookmakerSet.add(JSON.stringify({
-                                        code: odd.bookmaker_code,
-                                        name: odd.bookmaker_name || odd.bookmaker_code
-                                    }));
+                if (match.markets) {
+                    Object.values(match.markets).forEach(marketList => {
+                        if (Array.isArray(marketList)) {
+                            marketList.forEach(market => {
+                                if (market.odds) {
+                                    market.odds.forEach(odd => {
+                                        if (odd.bookmaker_code) {
+                                            bookmakerSet.add(JSON.stringify({
+                                                code: odd.bookmaker_code,
+                                                name: odd.bookmaker_name || odd.bookmaker_code
+                                            }));
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -1024,8 +980,28 @@
                 .map(b => JSON.parse(b))
                 .sort((a, b) => a.code.localeCompare(b.code));
 
-            console.log(`Found ${bookmakers.length} bookmakers:`, bookmakers.map(b => b.code)); // Debug logging
             document.getElementById('totalBookmakers').textContent = bookmakers.length;
+        }
+
+        function extractMarketCategories() {
+            const categoriesSet = new Set();
+
+            allMatches.forEach(match => {
+                if (match.markets) {
+                    Object.keys(match.markets).forEach(category => {
+                        categoriesSet.add(category);
+                    });
+                }
+            });
+
+            marketCategories = Array.from(categoriesSet).sort();
+
+            // Set default market if not set
+            if (!currentMarket && marketCategories.length > 0) {
+                currentMarket = marketCategories[0];
+            }
+
+            document.getElementById('totalMarkets').textContent = marketCategories.length;
         }
 
         function populateLeagueDropdown() {
@@ -1042,6 +1018,64 @@
             document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
+        function populateDateButtons() {
+            const dates = new Map();
+
+            allMatches.forEach(match => {
+                if (match.match_date) {
+                    const date = new Date(match.match_date);
+                    const dateStr = date.toDateString();
+                    const shortDate = `${date.getMonth() + 1}/${date.getDate()}`;
+                    dates.set(dateStr, shortDate);
+                }
+            });
+
+            const sortedDates = Array.from(dates.entries()).sort((a, b) =>
+                new Date(a[0]) - new Date(b[0])
+            );
+
+            const dateButtons = document.getElementById('dateButtons');
+            const today = new Date().toDateString();
+
+            dateButtons.innerHTML = `
+                <button class="date-btn active" data-date="all">All Dates</button>
+                ${sortedDates.map(([fullDate, shortDate]) => {
+                const isToday = fullDate === today;
+                const label = isToday ? 'Today' : shortDate;
+                return `<button class="date-btn" data-date="${fullDate}">${label}</button>`;
+            }).join('')}
+            `;
+
+            // Add event listeners
+            dateButtons.querySelectorAll('.date-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    dateButtons.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedDate = btn.dataset.date;
+                    applyFilters();
+                });
+            });
+        }
+
+        function populateMarketTabs() {
+            const marketTabs = document.getElementById('marketTabs');
+
+            marketTabs.innerHTML = marketCategories.map((category, idx) => {
+                const isActive = (idx === 0 && !currentMarket) || category === currentMarket;
+                return `<button class="market-tab ${isActive ? 'active' : ''}" data-market="${category}">${category}</button>`;
+            }).join('');
+
+            // Add event listeners
+            marketTabs.querySelectorAll('.market-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    marketTabs.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentMarket = tab.dataset.market;
+                    applyFilters();
+                });
+            });
+        }
+
         // Filters
         function applyFilters() {
             let matches = [...allMatches];
@@ -1049,6 +1083,14 @@
             // League filter
             if (selectedLeague !== 'all') {
                 matches = matches.filter(m => m.league === selectedLeague);
+            }
+
+            // Date filter
+            if (selectedDate !== 'all') {
+                matches = matches.filter(m => {
+                    if (!m.match_date) return false;
+                    return new Date(m.match_date).toDateString() === selectedDate;
+                });
             }
 
             // Search filter
@@ -1059,20 +1101,6 @@
                     m.home_team?.toLowerCase().includes(searchQuery) ||
                     m.away_team?.toLowerCase().includes(searchQuery)
                 );
-            }
-
-            // Live only filter
-            if (liveOnly) {
-                matches = matches.filter(m => m.is_live);
-            }
-
-            // Today filter
-            if (document.getElementById('todayBtn').classList.contains('active')) {
-                const today = new Date().toDateString();
-                matches = matches.filter(m => {
-                    if (!m.match_date) return false;
-                    return new Date(m.match_date).toDateString() === today;
-                });
             }
 
             filteredMatches = matches;
@@ -1094,16 +1122,26 @@
                 return;
             }
 
-            // Render header
+            // Render header with best odds column
             tableHead.innerHTML = `
                 <tr>
                     <th>Match</th>
-                    <th style="background: rgba(16, 185, 129, 0.1); color: var(--green-light);">Best Odds</th>
+                    <th class="best-odds-col">
+                        <div class="outcome-header">
+                            <i class="fas fa-star" style="color: var(--green-light);"></i>
+                            <div class="outcome-label">Best Odds</div>
+                        </div>
+                    </th>
                     ${bookmakers.map(bm => `
                         <th>
                             <div class="bookmaker-header">
-                                <div class="bookmaker-logo bm-${bm.code}">${getBookmakerInitials(bm.code)}</div>
-                                <div style="font-size: 11px;">${bm.code}</div>
+                                <div class="bookmaker-logo-container">
+                                    <img class="bookmaker-logo" 
+                                         src="${getBookmakerLogo(bm.code)}" 
+                                         alt="${bm.name}"
+                                         onerror="this.style.display='none'; this.parentElement.innerHTML='${getBookmakerInitials(bm.code)}'">
+                                </div>
+                                <div class="bookmaker-name">${bm.name}</div>
                             </div>
                         </th>
                     `).join('')}
@@ -1122,201 +1160,154 @@
                 `${matchDate.getMonth() + 1}/${matchDate.getDate()} - ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
                 'TBD';
 
-            // Get odds for all selections (home, draw, away)
-            const selectionsOdds = getMatchOddsAllSelections(match, currentMarket);
-            
-            // Get best odds for each selection
-            const bestOdds = getBestOddsPerSelection(selectionsOdds);
+            // Get market data for current market
+            const marketData = getMarketData(match, currentMarket);
 
-            return `
-                <tr>
-                    <td>
-                        <div class="match-cell">
-                            <div class="match-time">
-                                <span>${timeStr}</span>
-                                ${match.is_live ? '<span class="match-status live">LIVE</span>' : ''}
+            // Generate rows for each outcome (Home, Draw, Away)
+            const outcomes = ['home', 'draw', 'away'];
+            const rows = [];
+
+            outcomes.forEach((outcome, idx) => {
+                const outcomeLabel = outcome.charAt(0).toUpperCase() + outcome.slice(1);
+                const oddsData = marketData.get(outcome);
+
+                // Find best odds for this outcome
+                const bestOdd = oddsData ? Math.max(...Array.from(oddsData.values()).filter(v => v && v.decimal_odds).map(v => v.decimal_odds)) : null;
+
+                rows.push(`
+                    <tr>
+                        ${idx === 0 ? `
+                        <td rowspan="3">
+                            <div class="match-cell">
+                                <div class="match-time">
+                                    <i class="fas fa-clock"></i>
+                                    <span>${timeStr}</span>
+                                </div>
+                                <div class="match-teams">
+                                    <div class="team-name">${teams[0] || 'Team 1'}</div>
+                                    <div class="team-name">${teams[1] || 'Team 2'}</div>
+                                </div>
+                                <div class="match-league">${match.league || 'Unknown'}</div>
                             </div>
-                            <div class="match-teams">
-                                <div class="team-name">${teams[0] || 'Team 1'}</div>
-                                <div class="team-name">${teams[1] || 'Team 2'}</div>
+                        </td>
+                        ` : ''}
+                        <td class="best-odds-col-cell">
+                            <div class="odds-cell best-odds-highlight">
+                                <div class="odds-value">
+                                    <span style="font-size: 11px; color: var(--text-muted);">${outcomeLabel}:</span>
+                                    <span>${bestOdd ? formatOdds(bestOdd) : '-'}</span>
+                                </div>
                             </div>
-                            <div class="match-league">${match.league || 'Unknown'}</div>
-                        </div>
-                    </td>
-                    ${renderBestOddsCell(bestOdds, match.match_name)}
-                    ${bookmakers.map(bm => {
-                        return renderBookmakerOddsCell(selectionsOdds, bm.code, match.match_name, bestOdds);
-                    }).join('')}
-                </tr>
-            `;
-        }
-
-        function getMatchOddsAllSelections(match, marketType) {
-            // Returns structure: { home: Map(bookmaker -> odd), draw: Map(), away: Map() }
-            const result = {
-                home: new Map(),
-                draw: new Map(),
-                away: new Map()
-            };
-
-            if (!match.markets || !match.markets['popular markets']) {
-                return result;
-            }
-
-            // Find the right market based on marketType
-            let targetMarket = null;
-            const markets = match.markets['popular markets'];
-            
-            if (marketType === 'moneyline' || marketType === '1x2') {
-                targetMarket = markets.find(m =>
-                    m.market_name?.toLowerCase().includes('win') ||
-                    m.market_name?.toLowerCase().includes('match winner') ||
-                    m.market_name?.toLowerCase().includes('1x2')
-                );
-            } else if (marketType === 'spread') {
-                targetMarket = markets.find(m =>
-                    m.market_name?.toLowerCase().includes('spread') ||
-                    m.market_name?.toLowerCase().includes('handicap')
-                );
-            } else if (marketType === 'totals') {
-                targetMarket = markets.find(m =>
-                    m.market_name?.toLowerCase().includes('total') ||
-                    m.market_name?.toLowerCase().includes('over') ||
-                    m.market_name?.toLowerCase().includes('under')
-                );
-            }
-
-            if (targetMarket && targetMarket.odds) {
-                targetMarket.odds.forEach(odd => {
-                    if (!odd.bookmaker_code || !odd.decimal_odds) return;
-                    
-                    const selection = odd.selection?.toLowerCase() || '';
-                    
-                    // Categorize by selection type
-                    if (selection.includes('home') || selection === '1') {
-                        result.home.set(odd.bookmaker_code, odd);
-                    } else if (selection.includes('draw') || selection === 'x') {
-                        result.draw.set(odd.bookmaker_code, odd);
-                    } else if (selection.includes('away') || selection === '2') {
-                        result.away.set(odd.bookmaker_code, odd);
-                    }
-                });
-            }
-
-            return result;
-        }
-
-        function getBestOddsPerSelection(selectionsOdds) {
-            const best = { home: null, draw: null, away: null };
-            
-            // Find highest odds for each selection
-            ['home', 'draw', 'away'].forEach(sel => {
-                let maxOdds = 0;
-                let bestOdd = null;
-                
-                selectionsOdds[sel].forEach(odd => {
-                    if (odd.decimal_odds > maxOdds) {
-                        maxOdds = odd.decimal_odds;
-                        bestOdd = odd;
-                    }
-                });
-                
-                best[sel] = bestOdd;
+                        </td>
+                        ${bookmakers.map(bm => {
+                    const odd = oddsData ? oddsData.get(bm.code) : null;
+                    return renderOddsCell(odd, match.match_name, bm.code, outcome, bestOdd);
+                }).join('')}
+                    </tr>
+                `);
             });
-            
-            return best;
+
+            return rows.join('');
         }
 
-        function renderBestOddsCell(bestOdds, matchName) {
-            return `
-                <td style="background: rgba(16, 185, 129, 0.05);">
-                    <div class="odds-selections">
-                        ${renderSingleSelection('Home', bestOdds.home, matchName, 'best-home', null, true)}
-                        ${renderSingleSelection('Draw', bestOdds.draw, matchName, 'best-draw', null, true)}
-                        ${renderSingleSelection('Away', bestOdds.away, matchName, 'best-away', null, true)}
-                    </div>
-                </td>
-            `;
-        }
+        function getMarketData(match, marketCategory) {
+            // Returns a Map of outcome -> Map of bookmaker_code -> odd
+            const outcomeMap = new Map([
+                ['home', new Map()],
+                ['draw', new Map()],
+                ['away', new Map()]
+            ]);
 
-        function renderBookmakerOddsCell(selectionsOdds, bookmakerCode, matchName, bestOdds) {
-            const homeOdd = selectionsOdds.home.get(bookmakerCode);
-            const drawOdd = selectionsOdds.draw.get(bookmakerCode);
-            const awayOdd = selectionsOdds.away.get(bookmakerCode);
-
-            if (!homeOdd && !drawOdd && !awayOdd) {
-                return '<td><div class="odds-cell locked"></div></td>';
+            if (!match.markets || !match.markets[marketCategory]) {
+                return outcomeMap;
             }
 
-            return `
-                <td>
-                    <div class="odds-selections">
-                        ${renderSingleSelection('Home', homeOdd, matchName, `${bookmakerCode}-home`, bestOdds.home)}
-                        ${renderSingleSelection('Draw', drawOdd, matchName, `${bookmakerCode}-draw`, bestOdds.draw)}
-                        ${renderSingleSelection('Away', awayOdd, matchName, `${bookmakerCode}-away`, bestOdds.away)}
-                    </div>
-                </td>
-            `;
+            const markets = match.markets[marketCategory];
+            if (!Array.isArray(markets)) return outcomeMap;
+
+            // Find the main market (usually contains "win" or "match winner" or "moneyline")
+            const mainMarket = markets.find(m =>
+                m.market_name?.toLowerCase().includes('win') ||
+                m.market_name?.toLowerCase().includes('match winner') ||
+                m.market_name?.toLowerCase().includes('moneyline') ||
+                m.market_name?.toLowerCase().includes('full time result')
+            ) || markets[0];
+
+            if (mainMarket && mainMarket.odds) {
+                mainMarket.odds.forEach(odd => {
+                    if (!odd.bookmaker_code) return;
+
+                    const selection = (odd.selection || '').toLowerCase();
+                    let outcome = null;
+
+                    if (selection.includes('home') || selection.includes('1')) {
+                        outcome = 'home';
+                    } else if (selection.includes('draw') || selection.includes('tie') || selection.includes('x')) {
+                        outcome = 'draw';
+                    } else if (selection.includes('away') || selection.includes('2')) {
+                        outcome = 'away';
+                    }
+
+                    if (outcome) {
+                        outcomeMap.get(outcome).set(odd.bookmaker_code, odd);
+                    }
+                });
+            }
+
+            return outcomeMap;
         }
 
-        function renderSingleSelection(label, odd, matchName, oddKey, bestOdd, isBestColumn = false) {
+        function renderOddsCell(odd, matchName, bookmakerCode, outcome, bestOdd) {
             if (!odd || !odd.decimal_odds) {
-                return `
-                    <div class="odds-selection-row">
-                        <span class="selection-label">${label}</span>
-                        <span class="selection-odds" style="color: var(--text-muted);">-</span>
-                    </div>
-                `;
+                return '<td><div class="odds-cell locked"><div class="odds-value">-</div></div></td>';
             }
 
-            const fullKey = `${matchName}-${oddKey}`;
-            const prevOdds = previousOdds.get(fullKey);
+            const oddKey = `${matchName}-${bookmakerCode}-${outcome}`;
+            const prevOdd = previousOdds.get(oddKey);
             let arrowHtml = '';
+            let flashClass = '';
 
-            if (prevOdds && prevOdds !== odd.decimal_odds) {
-                const isUp = odd.decimal_odds > prevOdds;
-                arrowHtml = `<span class="odds-arrow ${isUp ? 'up' : 'down'}"><i class="fas fa-arrow-${isUp ? 'up' : 'down'}"></i></span>`;
+            if (prevOdd && prevOdd !== odd.decimal_odds) {
+                const isUp = odd.decimal_odds > prevOdd;
+                arrowHtml = `<i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
+                flashClass = isUp ? 'flash-up' : 'flash-down';
             }
 
-            previousOdds.set(fullKey, odd.decimal_odds);
+            previousOdds.set(oddKey, odd.decimal_odds);
 
-            const isBest = bestOdd && odd.decimal_odds === bestOdd.decimal_odds && !isBestColumn;
+            // Determine if this is the best odds
+            const isBest = bestOdd && Math.abs(odd.decimal_odds - bestOdd) < 0.01;
+            const rankClass = isBest ? 'best' : 'average';
             const clickoutUrl = odd.clickout_url || '#';
 
             return `
-                <div class="odds-selection-row" style="${isBest ? 'background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);' : ''}">
-                    <span class="selection-label">${label}</span>
+                <td>
                     <a href="${clickoutUrl}" target="_blank" style="text-decoration: none;">
-                        <span class="selection-odds">
-                            ${formatOdds(odd.decimal_odds)}
-                            ${arrowHtml}
-                            ${isBest ? '<span style="color: var(--green-light); font-size: 10px; margin-left: 4px;">★</span>' : ''}
-                        </span>
+                        <div class="odds-cell ${rankClass} ${flashClass}">
+                            <div class="odds-value">
+                                ${arrowHtml}
+                                <span>${formatOdds(odd.decimal_odds)}</span>
+                            </div>
+                            ${odd.fractional_odds ? `<div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${odd.fractional_odds}</div>` : ''}
+                        </div>
                     </a>
-                </div>
+                </td>
             `;
         }
 
         // Utilities
+        function getBookmakerLogo(code) {
+            const cleanCode = code.toLowerCase().replace(/[^a-z]/g, '');
+            return bookmakerLogos[cleanCode] || `https://ui-avatars.com/api/?name=${code}&background=random&size=80`;
+        }
+
         function getBookmakerInitials(code) {
-            const map = {
-                'D': 'D',
-                'F': 'F',
-                'BM': 'BM',
-                'C': 'C',
-                'BE': 'BE',
-                'P': 'P',
-                'B': 'B',
-                '1X': '1X',
-                'S': 'S'
-            };
-            return map[code] || code.substring(0, 2).toUpperCase();
+            return code.substring(0, 2).toUpperCase();
         }
 
         function formatOdds(odds) {
             if (!odds) return '-';
-            // OddsMagnet uses decimal odds format (e.g., 2.50, 1.85)
-            return parseFloat(odds).toFixed(2);
+            return odds.toFixed(2);
         }
 
         function showEmptyState(type) {
