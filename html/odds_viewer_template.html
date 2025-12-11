@@ -1,1017 +1,349 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Live Odds Viewer</title>
+    <title>🎯 OddsMagnet Pro - Modern Odds Comparison</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #0f1523;
+            --bg-tertiary: #141b2d;
+            --border-color: #1e2738;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-primary: #3b82f6;
+            --accent-hover: #2563eb;
+            --green-light: #10b981;
+            --green-dark: #059669;
+            --red-light: #ef4444;
+            --red-dark: #dc2626;
+            --yellow: #f59e0b;
+            --cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0a0a0f;
-            color: #e5e7eb;
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
         }
 
-        .container { max-width: 1920px; margin: 0 auto; padding: 24px; }
-
-        /* Header */
+        /* Header & Navigation */
         .header {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            padding: 24px 32px;
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
 
-        .header-left { display: flex; align-items: center; gap: 24px; }
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-        .header h1 {
-            font-size: 24px;
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
             font-weight: 700;
-            color: #ffffff;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--cyan));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .header-actions {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        .fetching-indicator {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 8px 16px;
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            font-size: 11px;
-        }
-
-        .fetching-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .fetching-icon {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #6b7280;
-        }
-
-        .fetching-icon.active {
-            background: #10b981;
-            animation: pulse 2s infinite;
-        }
-
-        .fetching-icon.cached {
-            background: #f59e0b;
-        }
-
-        .fetching-label {
-            color: #9ca3af;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .fetching-label.active { color: #10b981; }
-        .fetching-label.cached { color: #f59e0b; }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.connected { background: #10b981; box-shadow: 0 0 10px #10b981; }
-        .status-dot.disconnected { background: #ef4444; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Search and Filters */
-        .controls {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            transition: opacity 0.3s ease, max-height 0.3s ease;
-            overflow: hidden;
-        }
-
-        .search-bar { 
-            display: flex; 
-            gap: 12px; 
-            margin-bottom: 20px; 
-            flex-wrap: wrap;
-            align-items: stretch;
+        .search-box {
+            position: relative;
         }
 
         .search-input {
-            flex: 1;
-            min-width: 300px;
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            padding: 12px 16px 12px 44px;
-            color: #e5e7eb;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 16px 8px 40px;
+            color: var(--text-primary);
             font-size: 14px;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .search-wrapper {
-            flex: 1;
-            min-width: 300px;
-            position: relative;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6b7280;
-            pointer-events: none;
+            width: 300px;
+            transition: all 0.2s;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: #3b82f6;
+            border-color: var(--accent-primary);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
-        .search-input::placeholder { color: #6b7280; }
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
 
-        .clear-btn {
-            background: #ef4444;
-            color: white;
-            border: 1px solid #dc2626;
-            border-radius: 8px;
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--green-light);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green-light);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Filters Bar */
+        .filters-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             padding: 12px 24px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
 
-        .clear-btn:hover { background: #dc2626; transform: scale(1.02); }
-
-        /* Tab Navigation */
-        .tab-navigation {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            padding: 8px;
-            margin-bottom: 24px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            color: #9ca3af;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            padding: 14px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .tab-btn:hover {
-            background: #1a1a27;
-            color: #3b82f6;
-        }
-
-        .tab-btn.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-        }
-
-        .tab-btn i {
-            font-size: 16px;
-        }
-
-        /* Tab Content Sections */
-        .tab-content {
+        .filters-bar::-webkit-scrollbar {
             display: none;
         }
 
-        .tab-content.active {
+        .filter-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .filter-btn i {
+            font-size: 12px;
+        }
+
+        .filter-dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 200;
+            display: none;
+        }
+
+        .dropdown-menu.active {
             display: block;
         }
 
-        .filters-wrapper {
+        .dropdown-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 14px;
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .dropdown-item.selected {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-primary);
+        }
+
+        /* Market Tabs */
+        .market-tabs {
             display: flex;
-            flex-direction: column;
-            gap: 16px;
+            gap: 4px;
+            padding: 0 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .filter-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-            padding: 12px;
-            background: #1a1a27;
-            border-radius: 8px;
-        }
-
-        .filter-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            min-width: 80px;
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            flex: 1;
-        }
-
-        .filter-btn {
-            background: #14141f;
-            color: #9ca3af;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 12px;
+        .market-tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
+            transition: all 0.2s;
+            position: relative;
         }
 
-        .filter-btn:hover { background: #242435; border-color: #3b82f6; color: #3b82f6; }
-        .filter-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); }
-
-        .sport-chip {
-            background: #14141f;
-            color: #9ca3af;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
+        .market-tab:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .sport-chip:hover { background: #242435; border-color: #3b82f6; color: #3b82f6; }
-        .sport-chip.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); }
+        .market-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-primary);
+        }
 
         /* Stats Bar */
         .stats-bar {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-            transition: opacity 0.3s ease, max-height 0.3s ease;
-            overflow: hidden;
+            display: flex;
+            gap: 24px;
+            padding: 12px 24px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .stat-card {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            padding: 14px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .stat-card:hover {
-            border-color: #3b82f6;
-            transform: translateY(-2px);
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 4px;
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         .stat-label {
             font-size: 11px;
-            color: #6b7280;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-weight: 600;
         }
 
-        .stat-icon {
-            font-size: 14px;
-            margin-right: 4px;
-            opacity: 0.6;
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
         }
 
-        /* Status Indicators */
-        .status-bar {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 24px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            align-items: center;
-            font-size: 12px;
-        }
-
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-        }
-
-        .status-item .dot { width: 6px; height: 6px; border-radius: 50%; background: #4b5563; }
-        .status-item.active .dot { background: #10b981; box-shadow: 0 0 8px #10b981; }
-        .last-update { margin-left: auto; color: #6b7280; font-style: italic; }
-
-        /* Match Grid */
-        .matches-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .match-card {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            padding: 18px;
-            cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+        /* Main Table Container */
+        .table-container {
             position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            will-change: transform;
-            contain: layout style paint;
-            opacity: 1;
-        }
-        
-        /* Smooth fade-in for new cards */
-        .match-card.new-card {
-            animation: fadeInCard 0.4s ease forwards;
-        }
-        
-        @keyframes fadeInCard {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Highlight updated cards briefly */
-        .match-card.updated {
-            animation: pulseUpdate 0.6s ease;
-        }
-        
-        @keyframes pulseUpdate {
-            0%, 100% {
-                border-color: #1f1f2e;
-            }
-            50% {
-                border-color: #3b82f6;
-                box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-            }
-        }
-
-        .match-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .match-card:hover {
-            border-color: #3b82f6;
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-        }
-
-        .match-card:hover::before { opacity: 1; }
-
-        .match-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #1f1f2e;
-        }
-
-        .sport-badge {
-            font-size: 10px;
-            font-weight: 700;
-            color: #3b82f6;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 6px 12px;
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 6px;
-        }
-
-        .live-indicator {
-            background: #ef4444;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 700;
-            animation: blink 1.5s infinite;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid #dc2626;
-        }
-
-        .live-indicator::before {
-            content: '●';
-            font-size: 14px;
-            animation: pulse-dot 1.5s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
-        }
-
-        .match-teams { 
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 8px 0;
-        }
-
-        .team {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-            line-height: 1.4;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .team::before {
-            content: '';
-            width: 4px;
-            height: 4px;
-            background: #3b82f6;
-            border-radius: 50%;
-        }
-
-        .vs-divider {
-            font-size: 11px;
-            color: #6b7280;
-            font-weight: 700;
-            text-align: center;
-            padding: 4px 0;
-            letter-spacing: 1px;
-        }
-
-        .live-score-display {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 2px solid #334155;
-            border-radius: 12px;
-            padding: 16px;
-            margin: 12px 0;
-            text-align: center;
-        }
-
-        .score-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 8px;
-        }
-
-        .score-value {
-            font-size: 32px;
-            font-weight: 800;
-            color: #ffffff;
-            text-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-            line-height: 1;
-        }
-
-        .score-separator {
-            font-size: 20px;
-            font-weight: 600;
-            color: #64748b;
-        }
-
-        .score-info {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            font-size: 11px;
-            color: #94a3b8;
-            font-weight: 600;
-            flex-wrap: wrap;
-        }
-
-        .score-info span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 6px;
-        }
-
-        .score-info i {
-            font-size: 9px;
-        }
-
-        .period-scores {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin: 8px 0;
-            flex-wrap: wrap;
-        }
-
-        .period-score {
-            font-size: 11px;
-            font-weight: 600;
-            color: #cbd5e1;
-            padding: 4px 10px;
-            background: rgba(100, 116, 139, 0.15);
-            border: 1px solid rgba(100, 116, 139, 0.3);
-            border-radius: 6px;
-            cursor: help;
-            transition: all 0.2s;
-        }
-
-        .period-score:hover {
-            background: rgba(100, 116, 139, 0.25);
-            border-color: rgba(100, 116, 139, 0.5);
-        }
-
-        /* Tennis-specific score display */
-        .tennis-score {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .tennis-player {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .tennis-player-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: #e2e8f0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .tennis-sets {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-        }
-
-        .tennis-set {
-            min-width: 24px;
-            padding: 4px 6px;
-            background: rgba(71, 85, 105, 0.3);
-            border: 1px solid rgba(71, 85, 105, 0.5);
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #94a3b8;
-            text-align: center;
-        }
-
-        .tennis-set.winner {
-            background: rgba(34, 197, 94, 0.2);
-            border-color: rgba(34, 197, 94, 0.4);
-            color: #4ade80;
-        }
-
-        .tennis-current-score {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 8px 12px;
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 8px;
-        }
-
-        .tennis-game-score {
-            font-size: 24px;
-            font-weight: 800;
-            color: #3b82f6;
-            line-height: 1;
-        }
-
-        .tennis-serve {
-            width: 8px;
-            height: 8px;
-            background: #f59e0b;
-            border-radius: 50%;
-            animation: servePulse 1.5s ease infinite;
-        }
-
-        @keyframes servePulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.3); }
-        }
-
-        /* Sport-specific score layouts */
-        .score-compact {
-            font-size: 28px;
-        }
-
-        .score-large {
-            font-size: 36px;
-        }
-
-        .match-info {
-            font-size: 10px;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 10px;
-            background: #1a1a27;
-            border-radius: 5px;
-        }
-
-        .match-info span {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .match-info i { font-size: 10px; opacity: 0.7; }
-
-        .match-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 6px;
-            margin-top: 2px;
-            border-top: 1px solid #1f1f2e;
-        }
-
-        .bookmaker-badges { 
-            display: flex; 
-            gap: 6px; 
-            flex-wrap: wrap;
-        }
-
-        .bookmaker-badge {
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-
-        .badge-bet365 { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-fanduel { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .badge-1xbet { background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
-
-        .sources-count {
-            font-size: 11px;
-            color: #9ca3af;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            background: #1a1a27;
-            border-radius: 6px;
-        }
-
-        .sources-count i { color: #3b82f6; }
-
-        /* Pagination */
-        .pagination-wrapper {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .pagination-info {
-            font-size: 14px;
-            color: #9ca3af;
-            font-weight: 500;
-        }
-
-        .pagination-info strong {
-            color: #ffffff;
-            font-weight: 700;
-        }
-
-        .pagination-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .page-btn {
-            background: #1a1a27;
-            color: #9ca3af;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 8px 12px;
-            min-width: 40px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .page-btn:hover:not(:disabled) { background: #242435; border-color: #3b82f6; color: #3b82f6; }
-        .page-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
-        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        .page-size-selector {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .page-size-select {
-            background: #1a1a27;
-            color: #e5e7eb;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .page-size-select:hover { border-color: #3b82f6; }
-        .page-size-select:focus { outline: none; border-color: #3b82f6; }
-
-        .match-teams { margin-bottom: 12px; }
-
-        .team {
-            font-size: 15px;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 6px;
-        }
-
-        .vs-divider {
-            font-size: 12px;
-            color: #6b7280;
-            font-weight: 600;
-            text-align: center;
-            margin: 8px 0;
-        }
-
-        .match-info {
-            font-size: 12px;
-            color: #6b7280;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* Header date/time shown alongside live badge */
-        .header-datetime {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            font-size: 11px;
-            color: #9ca3af;
-            margin-left: 8px;
-            line-height: 1.1;
-        }
-
-        .header-datetime .hdr-date { font-weight: 700; color: #cbd5e1; }
-        .header-datetime .hdr-time { font-size: 11px; color: #9ca3af; }
-
-        /* Responsive: on narrow screens hide the date and keep time compact */
-        @media (max-width: 640px) {
-            .header-datetime { align-items: flex-start; }
-            .header-datetime .hdr-date { display: none; }
-            .header-datetime .hdr-time { font-size: 12px; }
-        }
-
-        .bookmaker-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-
-        .bookmaker-badge {
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-bet365 { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-fanduel { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .badge-1xbet { background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            animation: fadeIn 0.3s;
+            overflow-x: auto;
             overflow-y: auto;
-            padding: 40px 20px;
+            max-height: calc(100vh - 280px);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal.show { display: flex; align-items: flex-start; justify-content: center; }
-
-        .modal-content {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 16px;
-            max-width: 1200px;
+        /* Table */
+        .odds-table {
             width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-header {
-            background: #1a1a27;
-            border-bottom: 1px solid #1f1f2e;
-            padding: 28px 32px;
+        /* Table Header */
+        .odds-table thead {
             position: sticky;
             top: 0;
             z-index: 10;
+            background: var(--bg-secondary);
         }
 
-        .modal-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 8px;
+        .odds-table th {
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+            background: var(--bg-secondary);
         }
 
-        .modal-subtitle {
-            font-size: 14px;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 16px;
+        .odds-table th:first-child {
+            text-align: left;
+            padding-left: 24px;
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            min-width: 280px;
         }
 
-        .close-btn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            color: #9ca3af;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 20px;
-        }
-
-        .close-btn:hover { background: #ef4444; border-color: #ef4444; color: white; }
-
-        .modal-body { padding: 32px; }
-
-        .bookmaker-section {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-
+        /* Bookmaker Headers */
         .bookmaker-header {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #2a2a3e;
+            gap: 4px;
+            min-width: 90px;
         }
 
-        .bookmaker-name {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .bookmaker-icon {
+        .bookmaker-logo {
             width: 32px;
             height: 32px;
             border-radius: 6px;
@@ -1019,2547 +351,850 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 14px;
-        }
-
-        .icon-bet365 { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-        .icon-fanduel { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-        .icon-1xbet { background: rgba(249, 115, 22, 0.15); color: #f97316; }
-
-        .odds-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 16px;
-        }
-
-        .odds-type-card {
-            background: #14141f;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        .odds-type-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .odds-values-grid { display: grid; gap: 8px; }
-
-        .odds-value-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: #1a1a27;
-            border-radius: 6px;
-        }
-
-        .odds-team-label { font-size: 13px; color: #9ca3af; font-weight: 500; }
-        .odds-value { font-size: 15px; font-weight: 700; color: #ffffff; }
-
-        .no-data { text-align: center; color: #6b7280; padding: 60px 20px; grid-column: 1/-1; }
-        .no-data i { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #1a1a27; }
-        ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3a3a4e; }
-
-        /* Monitoring System */
-        .monitoring-panel {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 999;
-        }
-
-        .monitor-toggle {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 56px;
-            height: 56px;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .monitor-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
-        }
-
-        .monitor-toggle.has-error {
-            background: #ef4444;
-            animation: shake 0.5s infinite;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-4px); }
-            75% { transform: translateX(4px); }
-        }
-
-        .monitor-badge {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
             font-size: 11px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #0a0a0f;
-        }
-
-        .monitor-window {
-            position: fixed;
-            bottom: 90px;
-            right: 24px;
-            width: 420px;
-            max-height: 600px;
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            display: none;
-            flex-direction: column;
-            z-index: 998;
-        }
-
-        .monitor-window.show { display: flex; }
-
-        .monitor-header {
-            background: #1a1a27;
-            border-bottom: 1px solid #2a2a3e;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 12px 12px 0 0;
-        }
-
-        .monitor-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .monitor-close {
-            background: transparent;
-            border: none;
-            color: #9ca3af;
-            font-size: 20px;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .monitor-close:hover { color: #ffffff; }
-
-        .monitor-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-        }
-
-        .monitor-section {
-            margin-bottom: 16px;
-        }
-
-        .monitor-section-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .clear-alerts-btn {
-            background: transparent;
-            border: 1px solid #2a2a3e;
-            color: #9ca3af;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .clear-alerts-btn:hover {
-            background: #ef4444;
-            border-color: #ef4444;
             color: white;
         }
 
-        .clear-alerts-btn i {
-            font-size: 10px;
-        }
-
-        .alert-item {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-left: 3px solid #ef4444;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 8px;
-        }
-
-        .alert-item.warning { border-left-color: #f59e0b; }
-        .alert-item.info { border-left-color: #3b82f6; }
-        .alert-item.success { border-left-color: #10b981; }
-
-        .alert-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 6px;
-        }
-
-        .alert-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .alert-time {
-            font-size: 10px;
-            color: #6b7280;
-        }
-
-        .alert-message {
-            font-size: 12px;
-            color: #9ca3af;
-            line-height: 1.4;
-        }
-
-        .email-config {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            padding: 12px;
-        }
-
-        .email-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .email-toggle label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #e5e7eb;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 44px;
-            height: 24px;
-            background: #2a2a3e;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .toggle-switch.active { background: #3b82f6; }
-
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-        }
-
-        .toggle-switch.active::after { transform: translateX(20px); }
-
-        .email-input {
-            width: 100%;
-            background: #14141f;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: #e5e7eb;
-            font-size: 12px;
-            margin-top: 8px;
-        }
-
-        .email-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-
-        .monitor-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .monitor-stat {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 6px;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .monitor-stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .monitor-stat-label {
-            font-size: 10px;
-            color: #6b7280;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-
-        /* Monitoring Dashboard */
-        .monitoring-dashboard {
-            background: #14141f;
-            border: 1px solid #1f1f2e;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            overflow: hidden;
-        }
-
-        .monitoring-header {
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
+        /* Table Rows */
+        .odds-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
             transition: background 0.2s;
         }
 
-        .monitoring-header:hover {
-            background: #1a1a27;
+        .odds-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
         }
 
-        .monitoring-header h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
+        .odds-table td {
+            padding: 14px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .monitoring-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
+        .odds-table td:first-child {
+            text-align: left;
+            padding-left: 24px;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background: var(--bg-primary);
+        }
+
+        .odds-table tbody tr:hover td:first-child {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Match Cell */
+        .match-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .match-time {
             font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .monitoring-badge.active {
-            background: #10b98133;
-            color: #10b981;
-        }
-
-        .monitoring-badge.inactive {
-            background: #ef444433;
-            color: #ef4444;
-        }
-
-        .monitoring-content {
-            padding: 0 24px 24px 24px;
-            display: none;
-        }
-
-        .monitoring-content.show {
-            display: block;
-        }
-
-        .monitoring-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .monitoring-card {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        .monitoring-card.warning {
-            border-color: #f59e0b44;
-        }
-
-        .monitoring-card.error {
-            border-color: #ef444444;
-        }
-
-        .monitoring-card-header {
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #9ca3af;
-            font-size: 12px;
-            margin-bottom: 12px;
         }
 
-        .monitoring-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .module-status-list {
-            background: #1a1a27;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        .module-status-item {
-            display: flex;
-            justify-content: space-between;
+        .match-status {
+            display: inline-flex;
             align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #2a2a3e;
-        }
-
-        .module-status-item:last-child {
-            border-bottom: none;
-        }
-
-        .module-name {
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .module-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: 12px;
-        }
-
-        .module-status-badge {
-            padding: 4px 8px;
+            gap: 4px;
+            padding: 2px 8px;
+            background: rgba(239, 68, 68, 0.1);
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            text-transform: uppercase;
+            color: var(--red-light);
         }
 
-        .module-status-badge.healthy {
-            background: #10b98133;
-            color: #10b981;
+        .match-status.live {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--green-light);
         }
 
-        .module-status-badge.warning {
-            background: #f59e0b33;
-            color: #f59e0b;
+        .match-teams {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
-        .module-status-badge.error {
-            background: #ef444433;
-            color: #ef4444;
+        .team-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .match-league {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Odds Cell */
+        .odds-cell {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 8px;
+            border-radius: 4px;
+            min-width: 75px;
+        }
+
+        .odds-cell:hover {
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.05);
+        }
+
+        .odds-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .odds-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+        }
+
+        /* Color Coding */
+        .odds-cell.best {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .odds-cell.best .odds-value {
+            color: var(--green-light);
+        }
+
+        .odds-cell.good {
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .odds-cell.average {
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .odds-cell.below-average {
+            background: rgba(249, 115, 22, 0.1);
+        }
+
+        .odds-cell.worst {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .odds-cell.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(100, 100, 100, 0.1);
+        }
+
+        .odds-cell.locked::after {
+            content: '\f023';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Movement Indicators */
+        .odds-movement {
+            font-size: 10px;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .odds-movement.up {
+            color: var(--green-light);
+        }
+
+        .odds-movement.down {
+            color: var(--red-light);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .empty-description {
+            font-size: 14px;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Scrollbar */
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #2a3548;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .matches-grid { grid-template-columns: 1fr; }
-            .modal-content { margin: 20px; }
-            .odds-grid { grid-template-columns: 1fr; }
-            .monitor-window { 
-                width: calc(100vw - 48px); 
-                right: 24px; 
-                left: 24px;
+            .search-input {
+                width: 200px;
             }
-            .monitoring-grid {
-                grid-template-columns: repeat(2, 1fr);
+
+            .odds-table th:first-child,
+            .odds-table td:first-child {
+                min-width: 200px;
             }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Highlight flash on update */
+        @keyframes flashGreen {
+
+            0%,
+            100% {
+                background-color: transparent;
+            }
+
+            50% {
+                background-color: rgba(16, 185, 129, 0.3);
+            }
+        }
+
+        @keyframes flashRed {
+
+            0%,
+            100% {
+                background-color: transparent;
+            }
+
+            50% {
+                background-color: rgba(239, 68, 68, 0.3);
+            }
+        }
+
+        .flash-up {
+            animation: flashGreen 0.6s ease-out;
+        }
+
+        .flash-down {
+            animation: flashRed 0.6s ease-out;
+        }
+
+        /* Bookmaker color coding */
+        .bm-D {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
+
+        .bm-F {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .bm-BM {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .bm-C {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .bm-BE {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        }
+
+        .bm-P {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        .bm-B {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .bm-1X {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        }
+
+        .bm-S {
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+        }
+
+        .bm-default {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-left">
-                <h1><i class="fas fa-bolt"></i> Live Odds Viewer</h1>
-                <div class="fetching-indicator">
-                    <div class="fetching-row">
-                        <div class="fetching-icon" id="pregameFetchIcon"></div>
-                        <span class="fetching-label" id="pregameFetchLabel">Pregame: Initializing...</span>
-                    </div>
-                    <div class="fetching-row">
-                        <div class="fetching-icon" id="liveFetchIcon"></div>
-                        <span class="fetching-label" id="liveFetchLabel">Live: Initializing...</span>
-                    </div>
-                </div>
-                <div class="connection-status">
-                    <div class="status-dot disconnected" id="connectionDot"></div>
-                    <span id="connectionText">Connecting...</span>
-                </div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <div>OddsMagnet Pro</div>
             </div>
-        </div>
-
-        <!-- Monitoring Dashboard -->
-        <div id="monitoringDashboard" class="monitoring-dashboard" style="display: none;">
-            <div class="monitoring-header" onclick="toggleMonitoring()">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <i class="fas fa-heartbeat"></i>
-                    <h3>System Monitoring</h3>
-                    <span class="monitoring-badge" id="monitoringBadge">Checking...</span>
-                    <span style="font-size: 0.85rem; color: #888; margin-left: auto;" id="monitoringLastUpdate">-</span>
-                </div>
-                <i class="fas fa-chevron-down" id="monitoringChevron"></i>
-            </div>
-            <div class="monitoring-content" id="monitoringContent">
-                <div class="monitoring-grid">
-                    <div class="monitoring-card">
-                        <div class="monitoring-card-header">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Healthy Modules</span>
-                        </div>
-                        <div class="monitoring-value" id="healthyCount">-</div>
-                    </div>
-                    <div class="monitoring-card warning">
-                        <div class="monitoring-card-header">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>Warnings</span>
-                        </div>
-                        <div class="monitoring-value" id="warningCount">-</div>
-                    </div>
-                    <div class="monitoring-card error">
-                        <div class="monitoring-card-header">
-                            <i class="fas fa-times-circle"></i>
-                            <span>Errors</span>
-                        </div>
-                        <div class="monitoring-value" id="errorCount">-</div>
-                    </div>
-                    <div class="monitoring-card">
-                        <div class="monitoring-card-header">
-                            <i class="fas fa-envelope"></i>
-                            <span>Email Alerts</span>
-                        </div>
-                        <div class="monitoring-value" id="emailStatus">-</div>
-                    </div>
-                </div>
-                <div class="module-status-list" id="moduleStatusList">
-                    <!-- Module statuses will be populated here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab Navigation -->
-        <div class="tab-navigation">
-            <button class="tab-btn active" onclick="switchTab('current')" id="tab-current">
-                <i class="fas fa-futbol"></i> Current Matches
-            </button>
-            <button class="tab-btn" onclick="switchTab('history')" id="tab-history">
-                <i class="fas fa-history"></i> Match History
-            </button>
-            <button class="tab-btn" onclick="switchTab('futures')" id="tab-futures">
-                <i class="fas fa-calendar-alt"></i> Futures & Long-term
-            </button>
-        </div>
-
-        <!-- Search and Filters -->
-        <div class="controls">
-            <div class="search-bar">
-                <div class="search-wrapper">
+            <div class="header-actions">
+                <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search teams, sports, or matches...">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search matches...">
                 </div>
-                <button class="clear-btn" onclick="clearAllFilters()">
-                    <i class="fas fa-redo"></i> Reset All
+                <div class="live-indicator">
+                    <div class="live-dot"></div>
+                    <span id="liveStatus">Live</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="filters-bar">
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="sportBtn">
+                    <i class="fas fa-futbol"></i>
+                    <span>Football</span>
+                    <i class="fas fa-chevron-down"></i>
                 </button>
-            </div>
-            
-            <div class="filters-wrapper">
-                <div class="filter-row">
-                    <span class="filter-label">Match Type:</span>
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" data-type="all" onclick="setMatchTypeFilter('all')">All Matches</button>
-                        <button class="filter-btn" data-type="live" onclick="setMatchTypeFilter('live')">
-                            <i class="fas fa-circle"></i> Live Only
-                        </button>
-                        <button class="filter-btn" data-type="pregame" onclick="setMatchTypeFilter('pregame')">
-                            <i class="fas fa-clock"></i> Pregame Only
-                        </button>
-                    </div>
-                </div>
-
-                <div class="filter-row">
-                    <span class="filter-label">Sources:</span>
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" data-filter="all" onclick="setSourceFilter('all')">All Sources</button>
-                        <button class="filter-btn" data-filter="bet365" onclick="setSourceFilter('bet365')">
-                            <i class="fas fa-check-circle"></i> Bet365
-                        </button>
-                        <button class="filter-btn" data-filter="fanduel" onclick="setSourceFilter('fanduel')">
-                            <i class="fas fa-check-circle"></i> FanDuel
-                        </button>
-                        <button class="filter-btn" data-filter="1xbet" onclick="setSourceFilter('1xbet')">
-                            <i class="fas fa-check-circle"></i> 1xBet
-                        </button>
-                        <button class="filter-btn" data-filter="multi" onclick="setSourceFilter('multi')">2+ Sources</button>
-                        <button class="filter-btn" data-filter="triple" onclick="setSourceFilter('triple')">All 3 Sources</button>
-                    </div>
-                </div>
-
-                <div class="filter-row">
-                    <span class="filter-label">Sports:</span>
-                    <div class="filter-buttons" id="sportFilter">
-                        <span class="sport-chip active" onclick="setSportFilter('all')">All Sports</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-bar">
-            <div class="stat-card">
-                <div class="stat-value" id="totalMatches">0</div>
-                <div class="stat-label"><i class="fas fa-list stat-icon"></i>Total Matches</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="pregameMatches">0</div>
-                <div class="stat-label"><i class="fas fa-clock stat-icon"></i>Pregame</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="liveMatches">0</div>
-                <div class="stat-label"><i class="fas fa-circle stat-icon"></i>Live</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="twoSourceMatches">0</div>
-                <div class="stat-label"><i class="fas fa-layer-group stat-icon"></i>2 Sources</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="threeSourceMatches">0</div>
-                <div class="stat-label"><i class="fas fa-trophy stat-icon"></i>3 Sources</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="filteredCount">0</div>
-                <div class="stat-label"><i class="fas fa-filter stat-icon"></i>Showing</div>
-            </div>
-        </div>
-
-        <!-- Status Bar -->
-        <div class="status-bar" id="statusBar">
-            <div class="status-item" id="status-bet365_pregame"><div class="dot"></div><span>Bet365 Pregame</span></div>
-            <div class="status-item" id="status-bet365_live"><div class="dot"></div><span>Bet365 Live</span></div>
-            <div class="status-item" id="status-fanduel_pregame"><div class="dot"></div><span>FanDuel Pregame</span></div>
-            <div class="status-item" id="status-fanduel_live"><div class="dot"></div><span>FanDuel Live</span></div>
-            <div class="status-item" id="status-1xbet_pregame"><div class="dot"></div><span>1xBet Pregame</span></div>
-            <div class="status-item" id="status-1xbet_live"><div class="dot"></div><span>1xBet Live</span></div>
-            <div class="last-update" id="lastUpdate">Last update: --</div>
-        </div>
-
-        <!-- Tab Content: Current Matches -->
-        <div class="tab-content active" id="content-current">
-            <!-- Matches Grid -->
-            <div class="matches-grid" id="matchesGrid">
-                <div class="no-data">
-                    <i class="fas fa-clock"></i>
-                    <h3>Waiting for data...</h3>
-                    <p>Monitoring odds files for updates</p>
+                <div class="dropdown-menu" id="sportMenu">
+                    <div class="dropdown-item selected" data-value="football">Football</div>
+                    <div class="dropdown-item" data-value="basketball">Basketball</div>
+                    <div class="dropdown-item" data-value="tennis">Tennis</div>
                 </div>
             </div>
 
-            <!-- Pagination -->
-            <div class="pagination-wrapper" id="paginationWrapper" style="display: none;">
-                <div class="pagination-info">
-                    Showing <strong id="pageStart">0</strong> to <strong id="pageEnd">0</strong> of <strong id="pageTotal">0</strong> matches
-                </div>
-            <div class="pagination-controls">
-                <button class="page-btn" id="prevPage" onclick="changePage(-1)">
-                    <i class="fas fa-chevron-left"></i>
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="leagueBtn">
+                    <i class="fas fa-trophy"></i>
+                    <span id="leagueLabel">All Leagues</span>
+                    <i class="fas fa-chevron-down"></i>
                 </button>
-                <div id="pageNumbers"></div>
-                <button class="page-btn" id="nextPage" onclick="changePage(1)">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <div class="dropdown-menu" id="leagueMenu">
+                    <!-- Populated dynamically -->
+                </div>
             </div>
-            <div class="page-size-selector">
-                <span style="font-size: 13px; color: #9ca3af;">Per page:</span>
-                <select class="page-size-select" id="pageSize" onchange="changePageSize()">
-                    <option value="12">12</option>
-                    <option value="24" selected>24</option>
-                    <option value="36">36</option>
-                    <option value="48">48</option>
-                    <option value="999999">All</option>
-                </select>
-            </div>
-        </div>
-        </div>
 
-        <!-- Tab Content: Match History -->
-        <div class="tab-content" id="content-history">
-            <div class="matches-grid" id="historyGrid">
-                <div class="no-data">
-                    <i class="fas fa-history"></i>
-                    <h3>Loading match history...</h3>
-                    <p>Fetching completed matches from all bookmakers</p>
-                </div>
-            </div>
-            
-            <!-- History Pagination -->
-            <div class="pagination-wrapper" id="historyPaginationWrapper" style="display: none;">
-                <div class="pagination-info">
-                    Showing <strong id="historyPageStart">0</strong> to <strong id="historyPageEnd">0</strong> of <strong id="historyPageTotal">0</strong> matches
-                </div>
-                <div class="pagination-controls">
-                    <button class="page-btn" id="historyFirstPage" onclick="goToHistoryPage(1)" disabled>
-                        <i class="fas fa-angle-double-left"></i>
-                    </button>
-                    <button class="page-btn" id="historyPrevPage" onclick="changeHistoryPage(-1)" disabled>
-                        <i class="fas fa-angle-left"></i>
-                    </button>
-                    <div class="page-numbers" id="historyPageNumbers"></div>
-                    <button class="page-btn" id="historyNextPage" onclick="changeHistoryPage(1)">
-                        <i class="fas fa-angle-right"></i>
-                    </button>
-                    <button class="page-btn" id="historyLastPage" onclick="goToHistoryLastPage()">
-                        <i class="fas fa-angle-double-right"></i>
-                    </button>
-                </div>
-                <div class="page-size-selector">
-                    <span style="font-size: 13px; color: #9ca3af;">Per page:</span>
-                    <select class="page-size-select" id="historyPageSize" onchange="changeHistoryPageSize()">
-                        <option value="12">12</option>
-                        <option value="24" selected>24</option>
-                        <option value="36">36</option>
-                        <option value="48">48</option>
-                        <option value="999999">All</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab Content: Futures & Long-term -->
-        <div class="tab-content" id="content-futures">
-            <div class="matches-grid" id="futuresGrid">
-                <div class="no-data">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h3>Loading futures & long-term bets...</h3>
-                    <p>Fetching future events from all bookmakers</p>
-                </div>
-            </div>
-            
-            <!-- Futures Pagination -->
-            <div class="pagination-wrapper" id="futuresPaginationWrapper" style="display: none;">
-                <div class="pagination-info">
-                    Showing <strong id="futuresPageStart">0</strong> to <strong id="futuresPageEnd">0</strong> of <strong id="futuresPageTotal">0</strong> matches
-                </div>
-                <div class="pagination-controls">
-                    <button class="page-btn" id="futuresFirstPage" onclick="goToFuturesPage(1)" disabled>
-                        <i class="fas fa-angle-double-left"></i>
-                    </button>
-                    <button class="page-btn" id="futuresPrevPage" onclick="changeFuturesPage(-1)" disabled>
-                        <i class="fas fa-angle-left"></i>
-                    </button>
-                    <div class="page-numbers" id="futuresPageNumbers"></div>
-                    <button class="page-btn" id="futuresNextPage" onclick="changeFuturesPage(1)">
-                        <i class="fas fa-angle-right"></i>
-                    </button>
-                    <button class="page-btn" id="futuresLastPage" onclick="goToFuturesLastPage()">
-                        <i class="fas fa-angle-double-right"></i>
-                    </button>
-                </div>
-                <div class="page-size-selector">
-                    <span style="font-size: 13px; color: #9ca3af;">Per page:</span>
-                    <select class="page-size-select" id="futuresPageSize" onchange="changeFuturesPageSize()">
-                        <option value="12">12</option>
-                        <option value="24" selected>24</option>
-                        <option value="36">36</option>
-                        <option value="48">48</option>
-                        <option value="999999">All</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal for Match Details -->
-        <div class="modal" id="matchModal" onclick="if(event.target === this) closeModal()">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div>
-                        <div class="modal-title" id="modalTitle">Match Details</div>
-                        <div class="modal-subtitle" id="modalSubtitle"></div>
-                    </div>
-                    <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="modal-body" id="modalBody"></div>
-            </div>
-        </div>
-
-        <!-- Monitoring System -->
-        <div class="monitoring-panel">
-            <button class="monitor-toggle" id="monitorToggle" onclick="toggleMonitor()">
-                <i class="fas fa-heartbeat"></i>
-                <span class="monitor-badge" id="monitorBadge" style="display: none;">0</span>
+            <button class="filter-btn" id="todayBtn">
+                <i class="fas fa-calendar-day"></i>
+                <span>Today</span>
             </button>
 
-            <div class="monitor-window" id="monitorWindow">
-                <div class="monitor-header">
-                    <div class="monitor-title">
-                        <i class="fas fa-shield-alt"></i> System Monitor
-                    </div>
-                    <button class="monitor-close" onclick="toggleMonitor()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="monitor-content">
-                    <!-- Health Stats -->
-                    <div class="monitor-section">
-                        <div class="monitor-section-title">System Health</div>
-                        <div class="monitor-stats">
-                            <div class="monitor-stat">
-                                <div class="monitor-stat-value" id="uptimeValue">0m</div>
-                                <div class="monitor-stat-label">Uptime</div>
-                            </div>
-                            <div class="monitor-stat">
-                                <div class="monitor-stat-value" id="errorCount">0</div>
-                                <div class="monitor-stat-label">Errors</div>
-                            </div>
-                            <div class="monitor-stat">
-                                <div class="monitor-stat-value" id="updateCount">0</div>
-                                <div class="monitor-stat-label">Updates</div>
-                            </div>
-                            <div class="monitor-stat">
-                                <div class="monitor-stat-value" id="healthScore">100%</div>
-                                <div class="monitor-stat-label">Health</div>
-                            </div>
-                        </div>
-                    </div>
+            <button class="filter-btn" id="liveOnlyBtn">
+                <i class="fas fa-circle" style="color: var(--green-light);"></i>
+                <span>Live Only</span>
+            </button>
 
-                    <!-- Email Notifications -->
-                    <div class="monitor-section">
-                        <div class="monitor-section-title">Email Alerts</div>
-                        <div class="email-config">
-                            <div class="email-toggle">
-                                <label>Enable Email Notifications</label>
-                                <div class="toggle-switch" id="emailToggle" onclick="toggleEmail()"></div>
-                            </div>
-                            <input type="email" class="email-input" id="emailInput" placeholder="Enter your email address" disabled>
-                        </div>
-                    </div>
+            <button class="filter-btn" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i>
+                <span>Refresh</span>
+            </button>
+        </div>
 
-                    <!-- Alerts -->
-                    <div class="monitor-section">
-                        <div class="monitor-section-title" style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>Recent Alerts</span>
-                            <button class="clear-alerts-btn" onclick="clearAlerts()" title="Clear all notifications">
-                                <i class="fas fa-trash-alt"></i> Clear All
-                            </button>
-                        </div>
-                        <div id="alertsList">
-                            <div class="alert-item success">
-                                <div class="alert-header">
-                                    <div class="alert-title">
-                                        <i class="fas fa-check-circle"></i> System Online
-                                    </div>
-                                    <div class="alert-time" id="startTime">Just now</div>
-                                </div>
-                                <div class="alert-message">All modules are functioning normally</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Market Tabs -->
+        <div class="market-tabs">
+            <button class="market-tab active" data-market="moneyline">Moneyline</button>
+            <button class="market-tab" data-market="spread">Point Spread</button>
+            <button class="market-tab" data-market="totals">Totals</button>
+            <button class="market-tab" data-market="props">Player Props</button>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-label">Matches</div>
+                <div class="stat-value" id="totalMatches">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Leagues</div>
+                <div class="stat-value" id="totalLeagues">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Bookmakers</div>
+                <div class="stat-value" id="totalBookmakers">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Best Odds</div>
+                <div class="stat-value" id="bestOddsCount">0</div>
             </div>
         </div>
+    </header>
+
+    <!-- Main Table -->
+    <div class="table-container" id="tableContainer">
+        <table class="odds-table" id="oddsTable">
+            <thead id="tableHead">
+                <!-- Populated dynamically -->
+            </thead>
+            <tbody id="tableBody">
+                <!-- Populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
     </div>
 
     <script>
-        let ws = null;
+        // Global State
         let allMatches = [];
-        let historyMatches = [];
-        let futuresMatches = [];
         let filteredMatches = [];
-        let currentSourceFilter = 'all';
-        let currentSportFilter = 'all';
-        let currentMatchTypeFilter = 'all';
+        let bookmakers = [];
+        let currentMarket = 'moneyline';
+        let selectedLeague = 'all';
         let searchQuery = '';
-        let availableSports = new Set();
-        let lastDataString = '';
-        let currentTab = 'current';
-        
-        // Pagination
-        let currentPage = 1;
-        let pageSize = 24;
-        let totalPages = 1;
+        let liveOnly = false;
+        let previousOdds = new Map();
 
-        // History Pagination
-        let historyCurrentPage = 1;
-        let historyPageSize = 24;
-        let historyTotalPages = 1;
-        let historyDataLoaded = false; // Cache flag
-
-        // Futures Pagination
-        let futuresCurrentPage = 1;
-        let futuresPageSize = 24;
-        let futuresTotalPages = 1;
-        let futuresDataLoaded = false; // Cache flag
-
-        // Tab Switching - optimized with caching
-        function switchTab(tabName) {
-            currentTab = tabName;
-            
-            // Update tab buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById('tab-' + tabName).classList.add('active');
-            
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById('content-' + tabName).classList.add('active');
-            
-            // Show/hide filters and stats based on active tab
-            const filtersWrapper = document.querySelector('.controls');
-            const statsBar = document.querySelector('.stats-bar');
-            
-            if (tabName === 'current') {
-                // Show filters and stats for current matches
-                filtersWrapper.style.display = 'block';
-                statsBar.style.display = 'flex';
-            } else {
-                // Hide filters and stats for history and futures
-                filtersWrapper.style.display = 'none';
-                statsBar.style.display = 'none';
-            }
-            
-            // Load data for the selected tab (with caching)
-            if (tabName === 'history' && !historyDataLoaded) {
-                loadHistoryData();
-            } else if (tabName === 'futures' && !futuresDataLoaded) {
-                loadFuturesData();
-            }
-        }
-
-        // Load History Data - with caching
-        function loadHistoryData() {
-            const grid = document.getElementById('historyGrid');
-            grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;"><i class="fas fa-spinner fa-spin"></i> Loading history...</div>';
-            
-            fetch('/api/history')
-                .then(response => response.json())
-                .then(data => {
-                    historyMatches = data.matches || [];
-                    historyDataLoaded = true;
-                    renderHistoryMatches();
-                    console.log(`✓ Loaded ${historyMatches.length} history matches`);
-                })
-                .catch(error => {
-                    console.error('Error loading history:', error);
-                    grid.innerHTML = `
-                        <div class="no-data">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <h3>Error loading history</h3>
-                            <p>${error.message}</p>
-                        </div>
-                    `;
-                });
-        }
-
-        // Load Futures Data - with caching
-        function loadFuturesData() {
-            const grid = document.getElementById('futuresGrid');
-            grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;"><i class="fas fa-spinner fa-spin"></i> Loading futures...</div>';
-
-            // First try the API endpoint (when running with a backend). If it returns HTML (404/index), fall back to local files.
-            fetch('/api/futures')
-                .then(async response => {
-                    const contentType = response.headers.get('content-type') || '';
-                    if (!response.ok) {
-                        // Try fallback to unified_odds.json when API not available
-                        throw { code: response.status, text: await response.text(), contentType };
-                    }
-                    if (!contentType.includes('application/json')) {
-                        // Response is not JSON (likely HTML) — treat as fallback
-                        throw { code: response.status, text: await response.text(), contentType };
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    futuresMatches = data.matches || data.futures || [];
-                    futuresDataLoaded = true;
-                    renderFuturesMatches();
-                    console.log(`✓ Loaded ${futuresMatches.length} futures matches from /api/futures`);
-                })
-                .catch(async err => {
-                    // If API returned HTML or failed, try loading local `unified_odds.json` and derive futures if possible.
-                    try {
-                        const resp = await fetch('unified_odds.json');
-                        const ct = resp.headers.get('content-type') || '';
-                        if (!resp.ok || !ct.includes('application/json')) {
-                            const txt = await resp.text();
-                            throw new Error('Neither /api/futures nor unified_odds.json returned JSON. Server response: ' + (err && err.text ? err.text : (txt || err && err.text || 'unknown')));
-                        }
-                        const data = await resp.json();
-
-                        // Try common keys: data.futures, data.matches, data.pregame_matches
-                        if (Array.isArray(data.futures) && data.futures.length > 0) {
-                            futuresMatches = data.futures;
-                        } else if (Array.isArray(data.matches) && data.matches.length > 0) {
-                            futuresMatches = data.matches;
-                        } else if (Array.isArray(data.pregame_matches)) {
-                            // Derive futures if there are any flagged market types or explicit fields
-                            futuresMatches = data.pregame_matches.filter(m => (m.market_type && /future/i.test(m.market_type)) || m.is_futures || m.category === 'futures');
-                        } else {
-                            futuresMatches = [];
-                        }
-
-                        futuresDataLoaded = true;
-                        renderFuturesMatches();
-                        console.log(`✓ Loaded ${futuresMatches.length} futures matches from unified_odds.json`);
-                    } catch (finalErr) {
-                        console.error('Error loading futures:', finalErr);
-                        grid.innerHTML = `
-                            <div class="no-data">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <h3>Error loading futures</h3>
-                                <p>${(finalErr && finalErr.message) ? finalErr.message : 'Unable to load futures data.'}</p>
-                            </div>
-                        `;
-                    }
-                });
-        }
-
-        // Create History Match Card with Winner Badge
-        function createHistoryCard(match) {
-            const badges = [];
-            if (match.bookmakers) {
-                match.bookmakers.forEach(bm => {
-                    if (bm === 'bet365') badges.push('<span class="badge bet365">Bet365</span>');
-                    if (bm === 'fanduel') badges.push('<span class="badge fanduel">FanDuel</span>');
-                    if (bm === '1xbet') badges.push('<span class="badge xbet">1xBet</span>');
-                });
-            }
-
-            const startTime = match.start_time ? new Date(match.start_time * 1000) : null;
-            const dateStr = startTime ? startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
-            const timeStr = startTime ? startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'TBD';
-            
-            // Time ago
-            let timeAgo = '';
-            if (match.removed_at) {
-                const removedTime = new Date(match.removed_at * 1000);
-                const diffMs = Date.now() - removedTime;
-                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                const diffDays = Math.floor(diffHours / 24);
-                if (diffDays > 0) {
-                    timeAgo = `${diffDays}d ago`;
-                } else if (diffHours > 0) {
-                    timeAgo = `${diffHours}h ago`;
-                } else {
-                    timeAgo = `< 1h ago`;
-                }
-            }
-            
-            // Determine winner based on final_score
-            let winnerBadge = '';
-            let homeClass = '';
-            let awayClass = '';
-            if (match.final_score) {
-                const homeScore = parseFloat(match.final_score.home_score) || 0;
-                const awayScore = parseFloat(match.final_score.away_score) || 0;
-                if (homeScore > awayScore) {
-                    homeClass = 'winner';
-                    winnerBadge = '<span class="winner-badge" style="background: #10b981; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: 700;"><i class="fas fa-crown"></i> HOME WON</span>';
-                } else if (awayScore > homeScore) {
-                    awayClass = 'winner';
-                    winnerBadge = '<span class="winner-badge" style="background: #10b981; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: 700;"><i class="fas fa-crown"></i> AWAY WON</span>';
-                } else if (homeScore === awayScore && homeScore > 0) {
-                    winnerBadge = '<span class="winner-badge" style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: 700;"><i class="fas fa-handshake"></i> DRAW</span>';
-                }
-            }
-
-            // Format final score for display (including cricket format)
-            let scoreDisplay = '';
-            if (match.final_score) {
-                const sport = match.sport?.toLowerCase() || '';
-                let homeScore = match.final_score.home_score || '0';
-                let awayScore = match.final_score.away_score || '0';
-                
-                // Cricket format: runs/wickets
-                if (sport.includes('cricket')) {
-                    const homeWickets = match.final_score.home_wickets !== undefined ? match.final_score.home_wickets : '';
-                    const awayWickets = match.final_score.away_wickets !== undefined ? match.final_score.away_wickets : '';
-                    homeScore = homeWickets !== '' ? `${homeScore}/${homeWickets}` : homeScore;
-                    awayScore = awayWickets !== '' ? `${awayScore}/${awayWickets}` : awayScore;
-                }
-                
-                scoreDisplay = `
-                    <div style="padding: 16px; background: #1a1a27; border-radius: 8px; margin: 12px 0; text-align: center;">
-                        <div style="font-size: 0.75em; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Final Score</div>
-                        <div style="display: flex; justify-content: center; align-items: center; gap: 16px; font-size: 1.8em; font-weight: 700;">
-                            <span class="${homeClass}" style="${homeClass === 'winner' ? 'color: #10b981;' : 'color: #9ca3af;'}">${homeScore}</span>
-                            <span style="color: #4b5563; font-size: 0.6em;">-</span>
-                            <span class="${awayClass}" style="${awayClass === 'winner' ? 'color: #10b981;' : 'color: #9ca3af;'}">${awayScore}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Display odds if available
-            let oddsDisplay = '';
-            if (match.odds && typeof match.odds === 'object' && Object.keys(match.odds).length > 0) {
-                const odds = match.odds;
-                const oddsItems = [];
-                
-                if (odds.moneyline_home || odds.moneyline_away) {
-                    oddsItems.push(`
-                        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #14141f; border-radius: 6px;">
-                            <span style="color: #9ca3af; font-size: 0.85em;">Opening Odds</span>
-                            <span style="font-weight: 600; color: #d1d5db;">${odds.moneyline_home || 'N/A'} / ${odds.moneyline_away || 'N/A'}</span>
-                        </div>
-                    `);
-                }
-                
-                if (oddsItems.length > 0) {
-                    oddsDisplay = `
-                        <div style="padding: 12px; background: #1a1a27; border-radius: 8px; margin: 12px 0;">
-                            <div style="font-size: 0.75em; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Betting Lines</div>
-                            ${oddsItems.join('')}
-                        </div>
-                    `;
-                }
-            }
-
-            return `
-                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default;">
-                    <div class="match-card-header">
-                        <span class="sport-badge">${match.sport}</span>
-                        <span class="live-indicator" style="background: #6b7280;"><i class="fas fa-check"></i> Ended ${timeAgo}</span>
-                    </div>
-                    <div class="match-teams">
-                        <div class="team ${homeClass}" style="${homeClass === 'winner' ? 'color: #10b981; font-weight: 700;' : ''}">${match.home_team}</div>
-                        <div class="vs-divider">VS</div>
-                        <div class="team ${awayClass}" style="${awayClass === 'winner' ? 'color: #10b981; font-weight: 700;' : ''}">${match.away_team}</div>
-                    </div>
-                    ${scoreDisplay}
-                    ${oddsDisplay}
-                    ${winnerBadge ? `<div style="text-align: center; margin: 8px 0;">${winnerBadge}</div>` : ''}
-                    <div class="match-info" style="flex-direction: column; gap: 4px;">
-                        <span style="font-weight: 600; color: #d1d5db;"><i class="fas fa-trophy"></i> ${match.league || 'Unknown League'}</span>
-                        ${match.country ? `<span style="font-size: 0.85em; color: #9ca3af;"><i class="fas fa-map-marker-alt"></i> ${match.country}</span>` : ''}
-                    </div>
-                    <div class="match-info" style="padding: 8px 16px; background: #14141f; border-radius: 6px; margin: 8px 0;">
-                        <span style="font-size: 0.9em;"><i class="fas fa-calendar"></i> ${dateStr}</span>
-                        <span style="font-size: 0.9em;"><i class="fas fa-clock"></i> ${timeStr}</span>
-                    </div>
-                    <div class="match-footer" style="margin-top: auto;">
-                        <div class="bookmaker-badges">${badges.join('')}</div>
-                        <div class="sources-count">
-                            <i class="fas fa-database"></i> ${badges.length} ${badges.length === 1 ? 'source' : 'sources'}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Create Futures Match Card with Special Design
-        function createFuturesCard(match) {
-            const badges = [];
-            if (match.bookmakers) {
-                match.bookmakers.forEach(bm => {
-                    if (bm === 'bet365') badges.push('<span class="badge bet365">Bet365</span>');
-                    if (bm === 'fanduel') badges.push('<span class="badge fanduel">FanDuel</span>');
-                    if (bm === '1xbet') badges.push('<span class="badge xbet">1xBet</span>');
-                });
-            }
-
-            const startTime = match.start_time ? new Date(match.start_time * 1000) : null;
-            const dateStr = startTime ? startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
-            const timeStr = startTime ? startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'TBD';
-
-            // Handle futures/long-term bets that don't have away_team (single outcome bets)
-            const isSingleOutcome = !match.away_team || match.away_team.trim() === '';
-
-            // Use current data (prefer formatted fields if present)
-            const scheduledDate = match.date || match.start_time_readable || '';
-            const scheduledTime = match.time || match.start_time_readable || '';
-
-            // Compact title area
-            const titleHtml = `
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-                    <div style="display:flex; flex-direction:column;">
-                        <div style="font-size:14px; font-weight:700; color:#e6eef8;">${match.home_team}${isSingleOutcome ? '' : ' vs ' + (match.away_team || '')}</div>
-                        <div style="font-size:12px; color:#9ca3af; margin-top:4px;">${match.league || ''}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:12px; color:#cbd5e1; font-weight:700">${scheduledDate}</div>
-                        <div style="font-size:12px; color:#9ca3af">${scheduledTime}</div>
-                    </div>
-                </div>
-            `;
-
-            // Selections area
-            let selectionsHtml = '';
-            if (Array.isArray(match.selections) && match.selections.length > 0) {
-                // Show up to 6 selections in a compact grid
-                const slice = match.selections.slice(0, 6);
-                selectionsHtml = `
-                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:12px;">
-                        ${slice.map(sel => `
-                            <div style="padding:8px; background:#0f1724; border-radius:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                                <div style="flex:1; color:#d1d5db; font-size:0.95em;">${sel.selection_name}</div>
-                                <div style="font-weight:700; color:#3b82f6;">${sel.american_odds || sel.coefficient || sel.odds || '—'}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                if (match.selections.length > 6) {
-                    selectionsHtml += `<div style="margin-top:8px; font-size:12px; color:#9ca3af;">+${match.selections.length - 6} more selections</div>`;
-                }
-            } else {
-                // Fallback: if no selections, but odds exist, summarize odds
-                if (match.odds && Object.keys(match.odds).length > 0) {
-                    selectionsHtml = `
-                        <div style="display:flex; gap:8px; margin-top:12px;">
-                            <div style="flex:1; padding:8px; background:#0f1724; border-radius:8px; color:#d1d5db;">Opening Lines</div>
-                            <div style="font-weight:700; color:#3b82f6;">${match.odds.moneyline_home || match.odds.moneyline || '—'}</div>
-                        </div>
-                    `;
-                } else {
-                    selectionsHtml = `<div style="margin-top:12px; color:#9ca3af; font-size:12px;">No selections available</div>`;
-                }
-            }
-
-            // Extract and display selections/odds - for futures with multiple selections
-            let oddsDisplay = '';
-            return `
-                <div class="match-card" data-match-id="${match.match_id}" style="cursor: default; border: 1px solid rgba(60,66,85,0.4); background: linear-gradient(to bottom, #07101a 0%, #0f1724 100%);">
-                    <div class="match-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="sport-badge" style="background: linear-gradient(135deg, #14202b 0%, #0f1724 100%); color: #ffffff; border-color: rgba(230,238,248,0.06); font-weight: 600;">${match.sport}</span>
-                            <div style="font-size:12px; color:#9ca3af;">${match.market_type || 'Futures'}</div>
-                        </div>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            ${badges.join('')}
-                        </div>
-                    </div>
-                    <div style="padding:12px 0;">
-                        ${titleHtml}
-                        ${selectionsHtml}
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-                        <div style="color:#9ca3af; font-size:12px;">${match.total_selections ? match.total_selections + ' selections' : ''}</div>
-                        <div style="color:#cbd5e1; font-weight:700; font-size:14px;">${match.top_odds || ''}</div>
-                    </div>
-                    <div class="match-footer" style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-                        <div class="bookmaker-badges">${badges.join('')}</div>
-                        <div class="sources-count"><i class="fas fa-database"></i> ${badges.length} ${badges.length === 1 ? 'source' : 'sources'}</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Render History Matches
-        function renderHistoryMatches() {
-            const grid = document.getElementById('historyGrid');
-            
-            if (historyMatches.length === 0) {
-                grid.innerHTML = `
-                    <div class="no-data">
-                        <i class="fas fa-history"></i>
-                        <h3>No match history available</h3>
-                        <p>Completed matches will appear here</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Apply pagination
-            historyTotalPages = Math.ceil(historyMatches.length / historyPageSize);
-            const start = (historyCurrentPage - 1) * historyPageSize;
-            const end = Math.min(start + historyPageSize, historyMatches.length);
-            const paginatedMatches = historyMatches.slice(start, end);
-
-            grid.innerHTML = paginatedMatches.map(match => createHistoryCard(match)).join('');
-            
-            updateHistoryPagination();
-        }
-
-        // Render Futures Matches
-        function renderFuturesMatches() {
-            const grid = document.getElementById('futuresGrid');
-            
-            if (futuresMatches.length === 0) {
-                grid.innerHTML = `
-                    <div class="no-data">
-                        <i class="fas fa-calendar-alt"></i>
-                        <h3>No futures available</h3>
-                        <p>Long-term bets will appear here</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Apply pagination
-            futuresTotalPages = Math.ceil(futuresMatches.length / futuresPageSize);
-            const start = (futuresCurrentPage - 1) * futuresPageSize;
-            const end = Math.min(start + futuresPageSize, futuresMatches.length);
-            const paginatedMatches = futuresMatches.slice(start, end);
-
-            grid.innerHTML = paginatedMatches.map(match => createFuturesCard(match)).join('');
-            
-            updateFuturesPagination();
-        }
-
-        // History Pagination Functions
-        function updateHistoryPagination() {
-            const wrapper = document.getElementById('historyPaginationWrapper');
-            if (historyMatches.length === 0) {
-                wrapper.style.display = 'none';
-                return;
-            }
-            
-            wrapper.style.display = 'flex';
-            const start = (historyCurrentPage - 1) * historyPageSize + 1;
-            const end = Math.min(historyCurrentPage * historyPageSize, historyMatches.length);
-            
-            document.getElementById('historyPageStart').textContent = start;
-            document.getElementById('historyPageEnd').textContent = end;
-            document.getElementById('historyPageTotal').textContent = historyMatches.length;
-            
-            document.getElementById('historyFirstPage').disabled = historyCurrentPage === 1;
-            document.getElementById('historyPrevPage').disabled = historyCurrentPage === 1;
-            document.getElementById('historyNextPage').disabled = historyCurrentPage === historyTotalPages;
-            document.getElementById('historyLastPage').disabled = historyCurrentPage === historyTotalPages;
-        }
-
-        function changeHistoryPage(delta) {
-            historyCurrentPage = Math.max(1, Math.min(historyTotalPages, historyCurrentPage + delta));
-            renderHistoryMatches();
-        }
-
-        function goToHistoryPage(page) {
-            historyCurrentPage = page;
-            renderHistoryMatches();
-        }
-
-        function goToHistoryLastPage() {
-            historyCurrentPage = historyTotalPages;
-            renderHistoryMatches();
-        }
-
-        function changeHistoryPageSize() {
-            historyPageSize = parseInt(document.getElementById('historyPageSize').value);
-            historyCurrentPage = 1;
-            renderHistoryMatches();
-        }
-
-        // Futures Pagination Functions
-        function updateFuturesPagination() {
-            const wrapper = document.getElementById('futuresPaginationWrapper');
-            if (futuresMatches.length === 0) {
-                wrapper.style.display = 'none';
-                return;
-            }
-            
-            wrapper.style.display = 'flex';
-            const start = (futuresCurrentPage - 1) * futuresPageSize + 1;
-            const end = Math.min(futuresCurrentPage * futuresPageSize, futuresMatches.length);
-            
-            document.getElementById('futuresPageStart').textContent = start;
-            document.getElementById('futuresPageEnd').textContent = end;
-            document.getElementById('futuresPageTotal').textContent = futuresMatches.length;
-            
-            document.getElementById('futuresFirstPage').disabled = futuresCurrentPage === 1;
-            document.getElementById('futuresPrevPage').disabled = futuresCurrentPage === 1;
-            document.getElementById('futuresNextPage').disabled = futuresCurrentPage === futuresTotalPages;
-            document.getElementById('futuresLastPage').disabled = futuresCurrentPage === futuresTotalPages;
-        }
-
-        function changeFuturesPage(delta) {
-            futuresCurrentPage = Math.max(1, Math.min(futuresTotalPages, futuresCurrentPage + delta));
-            renderFuturesMatches();
-        }
-
-        function goToFuturesPage(page) {
-            futuresCurrentPage = page;
-            renderFuturesMatches();
-        }
-
-        function goToFuturesLastPage() {
-            futuresCurrentPage = futuresTotalPages;
-            renderFuturesMatches();
-        }
-
-        function changeFuturesPageSize() {
-            futuresPageSize = parseInt(document.getElementById('futuresPageSize').value);
-            futuresCurrentPage = 1;
-            renderFuturesMatches();
-        }
-
-        // Monitoring System
-        let monitoringEnabled = true;
-        let emailEnabled = false;
-        let emailAddress = '';
-        let alerts = [];
-        let errorCount = 0;
-        let updateCount = 0;
-        let startTime = Date.now();
-        let lastUpdateTime = Date.now();
-        let lastPregameUpdate = null;
-        let lastLiveUpdate = null;
-        let moduleStatus = {
-            bet365_pregame: { healthy: false, lastSeen: null, errors: [] },
-            bet365_live: { healthy: false, lastSeen: null, errors: [] },
-            fanduel_pregame: { healthy: false, lastSeen: null, errors: [] },
-            fanduel_live: { healthy: false, lastSeen: null, errors: [] },
-            '1xbet_pregame': { healthy: false, lastSeen: null, errors: [] },
-            '1xbet_live': { healthy: false, lastSeen: null, errors: [] }
-        };
-
-        // Check module health
-        function checkModuleHealth() {
-            const now = Date.now();
-            const staleThreshold = 5 * 60 * 1000; // 5 minutes
-            let healthyModules = 0;
-            let totalModules = Object.keys(moduleStatus).length;
-
-            for (const [module, status] of Object.entries(moduleStatus)) {
-                const timeSinceUpdate = status.lastSeen ? now - status.lastSeen : Infinity;
-                
-                if (timeSinceUpdate > staleThreshold && status.healthy) {
-                    status.healthy = false;
-                    addAlert('warning', `${module} Stale`, `No updates received for ${Math.floor(timeSinceUpdate / 60000)} minutes`);
-                }
-
-                if (status.healthy) healthyModules++;
-            }
-
-            const healthPercentage = Math.round((healthyModules / totalModules) * 100);
-            document.getElementById('healthScore').textContent = healthPercentage + '%';
-
-            // Update uptime
-            const uptimeMinutes = Math.floor((now - startTime) / 60000);
-            const uptimeHours = Math.floor(uptimeMinutes / 60);
-            const uptimeDisplay = uptimeHours > 0 ? `${uptimeHours}h ${uptimeMinutes % 60}m` : `${uptimeMinutes}m`;
-            document.getElementById('uptimeValue').textContent = uptimeDisplay;
-
-            return healthPercentage;
-        }
-
-        function addAlert(type, title, message) {
-            const now = new Date();
-            const alert = {
-                type,
-                title,
-                message,
-                timestamp: now
-            };
-            
-            alerts.unshift(alert);
-            if (alerts.length > 10) alerts = alerts.slice(0, 10);
-
-            // Only count errors, not warnings or info for the badge
-            if (type === 'error') {
-                errorCount++;
-                document.getElementById('errorCount').textContent = errorCount;
-                document.getElementById('monitorBadge').textContent = errorCount;
-                document.getElementById('monitorBadge').style.display = 'flex';
-                document.getElementById('monitorToggle').classList.add('has-error');
-
-                // Send email if enabled
-                if (emailEnabled && emailAddress) {
-                    sendEmailAlert(alert);
-                }
-            } else if (type === 'warning' && emailEnabled && emailAddress) {
-                // Send email for warnings if enabled (but don't increment error count)
-                sendEmailAlert(alert);
-            }
-
-            // Immediate render for real-time feel
-            renderAlerts();
-        }
-
-        function renderAlerts() {
-            const container = document.getElementById('alertsList');
-            if (alerts.length === 0) {
-                container.innerHTML = '<div class="alert-item success"><div class="alert-message">No alerts</div></div>';
-                return;
-            }
-
-            // Direct update for real-time alerts
-            container.innerHTML = alerts.map(alert => {
-                const timeStr = formatTimeAgo(alert.timestamp);
-                const iconMap = {
-                    error: 'fa-exclamation-circle',
-                    warning: 'fa-exclamation-triangle',
-                    info: 'fa-info-circle',
-                    success: 'fa-check-circle'
-                };
-
-                return `
-                    <div class="alert-item ${alert.type}">
-                        <div class="alert-header">
-                            <div class="alert-title">
-                                <i class="fas ${iconMap[alert.type]}"></i> ${alert.title}
-                            </div>
-                            <div class="alert-time">${timeStr}</div>
-                        </div>
-                        <div class="alert-message">${alert.message}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function formatTimeAgo(date) {
-            const seconds = Math.floor((Date.now() - date) / 1000);
-            if (seconds < 60) return 'Just now';
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes}m ago`;
-            const hours = Math.floor(minutes / 60);
-            return `${hours}h ago`;
-        }
-
-        function sendEmailAlert(alert) {
-            // Call backend API to send email
-            fetch('/api/send-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: emailAddress, alert })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Email alert sent:', data);
-            })
-            .catch(error => {
-                console.error('Failed to send email alert:', error);
-            });
-        }
-
-        function toggleMonitor() {
-            const window = document.getElementById('monitorWindow');
-            window.classList.toggle('show');
-        }
-
-        function clearAlerts() {
-            alerts = [];
-            const container = document.getElementById('alertsList');
-            container.innerHTML = `
-                <div class="alert-item success">
-                    <div class="alert-header">
-                        <div class="alert-title">
-                            <i class="fas fa-check-circle"></i> Notifications Cleared
-                        </div>
-                        <div class="alert-time">Just now</div>
-                    </div>
-                    <div class="alert-message">All notifications have been cleared</div>
-                </div>
-            `;
-            
-            // Reset badge
-            const badge = document.getElementById('monitorBadge');
-            badge.style.display = 'none';
-            badge.textContent = '0';
-            
-            // Clear error count
-            errorCount = 0;
-            document.getElementById('errorCount').textContent = errorCount;
-        }
-
-        function toggleEmail() {
-            emailEnabled = !emailEnabled;
-            const toggle = document.getElementById('emailToggle');
-            const input = document.getElementById('emailInput');
-            
-            toggle.classList.toggle('active');
-            input.disabled = !emailEnabled;
-            
-            if (emailEnabled) {
-                input.focus();
-                addAlert('info', 'Email Alerts Enabled', 'You will receive notifications for critical issues');
-            } else {
-                addAlert('info', 'Email Alerts Disabled', 'Email notifications have been turned off');
-            }
-        }
-
-        document.getElementById('emailInput')?.addEventListener('change', (e) => {
-            emailAddress = e.target.value;
-            if (emailAddress && emailEnabled) {
-                addAlert('success', 'Email Configured', `Alerts will be sent to ${emailAddress}`);
-            }
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            loadData();
         });
 
-        // Monitor health check interval (reduced frequency)
-        setInterval(() => {
-            if (monitoringEnabled) {
-                checkModuleHealth();
-            }
-        }, 60000); // Check every 60 seconds (reduced from 30)
+        // Event Listeners
+        function setupEventListeners() {
+            // Search
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', debounce((e) => {
+                searchQuery = e.target.value.toLowerCase();
+                applyFilters();
+            }, 300));
 
-        // Connect to WebSocket with retry limit
-        let reconnectAttempts = 0;
-        const maxReconnectAttempts = 5; // Increased from 3 for better reliability
-        let reconnectTimeout = null;
-
-        function connect() {
-            // Cancel any pending reconnection
-            if (reconnectTimeout) {
-                clearTimeout(reconnectTimeout);
-                reconnectTimeout = null;
-            }
-
-            ws = new WebSocket(`ws://${window.location.host}/ws`);
-            
-            ws.onopen = () => {
-                reconnectAttempts = 0; // Reset on successful connection
-                document.getElementById('connectionDot').className = 'status-dot connected';
-                document.getElementById('connectionText').textContent = 'Connected';
-                addAlert('success', 'WebSocket Connected', 'Real-time updates are active');
-            };
-
-            ws.onclose = () => {
-                document.getElementById('connectionDot').className = 'status-dot disconnected';
-                document.getElementById('connectionText').textContent = 'Disconnected';
-                
-                // Only show alert and reconnect if we haven't exceeded max attempts
-                if (reconnectAttempts < maxReconnectAttempts) {
-                    // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
-                    const delay = Math.min(500 * Math.pow(2, reconnectAttempts), 10000);
-                    addAlert('warning', 'WebSocket Disconnected', `Reconnecting in ${delay/1000}s (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
-                    reconnectAttempts++;
-                    reconnectTimeout = setTimeout(connect, delay);
-                } else {
-                    // Stop trying - system is offline
-                    addAlert('info', 'System Offline', 'UI is running in offline mode. Start the backend to enable real-time updates.');
-                    document.getElementById('connectionText').textContent = 'Offline Mode';
-                }
-            };
-
-            ws.onerror = (error) => {
-                // Only show error if we're still trying to connect
-                if (reconnectAttempts < maxReconnectAttempts) {
-                    addAlert('error', 'WebSocket Error', 'Connection error occurred');
-                }
-            };
-
-            ws.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                
-                if (message.type === 'data_update') {
-                    const dataString = JSON.stringify(message.data);
-                    if (dataString !== lastDataString) {  // Only update if data changed
-                        lastDataString = dataString;
-                        handleDataUpdate(message.data);
-                    }
-                } else if (message.type === 'status_update') {
-                    handleStatusUpdate(message.status);
-                }
-
-                document.getElementById('lastUpdate').textContent = 
-                    `Last update: ${new Date(message.timestamp).toLocaleTimeString()}`;
-            };
-        }
-
-        function handleDataUpdate(data) {
-            console.log('🔄 handleDataUpdate called', {
-                pregame: data.pregame_matches?.length || 0,
-                live: data.live_matches?.length || 0,
-                dataKeys: Object.keys(data)
-            });
-            
-            // Filter out old pregame matches that have passed
-            const now = new Date();
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            let pregameMatches = (data.pregame_matches || []).filter(match => {
-                // If match is marked as live, keep it
-                if (match.is_live) return true;
-                
-                // Parse match date/time
-                let matchDate = null;
-                
-                // Try different date formats
-                if (match.date && match.time) {
-                    // Format: "Fri Dec 06" and "10:30 PM"
-                    const dateTimeStr = `${match.date} ${now.getFullYear()} ${match.time}`;
-                    matchDate = new Date(dateTimeStr);
-                } else if (match.match_time) {
-                    matchDate = new Date(match.match_time);
-                } else if (match.start_time) {
-                    // Unix timestamp
-                    matchDate = new Date(match.start_time * 1000);
-                }
-                
-                // If we couldn't parse the date, keep the match (better safe than sorry)
-                if (!matchDate || isNaN(matchDate.getTime())) {
-                    return true;
-                }
-                
-                // Filter out matches that are before today
-                const matchDateOnly = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
-                const isPast = matchDateOnly < todayStart;
-                
-                if (isPast) {
-                    console.log(`🗑️ Filtered old match: ${match.home_team} vs ${match.away_team} (${match.date} ${match.time})`);
-                }
-                
-                return !isPast;
-            });
-            
-            allMatches = [
-                ...pregameMatches,
-                ...(data.live_matches || [])
-            ];
-            
-            console.log('✅ allMatches updated:', allMatches.length, 'total matches (filtered', (data.pregame_matches?.length || 0) - pregameMatches.length, 'old pregame)');
-
-            updateCount++;
-            document.getElementById('updateCount').textContent = updateCount;
-            lastUpdateTime = Date.now();
-
-            // Track pregame and live updates separately
-            const nowTimestamp = Date.now();
-            const hasNewPregame = (data.pregame_matches || []).length > 0;
-            const hasNewLive = (data.live_matches || []).length > 0;
-
-            // Update pregame fetching status
-            if (hasNewPregame) {
-                lastPregameUpdate = nowTimestamp;
-                updateFetchingStatus('pregame', true);
-            } else {
-                // Check if data is stale
-                const pregameStale = lastPregameUpdate && (nowTimestamp - lastPregameUpdate > 60000); // 1 min
-                updateFetchingStatus('pregame', false, pregameStale);
-            }
-
-            // Update live fetching status
-            if (hasNewLive) {
-                lastLiveUpdate = nowTimestamp;
-                updateFetchingStatus('live', true);
-            } else {
-                // Check if data is stale
-                const liveStale = lastLiveUpdate && (nowTimestamp - lastLiveUpdate > 60000); // 1 min
-                updateFetchingStatus('live', false, liveStale);
-            }
-
-            // Throttle alerts - only show data quality issues every 5 minutes
-            const timeSinceLastAlert = nowTimestamp - (window.lastDataQualityAlert || 0);
-            if (timeSinceLastAlert > 300000) { // 5 minutes
-                // Check for data quality issues
-                if (allMatches.length === 0 && updateCount > 5) {
-                    addAlert('warning', 'No Matches Available', 'All data sources are returning empty results');
-                    window.lastDataQualityAlert = nowTimestamp;
-                }
-
-                // Check if any matches have missing odds
-                const matchesWithIssues = allMatches.filter(m => {
-                    const sources = [m.bet365?.available, m.fanduel?.available, m['1xbet']?.available];
-                    return sources.filter(Boolean).length === 0;
+            // Market Tabs
+            document.querySelectorAll('.market-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentMarket = tab.dataset.market;
+                    applyFilters();
                 });
+            });
 
-                if (matchesWithIssues.length > 0 && updateCount > 3) {
-                    addAlert('warning', 'Data Quality Issue', `${matchesWithIssues.length} matches have no odds from any source`);
-                    window.lastDataQualityAlert = nowTimestamp;
-                }
-            }
+            // Filter Buttons
+            document.getElementById('todayBtn').addEventListener('click', () => {
+                document.getElementById('todayBtn').classList.toggle('active');
+                applyFilters();
+            });
 
-            updateStats(data);
-            extractSports();
-            applyFilters();
-            console.log('📊 Stats updated, filters applied, displaying matches...');
+            document.getElementById('liveOnlyBtn').addEventListener('click', () => {
+                liveOnly = !liveOnly;
+                document.getElementById('liveOnlyBtn').classList.toggle('active');
+                applyFilters();
+            });
+
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                loadData();
+            });
+
+            // Dropdown toggles
+            setupDropdown('sportBtn', 'sportMenu');
+            setupDropdown('leagueBtn', 'leagueMenu');
         }
 
-        function updateFetchingStatus(type, isActive, isStale = false) {
-            const iconId = type === 'pregame' ? 'pregameFetchIcon' : 'liveFetchIcon';
-            const labelId = type === 'pregame' ? 'pregameFetchLabel' : 'liveFetchLabel';
-            const icon = document.getElementById(iconId);
-            const label = document.getElementById(labelId);
-            
-            if (isActive) {
-                icon.className = 'fetching-icon active';
-                label.className = 'fetching-label active';
-                label.textContent = `${type === 'pregame' ? 'Pregame' : 'Live'}: Real-time Fetching ✓`;
-            } else if (isStale) {
-                icon.className = 'fetching-icon cached';
-                label.className = 'fetching-label cached';
-                label.textContent = `${type === 'pregame' ? 'Pregame' : 'Live'}: Cached Data (Stale)`;
-            } else {
-                icon.className = 'fetching-icon cached';
-                label.className = 'fetching-label cached';
-                label.textContent = `${type === 'pregame' ? 'Pregame' : 'Live'}: From JSON Files`;
-            }
-        }
+        function setupDropdown(buttonId, menuId) {
+            const button = document.getElementById(buttonId);
+            const menu = document.getElementById(menuId);
 
-        function handleStatusUpdate(status) {
-            const now = Date.now();
-            
-            for (const [source, info] of Object.entries(status)) {
-                const element = document.getElementById(`status-${source}`);
-                if (element) {
-                    if (info.exists) {
-                        element.classList.add('active');
-                        
-                        // Update module status
-                        if (moduleStatus[source]) {
-                            const wasHealthy = moduleStatus[source].healthy;
-                            moduleStatus[source].healthy = true;
-                            moduleStatus[source].lastSeen = now;
-                            
-                            // If module recovered
-                            if (!wasHealthy && moduleStatus[source].errors.length > 0) {
-                                addAlert('success', `${source} Recovered`, 'Module is now functioning normally');
-                                moduleStatus[source].errors = [];
-                            }
-                        }
-                    } else {
-                        element.classList.remove('active');
-                        
-                        // Mark module as unhealthy
-                        if (moduleStatus[source] && moduleStatus[source].healthy) {
-                            moduleStatus[source].healthy = false;
-                            addAlert('error', `${source} Failed`, 'Data source is not available');
-                            moduleStatus[source].errors.push({ time: now, reason: 'File not found' });
-                        }
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.dropdown-menu').forEach(m => {
+                    if (m !== menu) m.classList.remove('active');
+                });
+                menu.classList.toggle('active');
+            });
+
+            document.addEventListener('click', () => {
+                menu.classList.remove('active');
+            });
+
+            menu.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (e.target.classList.contains('dropdown-item')) {
+                    menu.querySelectorAll('.dropdown-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    e.target.classList.add('selected');
+
+                    if (menuId === 'leagueMenu') {
+                        selectedLeague = e.target.dataset.value;
+                        document.getElementById('leagueLabel').textContent =
+                            e.target.textContent;
+                        applyFilters();
                     }
+
+                    menu.classList.remove('active');
                 }
-            }
-            
-            checkModuleHealth();
+            });
         }
 
-        function updateStats(data) {
-            // Count ONLY from allMatches (current matches), not history or futures
-            let pregame = 0;
-            let live = 0;
-            
-            allMatches.forEach(m => {
-                if (m.is_live) {
-                    live++;
-                } else {
-                    pregame++;
-                }
-            });
-            
-            const total = pregame + live;
+        // Load Data
+        async function loadData() {
+            showLoading(true);
+            updateStatus('Fetching...');
 
-            // Count matches with 2 or 3 sources from current matches only
-            let twoSourceCount = 0;
-            let threeSourceCount = 0;
-            
-            allMatches.forEach(m => {
-                const sources = [m.bet365?.available, m.fanduel?.available, m['1xbet']?.available].filter(Boolean);
-                if (sources.length === 2) twoSourceCount++;
-                if (sources.length === 3) threeSourceCount++;
-            });
+            try {
+                // Fetch from API endpoint
+                const response = await fetch('/oddsmagnet/football/top10');
+                const data = await response.json();
 
-            document.getElementById('totalMatches').textContent = total;
-            document.getElementById('pregameMatches').textContent = pregame;
-            document.getElementById('liveMatches').textContent = live;
-            document.getElementById('twoSourceMatches').textContent = twoSourceCount;
-            document.getElementById('threeSourceMatches').textContent = threeSourceCount;
-            document.getElementById('filteredCount').textContent = filteredMatches.length;
+                allMatches = data.matches || [];
+
+                // Extract unique bookmakers
+                extractBookmakers();
+
+                // Populate league dropdown
+                populateLeagueDropdown();
+
+                // Apply filters and render
+                applyFilters();
+
+                updateStatus('Live');
+                showLoading(false);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                updateStatus('Error');
+                showLoading(false);
+                showEmptyState('error');
+            }
         }
 
-        function extractSports() {
-            availableSports.clear();
-            // Respect current match type filter when building the sports list
-            let sourceMatches = allMatches;
-            if (currentMatchTypeFilter === 'live') {
-                sourceMatches = allMatches.filter(m => m.is_live === true);
-            } else if (currentMatchTypeFilter === 'pregame') {
-                sourceMatches = allMatches.filter(m => m.is_live !== true);
-            }
+        function extractBookmakers() {
+            const bookmakerSet = new Set();
 
-            sourceMatches.forEach(m => {
-                if (m.sport && m.sport.trim()) {  // Only add non-empty sports
-                    availableSports.add(m.sport);
+            allMatches.forEach(match => {
+                if (match.markets && match.markets['popular markets']) {
+                    match.markets['popular markets'].forEach(market => {
+                        if (market.odds) {
+                            market.odds.forEach(odd => {
+                                if (odd.bookmaker_code) {
+                                    bookmakerSet.add(JSON.stringify({
+                                        code: odd.bookmaker_code,
+                                        name: odd.bookmaker_name || odd.bookmaker_code
+                                    }));
+                                }
+                            });
+                        }
+                    });
                 }
             });
-            
-            const sportFilter = document.getElementById('sportFilter');
-            const sortedSports = Array.from(availableSports).sort();
-            
-            sportFilter.innerHTML = `
-                <span class="sport-chip ${currentSportFilter === 'all' ? 'active' : ''}" onclick="setSportFilter('all')">All Sports</span>
-                ${sortedSports.map(sport => 
-                    `<span class="sport-chip ${currentSportFilter === sport ? 'active' : ''}" onclick="setSportFilter('${sport.replace(/'/g, "\\'")}')">${sport}</span>`
-                ).join('')}
+
+            bookmakers = Array.from(bookmakerSet)
+                .map(b => JSON.parse(b))
+                .sort((a, b) => a.code.localeCompare(b.code));
+
+            document.getElementById('totalBookmakers').textContent = bookmakers.length;
+        }
+
+        function populateLeagueDropdown() {
+            const leagues = [...new Set(allMatches.map(m => m.league))].sort();
+            const menu = document.getElementById('leagueMenu');
+
+            menu.innerHTML = `
+                <div class="dropdown-item selected" data-value="all">All Leagues</div>
+                ${leagues.map(league =>
+                `<div class="dropdown-item" data-value="${league}">${league}</div>`
+            ).join('')}
             `;
+
+            document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
-        function setSourceFilter(filter) {
-            currentSourceFilter = filter;
-            document.querySelectorAll('[data-filter]').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.filter === filter);
-            });
-            applyFilters();
-        }
-
-        function setSportFilter(sport) {
-            currentSportFilter = sport;
-            // Re-render the sports filter to update active states
-            extractSports();
-            applyFilters();
-        }
-
-        function setMatchTypeFilter(type) {
-            currentMatchTypeFilter = type;
-            document.querySelectorAll('[data-type]').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === type);
-            });
-            
-            // Reset sport filter when changing match type
-            currentSportFilter = 'all';
-            
-            // Update sports filter based on the new match type
-            extractSports();
-            applyFilters();
-        }
-
-        function clearAllFilters() {
-            currentSourceFilter = 'all';
-            currentSportFilter = 'all';
-            currentMatchTypeFilter = 'all';
-            searchQuery = '';
-            document.getElementById('searchInput').value = '';
-            
-            document.querySelectorAll('[data-filter]').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.filter === 'all');
-            });
-            document.querySelectorAll('[data-type]').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === 'all');
-            });
-            
-            extractSports();
-            applyFilters();
-        }
-
+        // Filters
         function applyFilters() {
-            let filtered = allMatches;
+            let matches = [...allMatches];
 
-            // Match type filter (live/pregame)
-            if (currentMatchTypeFilter === 'live') {
-                filtered = filtered.filter(m => m.is_live === true);
-            } else if (currentMatchTypeFilter === 'pregame') {
-                filtered = filtered.filter(m => m.is_live !== true);
-            }
-
-            // Source filter
-            if (currentSourceFilter === 'bet365') {
-                filtered = filtered.filter(m => m.bet365?.available);
-            } else if (currentSourceFilter === 'fanduel') {
-                filtered = filtered.filter(m => m.fanduel?.available);
-            } else if (currentSourceFilter === '1xbet') {
-                filtered = filtered.filter(m => m['1xbet']?.available);
-            } else if (currentSourceFilter === 'multi') {
-                filtered = filtered.filter(m => {
-                    const count = [m.bet365?.available, m.fanduel?.available, m['1xbet']?.available].filter(Boolean).length;
-                    return count >= 2;
-                });
-            } else if (currentSourceFilter === 'triple') {
-                filtered = filtered.filter(m =>
-                    m.bet365?.available && m.fanduel?.available && m['1xbet']?.available
-                );
-            }
-
-            // Sport filter
-            if (currentSportFilter !== 'all') {
-                filtered = filtered.filter(m => m.sport === currentSportFilter);
+            // League filter
+            if (selectedLeague !== 'all') {
+                matches = matches.filter(m => m.league === selectedLeague);
             }
 
             // Search filter
             if (searchQuery) {
-                const query = searchQuery.toLowerCase();
-                filtered = filtered.filter(m =>
-                    m.home_team.toLowerCase().includes(query) ||
-                    m.away_team.toLowerCase().includes(query) ||
-                    m.sport.toLowerCase().includes(query)
+                matches = matches.filter(m =>
+                    m.match_name?.toLowerCase().includes(searchQuery) ||
+                    m.league?.toLowerCase().includes(searchQuery) ||
+                    m.home_team?.toLowerCase().includes(searchQuery) ||
+                    m.away_team?.toLowerCase().includes(searchQuery)
                 );
             }
 
-            filteredMatches = filtered;
-            currentPage = 1; // Reset to first page when filters change
-            document.getElementById('filteredCount').textContent = filtered.length;
-            updatePagination();
-            displayMatches();
+            // Live only filter
+            if (liveOnly) {
+                matches = matches.filter(m => m.is_live);
+            }
+
+            // Today filter
+            if (document.getElementById('todayBtn').classList.contains('active')) {
+                const today = new Date().toDateString();
+                matches = matches.filter(m => {
+                    if (!m.match_date) return false;
+                    return new Date(m.match_date).toDateString() === today;
+                });
+            }
+
+            filteredMatches = matches;
+
+            // Update stats
+            document.getElementById('totalMatches').textContent = filteredMatches.length;
+
+            // Render table
+            renderTable();
         }
 
-        function updatePagination() {
-            const total = filteredMatches.length;
-            totalPages = Math.ceil(total / pageSize) || 1;
-            
-            if (totalPages === 1 && total > 0) {
-                document.getElementById('paginationWrapper').style.display = 'none';
-                return;
-            }
-            
-            if (total === 0) {
-                document.getElementById('paginationWrapper').style.display = 'none';
-                return;
-            }
+        // Render Table
+        function renderTable() {
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
 
-            document.getElementById('paginationWrapper').style.display = 'flex';
-            
-            const start = (currentPage - 1) * pageSize + 1;
-            const end = Math.min(currentPage * pageSize, total);
-            
-            document.getElementById('pageStart').textContent = start;
-            document.getElementById('pageEnd').textContent = end;
-            document.getElementById('pageTotal').textContent = total;
-            
-            // Update buttons
-            document.getElementById('prevPage').disabled = currentPage === 1;
-            document.getElementById('nextPage').disabled = currentPage === totalPages;
-            
-            // Generate page numbers
-            const pageNumbers = document.getElementById('pageNumbers');
-            let html = '';
-            
-            const maxVisible = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-            
-            if (endPage - startPage < maxVisible - 1) {
-                startPage = Math.max(1, endPage - maxVisible + 1);
-            }
-            
-            if (startPage > 1) {
-                html += `<button class="page-btn" onclick="goToPage(1)">1</button>`;
-                if (startPage > 2) {
-                    html += `<span style="color: #6b7280; padding: 0 8px;">...</span>`;
-                }
-            }
-            
-            for (let i = startPage; i <= endPage; i++) {
-                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-            }
-            
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    html += `<span style="color: #6b7280; padding: 0 8px;">...</span>`;
-                }
-                html += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
-            }
-            
-            pageNumbers.innerHTML = html;
-        }
-
-        function changePage(delta) {
-            const newPage = currentPage + delta;
-            if (newPage >= 1 && newPage <= totalPages) {
-                currentPage = newPage;
-                updatePagination();
-                displayMatches();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-
-        function goToPage(page) {
-            currentPage = page;
-            updatePagination();
-            displayMatches();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function changePageSize() {
-            pageSize = parseInt(document.getElementById('pageSize').value);
-            currentPage = 1;
-            updatePagination();
-            displayMatches();
-        }
-
-        function displayMatches() {
-            console.log('🖼️ displayMatches called', {
-                filteredCount: filteredMatches.length,
-                currentPage,
-                pageSize
-            });
-            
-            const container = document.getElementById('matchesGrid');
-            
-            // Pagination
-            const start = (currentPage - 1) * pageSize;
-            const end = start + pageSize;
-            const paginatedMatches = filteredMatches.slice(start, end);
-            
-            if (paginatedMatches.length === 0) {
-                container.innerHTML = `
-                    <div class="no-data">
-                        <i class="fas fa-search"></i>
-                        <h3>No matches found</h3>
-                        <p>Try adjusting your filters or search query</p>
-                    </div>
-                `;
+            if (filteredMatches.length === 0) {
+                showEmptyState('no-results');
                 return;
             }
 
-            // Generate unique ID for each match
-            const getMatchId = (match) => {
-                return `${match.sport}_${match.home_team}_${match.away_team}`.replace(/[^a-z0-9]/gi, '_');
+            // Render header
+            tableHead.innerHTML = `
+                <tr>
+                    <th>Match</th>
+                    ${bookmakers.map(bm => `
+                        <th>
+                            <div class="bookmaker-header">
+                                <div class="bookmaker-logo bm-${bm.code}">${getBookmakerInitials(bm.code)}</div>
+                                <div style="font-size: 11px;">${bm.code}</div>
+                            </div>
+                        </th>
+                    `).join('')}
+                </tr>
+            `;
+
+            // Render body
+            const rows = filteredMatches.map(match => renderMatchRow(match)).join('');
+            tableBody.innerHTML = rows;
+        }
+
+        function renderMatchRow(match) {
+            const teams = match.match_name ? match.match_name.split(' v ') : ['Team 1', 'Team 2'];
+            const matchDate = match.match_date ? new Date(match.match_date) : null;
+            const timeStr = matchDate ?
+                `${matchDate.getMonth() + 1}/${matchDate.getDate()} - ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
+                'TBD';
+
+            // Get odds for this match
+            const oddsMap = getMatchOdds(match, currentMarket);
+
+            return `
+                <tr>
+                    <td>
+                        <div class="match-cell">
+                            <div class="match-time">
+                                <span>${timeStr}</span>
+                                ${match.is_live ? '<span class="match-status live">LIVE</span>' : ''}
+                            </div>
+                            <div class="match-teams">
+                                <div class="team-name">${teams[0] || 'Team 1'}</div>
+                                <div class="team-name">${teams[1] || 'Team 2'}</div>
+                            </div>
+                            <div class="match-league">${match.league || 'Unknown'}</div>
+                        </div>
+                    </td>
+                    ${bookmakers.map(bm => {
+                const odd = oddsMap.get(bm.code);
+                return renderOddsCell(odd, match.match_name, bm.code);
+            }).join('')}
+                </tr>
+            `;
+        }
+
+        function getMatchOdds(match, marketType) {
+            const oddsMap = new Map();
+
+            if (!match.markets || !match.markets['popular markets']) {
+                return oddsMap;
+            }
+
+            // Find the right market (simplified - looking for "win" market)
+            const winMarket = match.markets['popular markets'].find(m =>
+                m.market_name?.toLowerCase().includes('win')
+            );
+
+            if (winMarket && winMarket.odds) {
+                // For now, we'll show home team odds
+                winMarket.odds.forEach(odd => {
+                    if (odd.bookmaker_code && odd.selection?.toLowerCase().includes('home')) {
+                        oddsMap.set(odd.bookmaker_code, odd);
+                    }
+                });
+            }
+
+            return oddsMap;
+        }
+
+        function renderOddsCell(odd, matchName, bookmakerCode) {
+            if (!odd || !odd.decimal_odds) {
+                return '<td><div class="odds-cell locked"></div></td>';
+            }
+
+            const oddKey = `${matchName}-${bookmakerCode}`;
+            const prevOdd = previousOdds.get(oddKey);
+            let flashClass = '';
+
+            if (prevOdd && prevOdd !== odd.decimal_odds) {
+                flashClass = odd.decimal_odds > prevOdd ? 'flash-up' : 'flash-down';
+            }
+
+            previousOdds.set(oddKey, odd.decimal_odds);
+
+            const rankClass = odd.is_best_odds ? 'best' : 'average';
+            const clickoutUrl = odd.clickout_url || '#';
+
+            return `
+                <td>
+                    <a href="${clickoutUrl}" target="_blank" style="text-decoration: none;">
+                        <div class="odds-cell ${rankClass} ${flashClass}">
+                            <div class="odds-value">${formatOdds(odd.decimal_odds)}</div>
+                            ${odd.fractional_odds ? `<div style="font-size: 10px; color: var(--text-muted);">${odd.fractional_odds}</div>` : ''}
+                        </div>
+                    </a>
+                </td>
+            `;
+        }
+
+        // Utilities
+        function getBookmakerInitials(code) {
+            const map = {
+                'D': 'D',
+                'F': 'F',
+                'BM': 'BM',
+                'C': 'C',
+                'BE': 'BE',
+                'P': 'P',
+                'B': 'B',
+                '1X': '1X',
+                'S': 'S'
             };
+            return map[code] || code.substring(0, 2).toUpperCase();
+        }
 
-            // Get existing cards
-            const existingCards = {};
-            container.querySelectorAll('.match-card').forEach(card => {
-                const id = card.dataset.matchId;
-                if (id) existingCards[id] = card;
-            });
+        function formatOdds(odds) {
+            if (!odds) return '-';
+            if (odds > 0) return `+${odds}`;
+            return odds.toString();
+        }
 
-            // Build new cards efficiently
-            const newMatchIds = new Set();
-            const fragment = document.createDocumentFragment();
-            
-            paginatedMatches.forEach(match => {
-                const matchId = getMatchId(match);
-                newMatchIds.add(matchId);
-                
-                const badges = [];
-                if (match.bet365?.available) badges.push('<span class="bookmaker-badge badge-bet365">Bet365</span>');
-                if (match.fanduel?.available) badges.push('<span class="bookmaker-badge badge-fanduel">FanDuel</span>');
-                if (match['1xbet']?.available) badges.push('<span class="bookmaker-badge badge-1xbet">1xBet</span>');
+        function showEmptyState(type) {
+            const tableBody = document.getElementById('tableBody');
+            const icon = type === 'error' ? 'fa-exclamation-triangle' : 'fa-search';
+            const title = type === 'error' ? 'Error Loading Data' : 'No Matches Found';
+            const description = type === 'error' ?
+                'There was an error loading the data. Please try again.' :
+                'Try adjusting your filters or search query.';
 
-                const sourcesCount = badges.length;
-
-                const liveIndicator = match.is_live ? 
-                    `<span style="color: #ef4444; display: flex; align-items: center; gap: 6px; font-size: 0.85em;"><i class="fas fa-circle"></i> LIVE</span>` : 
-                    `<span style="color: #10b981; display: flex; align-items: center; gap: 6px; font-size: 0.85em;"><i class="fas fa-clock"></i> Pregame</span>`;
-
-                // Format live score display
-                let scoreDisplay = '';
-                if (match.is_live && match.score) {
-                    const score = match.score;
-                    const sport = match.sport?.toLowerCase() || '';
-                    const homeScore = score.home_score || '0';
-                    const awayScore = score.away_score || '0';
-                    const period = score.period || '';
-                    const timeRemaining = score.time_remaining || '';
-                    
-                    // Tennis-specific score display - simplified
-                    if (sport.includes('tennis')) {
-                        let setsInfo = '';
-                        if (score.periods && score.periods.length > 0) {
-                            // Show sets as simple chips
-                            setsInfo = `
-                                <div class="period-scores">
-                                    ${score.periods.map((p, idx) => `
-                                        <span class="period-score" title="Set ${idx + 1}">
-                                            ${p.score1}-${p.score2}
-                                        </span>
-                                    `).join('')}
-                                </div>
-                            `;
-                        }
-                        
-                        scoreDisplay = `
-                            <div class="live-score-display">
-                                <div class="score-row">
-                                    <span class="score-value score-compact">${homeScore}</span>
-                                    <span class="score-separator">-</span>
-                                    <span class="score-value score-compact">${awayScore}</span>
-                                </div>
-                                ${setsInfo}
-                                ${period ? `
-                                    <div class="score-info">
-                                        <span><i class="fas fa-trophy"></i> ${period}</span>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    } else {
-                        // Standard score display for other sports
-                        // Check if we have detailed period scores
-                        let periodScoresHtml = '';
-                        if (score.periods && score.periods.length > 0) {
-                            periodScoresHtml = `
-                                <div class="period-scores">
-                                    ${score.periods.map(p => `
-                                        <span class="period-score" title="${p.period_name || 'Period ' + p.period}">
-                                            ${p.score1}-${p.score2}
-                                        </span>
-                                    `).join('')}
-                                </div>
-                            `;
-                        }
-                        
-                        // Cricket-specific format: runs/wickets
-                        let homeScoreDisplay = homeScore;
-                        let awayScoreDisplay = awayScore;
-                        if (sport.includes('cricket')) {
-                            // Check if wickets data exists
-                            const homeWickets = score.home_wickets !== undefined ? score.home_wickets : '';
-                            const awayWickets = score.away_wickets !== undefined ? score.away_wickets : '';
-                            homeScoreDisplay = homeWickets !== '' ? `${homeScore}/${homeWickets}` : homeScore;
-                            awayScoreDisplay = awayWickets !== '' ? `${awayScore}/${awayWickets}` : awayScore;
-                        }
-                        
-                        scoreDisplay = `
-                            <div class="live-score-display">
-                                <div class="score-row">
-                                    <span class="score-value">${homeScoreDisplay}</span>
-                                    <span class="score-separator">-</span>
-                                    <span class="score-value">${awayScoreDisplay}</span>
-                                </div>
-                                ${periodScoresHtml}
-                                ${period || timeRemaining ? `
-                                    <div class="score-info">
-                                        ${period ? `<span><i class="fas fa-trophy"></i> ${period}</span>` : ''}
-                                        ${timeRemaining ? `<span><i class="fas fa-clock"></i> ${timeRemaining}</span>` : ''}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    }
-                }
-
-                const cardHtml = `
-                    <div class="match-card-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                        <span class="sport-badge">${match.sport}</span>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            ${liveIndicator}
-                                <div class="header-datetime">
-                                    <div class="hdr-date">${(match.date && match.date !== 'Live') ? match.date : (match['1xbet']?.live_data?.start_time_readable || '')}</div>
-                                    <div class="hdr-time">${match.time || match['1xbet']?.live_data?.start_time_readable || ''}</div>
-                                </div>
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="100%">
+                        <div class="empty-state fade-in">
+                            <div class="empty-icon"><i class="fas ${icon}"></i></div>
+                            <div class="empty-title">${title}</div>
+                            <div class="empty-description">${description}</div>
                         </div>
-                    </div>
-                    <div class="match-teams">
-                        <div class="team">${match.home_team}</div>
-                        <div class="vs-divider">${match.is_live && scoreDisplay ? '' : 'VS'}</div>
-                        <div class="team">${match.away_team}</div>
-                    </div>
-                    ${scoreDisplay}
-                    <div class="match-info">
-                        <span><i class="fas fa-calendar"></i> ${match.date || 'TBD'}</span>
-                        <span><i class="fas fa-clock"></i> ${match.time || 'TBD'}</span>
-                    </div>
-                    <div class="match-footer">
-                        <div class="bookmaker-badges">${badges.join('')}</div>
-                        <div class="sources-count">
-                            <i class="fas fa-database"></i> ${sourcesCount} ${sourcesCount === 1 ? 'source' : 'sources'}
-                        </div>
-                    </div>
-                `;
+                    </td>
+                </tr>
+            `;
+        }
 
-                // Check if card exists and needs update
-                if (existingCards[matchId]) {
-                    const existingCard = existingCards[matchId];
-                    if (existingCard.innerHTML !== cardHtml) {
-                        // Update only if content changed
-                        existingCard.innerHTML = cardHtml;
-                        existingCard.onclick = () => openMatchModal(match);
-                        // Add brief highlight animation for updates
-                        existingCard.classList.add('updated');
-                        setTimeout(() => existingCard.classList.remove('updated'), 600);
-                    }
-                    fragment.appendChild(existingCard);
-                } else {
-                    // Create new card with fade-in animation
-                    const cardDiv = document.createElement('div');
-                    cardDiv.className = 'match-card new-card';
-                    cardDiv.dataset.matchId = matchId;
-                    cardDiv.innerHTML = cardHtml;
-                    cardDiv.onclick = () => openMatchModal(match);
-                    fragment.appendChild(cardDiv);
-                    // Remove animation class after it completes
-                    setTimeout(() => cardDiv.classList.remove('new-card'), 400);
-                }
-            });
-
-            // Smart update: Only replace if needed, minimize flicker
-            const currentCardIds = Array.from(container.children).map(c => c.dataset?.matchId).filter(Boolean);
-            const newCardIdsArray = Array.from(newMatchIds);
-            
-            // Check if order or cards changed
-            const structureChanged = currentCardIds.length !== newCardIdsArray.length || 
-                currentCardIds.some((id, idx) => id !== newCardIdsArray[idx]);
-            
-            if (structureChanged) {
-                // Only clear and rebuild if structure changed (prevents flicker on updates)
-                container.innerHTML = '';
-                container.appendChild(fragment);
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.add('active');
             } else {
-                // Cards are in same order, updates already applied in-place above
-                // No need to rebuild DOM
+                overlay.classList.remove('active');
             }
         }
 
-        function openMatchModal(match) {
-            const modal = document.getElementById('matchModal');
-            const sourcesCount = [match.bet365?.available, match.fanduel?.available, match['1xbet']?.available].filter(Boolean).length;
-            const matchType = match.is_live ? '<span style="color: #ef4444;"><i class="fas fa-circle"></i> LIVE</span>' : '<span style="color: #10b981;"><i class="fas fa-clock"></i> Pregame</span>';
-
-            document.getElementById('modalTitle').textContent = `${match.home_team} vs ${match.away_team}`;
-            
-            // Build subtitle with score if live
-            let subtitleHtml = `
-                <span><i class="fas fa-trophy"></i> ${match.sport}</span>
-                <span>${matchType}</span>
-            `;
-            
-            // Add live score to subtitle if available
-            if (match.is_live && match.score) {
-                const score = match.score;
-                const homeScore = score.home_score || '0';
-                const awayScore = score.away_score || '0';
-                subtitleHtml += `<span style="color: #3b82f6; font-weight: 700; font-size: 16px;"><i class="fas fa-chart-line"></i> ${homeScore} - ${awayScore}</span>`;
-                
-                if (score.period) {
-                    subtitleHtml += `<span><i class="fas fa-hourglass-half"></i> ${score.period}</span>`;
-                }
-                if (score.time_remaining) {
-                    subtitleHtml += `<span><i class="fas fa-clock"></i> ${score.time_remaining}</span>`;
-                }
-                
-                // Add period-by-period scores if available
-                if (score.periods && score.periods.length > 0) {
-                    const periodsText = score.periods.map(p => `${p.period_name || 'P'+p.period}: ${p.score1}-${p.score2}`).join(' | ');
-                    subtitleHtml += `<span style="font-size: 12px;"><i class="fas fa-list"></i> ${periodsText}</span>`;
-                }
-            }
-            
-            subtitleHtml += `
-                <span><i class="fas fa-calendar"></i> ${match.date || 'TBD'}</span>
-                <span><i class="fas fa-clock"></i> ${match.time || 'TBD'}</span>
-                <span><i class="fas fa-chart-line"></i> ${sourcesCount} source(s)</span>
-            `;
-
-            // If match is live and we have scheduled date/time (from 1xBet), ensure it's clear in modal
-            if (match.is_live && match.date && match.date !== 'Live') {
-                subtitleHtml += `<span style="font-weight:600; color:#cbd5e1;"><i class="fas fa-calendar-alt"></i> Scheduled: ${match.date} ${match.time || ''}</span>`;
-            }
-            
-            document.getElementById('modalSubtitle').innerHTML = subtitleHtml;
-
-            let bodyHtml = '';
-            
-            // Add statistics section if available (mainly from 1xBet)
-            if (match.is_live && match.score && match.score.statistics && match.score.statistics.length > 0) {
-                bodyHtml += `
-                    <div class="statistics-section" style="background: #1a1a27; border: 1px solid #2a2a3e; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                        <h3 style="color: #ffffff; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-chart-bar"></i> Live Match Statistics
-                        </h3>
-                        <div style="display: grid; gap: 12px;">
-                            ${match.score.statistics.map(stat => `
-                                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center;">
-                                    <div style="text-align: right; font-weight: 600; color: #3b82f6;">${stat.value1}</div>
-                                    <div style="font-size: 12px; color: #9ca3af; text-align: center; min-width: 120px;">${stat.name}</div>
-                                    <div style="text-align: left; font-weight: 600; color: #ef4444;">${stat.value2}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (match.bet365?.available) bodyHtml += createBookmakerModal('Bet365', match.bet365, match, 'bet365');
-            if (match.fanduel?.available) bodyHtml += createBookmakerModal('FanDuel', match.fanduel, match, 'fanduel');
-            if (match['1xbet']?.available) bodyHtml += createBookmakerModal('1xBet', match['1xbet'], match, '1xbet');
-
-            document.getElementById('modalBody').innerHTML = bodyHtml;
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
+        function updateStatus(text) {
+            document.getElementById('liveStatus').textContent = text;
         }
 
-        function closeModal() {
-            document.getElementById('matchModal').classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        function createBookmakerModal(name, data, match, type) {
-            const odds = data.odds || {};
-            const iconClass = `icon-${type}`;
-            
-            let html = `
-                <div class="bookmaker-section">
-                    <div class="bookmaker-header">
-                        <div class="bookmaker-name">
-                            <div class="bookmaker-icon ${iconClass}">${name[0]}</div>
-                            ${name}
-                        </div>
-                    </div>
-                    <div class="odds-grid">
-            `;
-
-            if (type === 'fanduel') {
-                let hasAnyOdds = false;
-                
-                if (odds.moneyline_home != null) {
-                    hasAnyOdds = true;
-                    html += `
-                        <div class="odds-type-card">
-                            <div class="odds-type-label"><i class="fas fa-dollar-sign"></i> Moneyline</div>
-                            <div class="odds-values-grid">
-                                <div class="odds-value-row">
-                                    <span class="odds-team-label">${match.home_team}</span>
-                                    <span class="odds-value">${odds.moneyline_home > 0 ? '+' : ''}${odds.moneyline_home}</span>
-                                </div>
-                                <div class="odds-value-row">
-                                    <span class="odds-team-label">${match.away_team}</span>
-                                    <span class="odds-value">${odds.moneyline_away > 0 ? '+' : ''}${odds.moneyline_away}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                if (odds.spread_home_line != null) {
-                    hasAnyOdds = true;
-                    html += `
-                        <div class="odds-type-card">
-                            <div class="odds-type-label"><i class="fas fa-chart-line"></i> Spread</div>
-                            <div class="odds-values-grid">
-                                <div class="odds-value-row">
-                                    <span class="odds-team-label">${match.home_team}</span>
-                                    <span class="odds-value">${odds.spread_home_line > 0 ? '+' : ''}${odds.spread_home_line} (${odds.spread_home_odds})</span>
-                                </div>
-                                <div class="odds-value-row">
-                                    <span class="odds-team-label">${match.away_team}</span>
-                                    <span class="odds-value">${odds.spread_away_line > 0 ? '+' : ''}${odds.spread_away_line} (${odds.spread_away_odds})</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                if (odds.total_line != null) {
-                    hasAnyOdds = true;
-                    html += `
-                        <div class="odds-type-card">
-                            <div class="odds-type-label"><i class="fas fa-bullseye"></i> Total</div>
-                            <div class="odds-values-grid">
-                                <div class="odds-value-row">
-                                    <span class="odds-team-label">Over ${odds.total_line}</span>
-                                    <span class="odds-value">${odds.total_over_odds}</span>
-                                </div>
-                                <div class="odds-value-row">
-                                    <span class="odds-team-label">Under ${odds.total_line}</span>
-                                    <span class="odds-value">${odds.total_under_odds}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // If no odds available, show a message
-                if (!hasAnyOdds) {
-                    html += `
-                        <div class="odds-type-card" style="text-align: center; padding: 24px; color: #94a3b8;">
-                            <i class="fas fa-info-circle" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
-                            <div style="font-size: 14px;">Odds not yet available for this match</div>
-                            <div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">Match is listed but detailed odds are pending</div>
-                        </div>
-                    `;
-                }
-            } else if (type === '1xbet') {
-                let hasAnyOdds = false;
-                
-                if (odds.moneyline_home || odds.moneyline_away) {
-                    hasAnyOdds = true;
-                    html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-dollar-sign"></i> Moneyline</div><div class="odds-values-grid">
-                        <div class="odds-value-row"><span class="odds-team-label">${match.home_team}</span><span class="odds-value">${odds.moneyline_home || 'N/A'}</span></div>
-                        <div class="odds-value-row"><span class="odds-team-label">${match.away_team}</span><span class="odds-value">${odds.moneyline_away || 'N/A'}</span></div>
-                    </div></div>`;
-                }
-                if (odds.spread_home || odds.spread_away) {
-                    hasAnyOdds = true;
-                    html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-chart-line"></i> Handicap</div><div class="odds-values-grid">
-                        <div class="odds-value-row"><span class="odds-team-label">${match.home_team}</span><span class="odds-value">${odds.spread_home || 'N/A'}</span></div>
-                        <div class="odds-value-row"><span class="odds-team-label">${match.away_team}</span><span class="odds-value">${odds.spread_away || 'N/A'}</span></div>
-                    </div></div>`;
-                }
-                if (odds.total_over || odds.total_under) {
-                    hasAnyOdds = true;
-                    html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-bullseye"></i> Total</div><div class="odds-values-grid">
-                        <div class="odds-value-row"><span class="odds-team-label">Over</span><span class="odds-value">${odds.total_over || 'N/A'}</span></div>
-                        <div class="odds-value-row"><span class="odds-team-label">Under</span><span class="odds-value">${odds.total_under || 'N/A'}</span></div>
-                    </div></div>`;
-                }
-                
-                // If no odds available, show a message
-                if (!hasAnyOdds) {
-                    html += `
-                        <div class="odds-type-card" style="text-align: center; padding: 24px; color: #94a3b8;">
-                            <i class="fas fa-info-circle" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
-                            <div style="font-size: 14px;">Odds not yet available for this match</div>
-                            <div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">Match is listed but detailed odds are pending</div>
-                        </div>
-                    `;
-                }
-            } else {
-                // Bet365
-                let hasAnyOdds = false;
-                
-                if (odds.moneyline?.length >= 2) {
-                    hasAnyOdds = true;
-                    html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-dollar-sign"></i> Moneyline</div><div class="odds-values-grid">
-                        <div class="odds-value-row"><span class="odds-team-label">${match.home_team}</span><span class="odds-value">${odds.moneyline[0]}</span></div>
-                        <div class="odds-value-row"><span class="odds-team-label">${match.away_team}</span><span class="odds-value">${odds.moneyline[1]}</span></div>
-                    </div></div>`;
-                }
-                if (odds.spread?.length >= 2) {
-                    hasAnyOdds = true;
-                    html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-chart-line"></i> Spread</div><div class="odds-values-grid">
-                        <div class="odds-value-row"><span class="odds-team-label">${match.home_team}</span><span class="odds-value">${odds.spread[0]}</span></div>
-                        <div class="odds-value-row"><span class="odds-team-label">${match.away_team}</span><span class="odds-value">${odds.spread[1]}</span></div>
-                    </div></div>`;
-                }
-                if (odds.total?.length >= 2) {
-                    hasAnyOdds = true;
-                    html += `<div class="odds-type-card"><div class="odds-type-label"><i class="fas fa-bullseye"></i> Total</div><div class="odds-values-grid">
-                        <div class="odds-value-row"><span class="odds-team-label">Over/Under</span><span class="odds-value">${odds.total[0]} / ${odds.total[1]}</span></div>
-                    </div></div>`;
-                }
-                
-                // If no odds available, show a message
-                if (!hasAnyOdds) {
-                    html += `
-                        <div class="odds-type-card" style="text-align: center; padding: 24px; color: #94a3b8;">
-                            <i class="fas fa-info-circle" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
-                            <div style="font-size: 14px;">Odds not yet available for this match</div>
-                            <div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">Match is listed but detailed odds are pending</div>
-                        </div>
-                    `;
-                }
-            }
-
-            html += `</div></div>`;
-            return html;
-        }
-
-        // Debounce helper function
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
@@ -3572,163 +1207,13 @@
             };
         }
 
-        // Search functionality with minimal debouncing (150ms for responsive feel)
-        const debouncedSearch = debounce((value) => {
-            searchQuery = value;
-            applyFilters();
-        }, 150);
-
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            debouncedSearch(e.target.value);
-        });
-
-        // Close modal on ESC key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
-        });
-
-        // Monitoring Dashboard Functions
-        function toggleMonitoring() {
-            const content = document.getElementById('monitoringContent');
-            const chevron = document.getElementById('monitoringChevron');
-            
-            if (content.classList.contains('show')) {
-                content.classList.remove('show');
-                chevron.style.transform = 'rotate(0deg)';
-            } else {
-                content.classList.add('show');
-                chevron.style.transform = 'rotate(180deg)';
-                fetchMonitoringStatus();
-            }
-        }
-
-        async function fetchMonitoringStatus() {
-            try {
-                const response = await fetch('/api/monitoring');
-                const data = await response.json();
-                
-                updateMonitoringDashboard(data);
-            } catch (error) {
-                console.error('Error fetching monitoring status:', error);
-                document.getElementById('monitoringBadge').textContent = 'Error';
-                document.getElementById('monitoringBadge').className = 'monitoring-badge inactive';
-            }
-        }
-
-        function updateMonitoringDashboard(data) {
-            const dashboard = document.getElementById('monitoringDashboard');
-            dashboard.style.display = 'block';
-            
-            // Update badge
-            const badge = document.getElementById('monitoringBadge');
-            if (data.monitoring_active) {
-                badge.textContent = 'Active';
-                badge.className = 'monitoring-badge active';
-            } else {
-                badge.textContent = 'Inactive';
-                badge.className = 'monitoring-badge inactive';
-            }
-
-            // Update last update time
-            const lastUpdateEl = document.getElementById('monitoringLastUpdate');
-            if (data.last_updated) {
-                try {
-                    const updateTime = new Date(data.last_updated);
-                    const now = new Date();
-                    const diffSeconds = Math.floor((now - updateTime) / 1000);
-                    
-                    let timeText;
-                    if (diffSeconds < 60) {
-                        timeText = `${diffSeconds}s ago`;
-                    } else if (diffSeconds < 3600) {
-                        timeText = `${Math.floor(diffSeconds / 60)}m ago`;
-                    } else {
-                        timeText = `${Math.floor(diffSeconds / 3600)}h ago`;
-                    }
-                    
-                    lastUpdateEl.textContent = `Updated ${timeText}`;
-                    
-                    // Warn if data is stale
-                    if (diffSeconds > 600) { // 10 minutes
-                        lastUpdateEl.style.color = '#ff6b6b';
-                    } else {
-                        lastUpdateEl.style.color = '#888';
-                    }
-                } catch (e) {
-                    lastUpdateEl.textContent = 'Update time unknown';
-                }
-            } else {
-                lastUpdateEl.textContent = 'Never updated';
-            }
-
-            // Update summary cards
-            if (data.summary) {
-                document.getElementById('healthyCount').textContent = data.summary.healthy || 0;
-                document.getElementById('warningCount').textContent = data.summary.warnings || 0;
-                document.getElementById('errorCount').textContent = data.summary.errors || 0;
-            }
-
-            // Update email status
-            document.getElementById('emailStatus').textContent = data.email_enabled ? 'Enabled' : 'Disabled';
-
-            // Update module list
-            const moduleList = document.getElementById('moduleStatusList');
-            if (data.modules) {
-                let html = '';
-                for (const [moduleName, moduleData] of Object.entries(data.modules)) {
-                    const statusClass = moduleData.status || 'error';
-                    const matchCount = moduleData.match_count || 0;
-                    const fileAge = moduleData.file_age_minutes || 0;
-                    const ageText = fileAge < 60 ? `${fileAge.toFixed(0)}m ago` : `${(fileAge / 60).toFixed(1)}h ago`;
-                    
-                    html += `
-                        <div class="module-status-item">
-                            <div class="module-name">${moduleName}</div>
-                            <div class="module-info">
-                                <span>${matchCount} matches</span>
-                                <span>${ageText}</span>
-                                <span class="module-status-badge ${statusClass}">${statusClass}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-                moduleList.innerHTML = html;
-            }
-        }
-
-        // Auto-refresh monitoring status (lightweight check)
+        // Auto-refresh every 30 seconds
         setInterval(() => {
-            if (document.getElementById('monitoringContent').classList.contains('show')) {
-                fetchMonitoringStatus(); // Only refresh if monitoring panel is open
+            if (!document.getElementById('loadingOverlay').classList.contains('active')) {
+                loadData();
             }
-        }, 20000); // Every 20 seconds when open
-
-        // Optimized initial data loading with parallel fetches
-        async function fetchInitialData() {
-            try {
-                // Start WebSocket connection immediately (don't wait for HTTP)
-                connect();
-                
-                // Fetch initial data in parallel for faster startup
-                const [matchesData] = await Promise.all([
-                    fetch('/api/matches').then(r => r.json()).catch(() => null)
-                ]);
-                
-                if (matchesData) {
-                    handleDataUpdate(matchesData);
-                    console.log('✓ Initial data loaded:', {
-                        pregame: matchesData.pregame_matches?.length || 0,
-                        live: matchesData.live_matches?.length || 0
-                    });
-                }
-            } catch (error) {
-                console.error('Failed to fetch initial data:', error);
-                // Don't show error alert immediately - WebSocket may handle it
-            }
-        }
-
-        // Initialize - optimized startup sequence
-        fetchInitialData(); // Parallel load of data and WebSocket connection
+        }, 30000);
     </script>
 </body>
+
 </html>
