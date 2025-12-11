@@ -13,8 +13,9 @@ class MonitoringStatusAPI:
     """Provides thread-safe access to monitoring status for UI"""
     
     def __init__(self, base_dir: Optional[Path] = None):
-        self.base_dir = base_dir or Path(__file__).parent
-        self.status_file = self.base_dir / "monitoring_status.json"
+        # base_dir should be project root, not core/
+        self.base_dir = base_dir or Path(__file__).parent.parent
+        self.status_file = self.base_dir / "data" / "monitoring_status.json"
         self.lock = threading.Lock()
     
     def update_status(self, status_data: Dict) -> bool:

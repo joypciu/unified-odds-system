@@ -47,7 +47,7 @@ history_manager = HistoryManager(str(BASE_DIR))
 def load_enabled_scrapers() -> Dict[str, bool]:
     """Load enabled scrapers from encrypted config.json"""
     try:
-        config_file = BASE_DIR / "config.json"
+        config_file = BASE_DIR / "config" / "config.json"
         if config_file.exists():
             secure_config = SecureConfig(str(config_file))
             config = secure_config.load_config()

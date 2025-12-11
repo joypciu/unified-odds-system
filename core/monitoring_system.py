@@ -180,12 +180,12 @@ class ModuleMonitor:
     def __init__(self, base_dir: Path):
         self.base_dir = base_dir
         self.module_files = {
-            'bet365_pregame': base_dir / 'bet365' / 'bet365_current_pregame.json',
-            'bet365_live': base_dir / 'bet365' / 'bet365_live_current.json',
-            'fanduel_pregame': base_dir / 'fanduel' / 'fanduel_pregame.json',
-            'fanduel_live': base_dir / 'fanduel' / 'fanduel_live.json',
-            '1xbet_pregame': base_dir / '1xbet' / '1xbet_pregame.json',
-            '1xbet_live': base_dir / '1xbet' / '1xbet_live.json'
+            'bet365_pregame': base_dir / 'bookmakers' / 'bet365' / 'bet365_current_pregame.json',
+            'bet365_live': base_dir / 'bookmakers' / 'bet365' / 'bet365_live_current.json',
+            'fanduel_pregame': base_dir / 'bookmakers' / 'fanduel' / 'fanduel_pregame.json',
+            'fanduel_live': base_dir / 'bookmakers' / 'fanduel' / 'fanduel_live.json',
+            '1xbet_pregame': base_dir / 'bookmakers' / '1xbet' / '1xbet_pregame.json',
+            '1xbet_live': base_dir / 'bookmakers' / '1xbet' / '1xbet_live.json'
         }
         self.failure_counts = {module: 0 for module in self.module_files}
         self.last_check_times = {}
@@ -274,8 +274,9 @@ class OddsMonitoringSystem:
     """Main monitoring system with auto-cache updates and email alerts"""
     
     def __init__(self, config_file: Path = None):
-        self.base_dir = Path(__file__).parent
-        self.config = ConfigManager(config_file or self.base_dir / "config.json")
+        # base_dir should be project root, not core/
+        self.base_dir = Path(__file__).parent.parent
+        self.config = ConfigManager(config_file or self.base_dir / "config" / "config.json")
         self.email = EmailNotifier(self.config)
         self.monitor = ModuleMonitor(self.base_dir)
         self.cache_manager = None
@@ -296,7 +297,7 @@ class OddsMonitoringSystem:
     
     def check_unified_file_health(self):
         """Check if unified_odds.json is valid and not corrupted"""
-        unified_file = self.base_dir / "unified_odds.json"
+        unified_file = self.base_dir / "data" / "unified_odds.json"
         
         if not unified_file.exists():
             return  # File doesn't exist yet, not an error

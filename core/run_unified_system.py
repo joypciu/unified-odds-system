@@ -66,17 +66,18 @@ class RealtimeUnifiedCollector:
     
     def __init__(self):
         self.collector = UnifiedOddsCollector()
-        self.base_dir = Path(__file__).parent
+        # base_dir should be project root, not core/
+        self.base_dir = Path(__file__).parent.parent
 
         # Files to monitor
-        self.bet365_pregame = self.base_dir / "bet365" / "bet365_current_pregame.json"
-        self.bet365_live = self.base_dir / "bet365" / "bet365_live_current.json"
-        self.fanduel_pregame = self.base_dir / "fanduel" / "fanduel_pregame.json"
-        self.fanduel_live = self.base_dir / "fanduel" / "fanduel_live.json"
-        self.xbet_pregame = self.base_dir / "1xbet" / "1xbet_pregame.json"
-        self.xbet_live = self.base_dir / "1xbet" / "1xbet_live.json"
+        self.bet365_pregame = self.base_dir / "bookmakers" / "bet365" / "bet365_current_pregame.json"
+        self.bet365_live = self.base_dir / "bookmakers" / "bet365" / "bet365_live_current.json"
+        self.fanduel_pregame = self.base_dir / "bookmakers" / "fanduel" / "fanduel_pregame.json"
+        self.fanduel_live = self.base_dir / "bookmakers" / "fanduel" / "fanduel_live.json"
+        self.xbet_pregame = self.base_dir / "bookmakers" / "1xbet" / "1xbet_pregame.json"
+        self.xbet_live = self.base_dir / "bookmakers" / "1xbet" / "1xbet_live.json"
 
-        self.output_file = self.base_dir / "unified_odds.json"
+        self.output_file = self.base_dir / "data" / "unified_odds.json"
         
         # Track last modification times
         self.last_modified = {}
