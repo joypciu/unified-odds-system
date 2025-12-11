@@ -1471,9 +1471,9 @@ class UnifiedSystemRunner:
             event_handler = OddsFileEventHandler(collector)
             observer = Observer()
             
-            observer.schedule(event_handler, str(collector.base_dir / "bet365"), recursive=False)
-            observer.schedule(event_handler, str(collector.base_dir / "fanduel"), recursive=False)
-            observer.schedule(event_handler, str(collector.base_dir / "1xbet"), recursive=False)
+            observer.schedule(event_handler, str(collector.base_dir / "bookmakers" / "bet365"), recursive=False)
+            observer.schedule(event_handler, str(collector.base_dir / "bookmakers" / "fanduel"), recursive=False)
+            observer.schedule(event_handler, str(collector.base_dir / "bookmakers" / "1xbet"), recursive=False)
             
             observer.start()
             

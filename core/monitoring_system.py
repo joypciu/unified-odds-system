@@ -361,12 +361,12 @@ ACTION:
         print("="*80)
         
         sources = [
-            (self.base_dir / "bet365" / "bet365_current_pregame.json", "bet365"),
-            (self.base_dir / "bet365" / "bet365_live_current.json", "bet365"),
-            (self.base_dir / "fanduel" / "fanduel_pregame.json", "fanduel"),
-            (self.base_dir / "fanduel" / "fanduel_live.json", "fanduel"),
-            (self.base_dir / "1xbet" / "1xbet_pregame.json", "1xbet"),
-            (self.base_dir / "1xbet" / "1xbet_live.json", "1xbet")
+            (self.base_dir / "bookmakers" / "bet365" / "bet365_current_pregame.json", "bet365"),
+            (self.base_dir / "bookmakers" / "bet365" / "bet365_live_current.json", "bet365"),
+            (self.base_dir / "bookmakers" / "fanduel" / "fanduel_pregame.json", "fanduel"),
+            (self.base_dir / "bookmakers" / "fanduel" / "fanduel_live.json", "fanduel"),
+            (self.base_dir / "bookmakers" / "1xbet" / "1xbet_pregame.json", "1xbet"),
+            (self.base_dir / "bookmakers" / "1xbet" / "1xbet_live.json", "1xbet")
         ]
         
         total_new_teams = 0

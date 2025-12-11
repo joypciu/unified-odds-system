@@ -494,7 +494,7 @@ async def send_email_alert(alert_data: EmailAlert):
 @app.get("/", response_class=HTMLResponse)
 async def get_home():
     """Serve the main HTML page"""
-    template_path = BASE_DIR / 'odds_viewer_template.html'
+    template_path = BASE_DIR / 'data' / 'odds_viewer_template.html'
     html_content = open(template_path, 'r', encoding='utf-8').read()
     return HTMLResponse(content=html_content)
 
@@ -712,7 +712,7 @@ async def get_futures():
         futures_matches = []
         
         # Load 1xBet futures from the proper scraper output
-        xbet_futures_file = BASE_DIR / "1xbet" / "1xbet_future.json"
+        xbet_futures_file = BASE_DIR / "bookmakers" / "1xbet" / "1xbet_future.json"
         if xbet_futures_file.exists():
             with open(xbet_futures_file, 'r', encoding='utf-8') as f:
                 xbet_data = json.load(f)
@@ -881,7 +881,7 @@ async def get_1xbet_future_optic_odds():
     """Get 1xBet future/long-term events in OpticOdds format"""
     try:
         # Primary futures file
-        futures_file_path = BASE_DIR / "1xbet" / "1xbet_future.json"
+        futures_file_path = BASE_DIR / "bookmakers" / "1xbet" / "1xbet_future.json"
         
         # Legacy fallback files
         futures_with_odds_file = BASE_DIR / "bookmakers" / "1xbet" / "1xbet_futures_with_odds.json"
