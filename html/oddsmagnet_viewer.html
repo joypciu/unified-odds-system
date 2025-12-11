@@ -191,16 +191,8 @@
             position: relative;
         }
 
-        .filter-dropdown {
-            position: relative;
-        }
-
         .filter-btn i {
             font-size: 12px;
-        }
-
-        .filter-dropdown {
-            position: relative;
         }
 
         .dropdown-menu {
@@ -214,7 +206,7 @@
             min-width: 250px;
             max-height: 400px;
             overflow-y: auto;
-            z-index: 9999;
+            z-index: 10000;
             display: none;
         }
 
@@ -385,30 +377,42 @@
         .match-info {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            min-width: 200px;
+            gap: 3px;
+            min-width: 160px;
         }
 
         .match-teams {
             font-weight: 600;
             color: var(--text-primary);
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 12px;
+            line-height: 1.3;
         }
 
         .match-time {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
         }
 
         .match-league {
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .selection-type {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 2px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            display: inline-block;
         }
 
         /* Odds Cell */
         .odds-cell {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 4px;
@@ -416,8 +420,9 @@
             color: var(--text-primary);
             transition: all 0.15s ease;
             cursor: pointer;
-            padding: 6px 8px;
+            padding: 4px 6px;
             border-radius: 4px;
+            min-width: 48px;
         }
 
         .odds-cell:hover {
@@ -551,14 +556,72 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            .search-input {
-                width: 200px;
+        @media (max-width: 1024px) {
+            .header-top {
+                flex-direction: column;
+                gap: 12px;
             }
 
-            .odds-table th:first-child,
-            .odds-table td:first-child {
-                min-width: 200px;
+            .search-input {
+                width: 100%;
+            }
+
+            .filters-bar {
+                flex-wrap: wrap;
+            }
+
+            .bookmaker-logo {
+                width: 24px;
+                height: 24px;
+            }
+
+            .bookmaker-name {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 18px;
+            }
+
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .odds-table th,
+            .odds-table td {
+                padding: 6px 4px;
+                font-size: 11px;
+            }
+
+            .match-info {
+                min-width: 120px;
+            }
+
+            .match-teams {
+                font-size: 11px;
+            }
+
+            .bookmaker-logo {
+                width: 20px;
+                height: 20px;
+            }
+
+            .odds-value {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .table-container {
+                font-size: 10px;
+            }
+
+            .odds-cell {
+                min-width: 40px;
+                padding: 3px 4px;
             }
         }
 
@@ -1005,25 +1068,19 @@
                 return;
             }
 
-            // Render header with home/draw/away columns
+            // Render header with bookmakers
             tableHead.innerHTML = `
                 <tr>
-                    <th rowspan="2">Match</th>
+                    <th>Match</th>
+                    <th style="width: 80px;">Type</th>
                     ${bookmakers.map(bm => `
-                        <th colspan="3">
+                        <th>
                             <div class="bookmaker-header">
                                 <img src="${bookmakerLogos[bm.code] || 'https://ui-avatars.com/api/?name=' + bm.name + '&size=80'}" 
                                      alt="${bm.name}" class="bookmaker-logo" />
                                 <div class="bookmaker-name">${bm.name}</div>
                             </div>
                         </th>
-                    `).join('')}
-                </tr>
-                <tr>
-                    ${bookmakers.map(() => `
-                        <th><span class="selection-label">Home</span></th>
-                        <th><span class="selection-label">Draw</span></th>
-                        <th><span class="selection-label">Away</span></th>
                     `).join('')}
                 </tr>
             `;
@@ -1046,25 +1103,26 @@
             // Get odds map by selection (home/draw/away) for current market
             const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
 
+            // Create 3 rows: one for home, one for draw, one for away
             return `
-                <tr>
-                    <td>
+                <tr style="border-top: 2px solid var(--border-color);">
+                    <td rowspan="3">
                         <div class="match-info">
                             <div class="match-teams">${teams}</div>
                             <div class="match-time">${timeStr}</div>
                             <div class="match-league">${match.league || 'Unknown'}</div>
                         </div>
                     </td>
-                    ${bookmakers.map(bm => {
-                        const homeOdd = homeOdds.get(bm.code);
-                        const drawOdd = drawOdds.get(bm.code);
-                        const awayOdd = awayOdds.get(bm.code);
-                        return `
-                            ${renderOddsCell(homeOdd, match.match_name, bm.code, 'home')}
-                            ${renderOddsCell(drawOdd, match.match_name, bm.code, 'draw')}
-                            ${renderOddsCell(awayOdd, match.match_name, bm.code, 'away')}
-                        `;
-                    }).join('')}
+                    <td><span class="selection-type">Home</span></td>
+                    ${bookmakers.map(bm => renderOddsCell(homeOdds.get(bm.code), match.match_name, bm.code, 'home')).join('')}
+                </tr>
+                <tr>
+                    <td><span class="selection-type">Draw</span></td>
+                    ${bookmakers.map(bm => renderOddsCell(drawOdds.get(bm.code), match.match_name, bm.code, 'draw')).join('')}
+                </tr>
+                <tr>
+                    <td><span class="selection-type">Away</span></td>
+                    ${bookmakers.map(bm => renderOddsCell(awayOdds.get(bm.code), match.match_name, bm.code, 'away')).join('')}
                 </tr>
             `;
         }
