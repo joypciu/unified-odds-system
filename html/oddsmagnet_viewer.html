@@ -295,344 +295,287 @@
             color: var(--text-primary);
         }
 
-        /* Main Table Container */
+        /* Main Container */
         .table-container {
             position: relative;
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: calc(100vh - 300px);
+            padding: 24px;
         }
 
-        /* Table */
-        .odds-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 13px;
+        /* Matches Grid */
+        .matches-grid {
+            display: grid;
+            gap: 16px;
         }
 
-        /* Table Header */
-        .odds-table thead {
-            position: sticky;
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .updating {
+            animation: pulseCard 0.5s ease-in-out;
+        }
+
+        @keyframes pulseCard {
+            0%, 100% { border-color: rgba(79, 172, 254, 0.15); }
+            50% { border-color: rgba(79, 172, 254, 0.5); box-shadow: 0 0 20px rgba(79, 172, 254, 0.3); }
+        }
+
+        /* Match Card */
+        .match-card {
+            background: linear-gradient(135deg, #1a1f3a 0%, #0f1729 100%);
+            border: 1px solid rgba(79, 172, 254, 0.15);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .match-card:hover {
+            border-color: #4facfe;
+            box-shadow: 0 8px 24px rgba(79, 172, 254, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .match-card::before {
+            content: '';
+            position: absolute;
             top: 0;
-            z-index: 10;
-            background: var(--bg-secondary);
-        }
-
-        .odds-table th {
-            padding: 12px 8px;
-            text-align: center;
-            font-weight: 600;
-            color: var(--text-secondary);
-            border-bottom: 2px solid var(--border-color);
-            white-space: nowrap;
-            background: var(--bg-secondary);
-        }
-
-        .odds-table th:first-child {
-            text-align: left;
-            padding-left: 24px;
-            position: sticky;
             left: 0;
-            z-index: 11;
-            min-width: 280px;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
-        /* Best Odds Column */
-        .best-odds-col {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1)) !important;
-            border-left: 2px solid rgba(16, 185, 129, 0.4);
-            border-right: 2px solid rgba(16, 185, 129, 0.4);
-            position: sticky;
-            left: 280px;
-            z-index: 11;
-            font-weight: 700;
-            color: var(--green-light) !important;
-        }
+        .match-card:hover::before { opacity: 1; }
 
-        /* Outcome Headers */
-        .outcome-header {
+        /* Match Header */
+        .match-header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            gap: 4px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #1f1f2e;
         }
 
-        .outcome-label {
-            font-size: 12px;
+        .match-league {
+            font-size: 10px;
+            color: #6b7280;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-
-        /* Bookmaker Headers */
-        .bookmaker-header {
             display: flex;
-            flex-direction: column;
             align-items: center;
             gap: 6px;
-            min-width: 90px;
-        }
-
-        .bookmaker-logo-container {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-        }
-
-        .bookmaker-logo {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            padding: 4px;
-        }
-
-        .bookmaker-name {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        /* Table Rows */
-        .odds-table tbody tr {
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
-        }
-
-        .odds-table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .odds-table td {
-            padding: 14px 8px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .odds-table td:first-child {
-            text-align: left;
-            padding-left: 24px;
-            position: sticky;
-            left: 0;
-            z-index: 5;
-            background: var(--bg-primary);
-        }
-
-        .odds-table tbody tr:hover td:first-child {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .best-odds-col-cell {
-            background: rgba(16, 185, 129, 0.05) !important;
-            border-left: 2px solid rgba(16, 185, 129, 0.3);
-            border-right: 2px solid rgba(16, 185, 129, 0.3);
-            position: sticky;
-            left: 280px;
-            z-index: 5;
-        }
-
-        .odds-table tbody tr:hover .best-odds-col-cell {
-            background: rgba(16, 185, 129, 0.08) !important;
-        }
-
-        /* Match Cell */
-        .match-cell {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
         .match-time {
             font-size: 11px;
-            color: var(--text-muted);
+            color: #9ca3af;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .match-teams {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
+            margin-bottom: 16px;
         }
 
         .team-name {
+            font-size: 16px;
             font-weight: 600;
-            color: var(--text-primary);
-            font-size: 14px;
+            color: #ffffff;
+            padding: 4px 0;
         }
 
-        .match-league {
-            font-size: 11px;
-            color: var(--text-muted);
+        .team-name:first-child {
+            margin-bottom: 4px;
         }
 
-        /* Odds Cell */
-        .odds-cell {
-            position: relative;
-            transition: all 0.2s;
-            padding: 4px;
-            min-width: 80px;
+        .vs-separator {
+            font-size: 10px;
+            color: #6b7280;
+            font-weight: 700;
+            text-align: center;
+            margin: 4px 0;
+            letter-spacing: 1px;
         }
 
-        .odds-cell:hover {
-            background: rgba(59, 130, 246, 0.05);
+        /* Markets Section */
+        .markets-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .odds-selections {
+        .market-block {
+            background: #1a1a27;
+            border: 1px solid #2a2a3e;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .market-header-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .market-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .market-count {
+            font-size: 10px;
+            color: #6b7280;
+            background: #14141f;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .odds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 8px;
+        }
+
+        /* Odds Buttons */
+        .odds-button {
+            background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
             display: flex;
             flex-direction: column;
             gap: 4px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .odds-selection-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 8px 10px;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 5px;
-            transition: all 0.2s;
-            border: 1px solid transparent;
+        .odds-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 172, 254, 0.1), transparent);
+            transition: left 0.5s;
         }
 
-        .odds-selection-row:hover {
-            background: rgba(59, 130, 246, 0.12);
-            transform: translateX(2px);
-            border-color: rgba(59, 130, 246, 0.3);
+        .odds-button:hover::after {
+            left: 100%;
         }
 
-        .selection-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            min-width: 45px;
-            text-align: left;
+        .odds-button:hover {
+            border-color: #4facfe;
+            background: linear-gradient(135deg, #1a1f3a 0%, #0f1729 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .odds-button.best-odds {
+            border-color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+        }
+
+        .odds-button.best-odds::before {
+            content: '⭐';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 10px;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .odds-button.price-up {
+            animation: priceUp 0.6s ease-out;
+        }
+
+        .odds-button.price-down {
+            animation: priceDown 0.6s ease-out;
+        }
+
+        @keyframes priceUp {
+            0% { background: rgba(16, 185, 129, 0.2); }
+            100% { background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%); }
+        }
+
+        @keyframes priceDown {
+            0% { background: rgba(239, 68, 68, 0.2); }
+            100% { background: linear-gradient(135deg, #0f1525 0%, #1a1f3a 100%); }
+        }
+
+        .bookmaker-logo-text {
+            font-size: 10px;
+            color: #6b7280;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
-        .selection-odds {
-            font-weight: 800;
-            color: var(--text-primary);
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .selection-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin: 4px 0;
         }
 
         .odds-value {
-            font-size: 15px;
+            font-size: 18px;
             font-weight: 700;
-            color: var(--text-primary);
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .odds-movement {
+            font-size: 10px;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 4px;
+            margin-top: 4px;
         }
 
-        /* Movement Arrow */
-        .odds-arrow {
-            font-size: 11px;
-            font-weight: 700;
-            animation: bounce 0.6s ease-out;
-        }
+        .odds-movement.up { color: #10b981; }
+        .odds-movement.down { color: #ef4444; }
 
-        .odds-arrow.up {
-            color: var(--green-light);
-        }
-
-        .odds-arrow.down {
-            color: var(--red-light);
-        }
-
-        /* Bookmaker specific colors */
-        .bm-bh { background: linear-gradient(135deg, #FF6B6B, #C0392B); }
-        .bm-eb { background: linear-gradient(135deg, #4ECDC4, #16A085); }
-        .bm-ee { background: linear-gradient(135deg, #FFD93D, #F39C12); }
-        .bm-fr { background: linear-gradient(135deg, #00539C, #003D6B); }
-        .bm-nt { background: linear-gradient(135deg, #6BCB77, #27AE60); }
-        .bm-tn { background: linear-gradient(135deg, #FF6B6B, #E74C3C); }
-        .bm-vb { background: linear-gradient(135deg, #9D84B7, #8E44AD); }
-        .bm-vc { background: linear-gradient(135deg, #E74C3C, #C0392B); }
-        .bm-wh { background: linear-gradient(135deg, #27AE60, #229954); }
-        .bm-xb { background: linear-gradient(135deg, #0652DD, #1e3c72); }
-
-        .odds-arrow.down {
-            color: var(--red-light);
-        }
-
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-3px);
-            }
-        }
-
-        /* Color Coding */
-        .odds-cell.best {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .odds-cell.best .odds-value {
-            color: var(--green-light);
-        }
-
-        .odds-cell.good {
-            background: rgba(34, 197, 94, 0.1);
-        }
-
-        .odds-cell.average {
-            background: rgba(251, 191, 36, 0.05);
-        }
-
-        .odds-cell.below-average {
-            background: rgba(249, 115, 22, 0.05);
-        }
-
-        .odds-cell.worst {
-            background: rgba(239, 68, 68, 0.05);
-        }
-
-        .odds-cell.locked {
-            opacity: 0.3;
-            cursor: not-allowed;
-            background: transparent;
-        }
-
-        .odds-cell.locked .odds-value {
-            color: var(--text-muted);
-        }
-
-        /* Best Odds Cell Highlight */
-        .best-odds-highlight {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
-            border: 2px solid var(--green-light);
-            font-size: 16px;
-            font-weight: 800;
-        }
-
-        .best-odds-col-cell .selection-label {
-            color: var(--green-light);
-            font-weight: 700;
-        }
-
-        .best-odds-col-cell .selection-odds {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--green-light);
+        .odds-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9px;
+            color: #6b7280;
+            margin-top: 4px;
         }
 
         /* Empty State */
@@ -898,16 +841,11 @@
         </div>
     </header>
 
-    <!-- Main Table -->
+    <!-- Main Content -->
     <div class="table-container" id="tableContainer">
-        <table class="odds-table" id="oddsTable">
-            <thead id="tableHead">
-                <!-- Populated dynamically -->
-            </thead>
-            <tbody id="tableBody">
-                <!-- Populated dynamically -->
-            </tbody>
-        </table>
+        <div id="matchesContainer">
+            <!-- Populated dynamically -->
+        </div>
     </div>
 
     <!-- Loading Overlay -->
@@ -1004,7 +942,7 @@
             });
         }
 
-        // Load Data
+        // Load Data with performance optimization
         async function loadData() {
             showLoading(true);
             updateStatus('Fetching...');
@@ -1013,24 +951,30 @@
                 const response = await fetch('/oddsmagnet/football/top10');
                 const data = await response.json();
 
-                allMatches = data.matches || [];
-
-                // Extract unique bookmakers
-                extractBookmakers();
-
-                // Extract market categories
-                extractMarketCategories();
-
-                // Populate filters
-                populateLeagueDropdown();
-                populateDateButtons();
-                populateMarketTabs();
-
-                // Apply filters and render
-                applyFilters();
-
-                updateStatus('Live');
-                showLoading(false);
+                // Use requestIdleCallback for non-critical processing
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(() => {
+                        allMatches = data.matches || [];
+                        extractBookmakers();
+                        extractMarketCategories();
+                        populateLeagueDropdown();
+                        populateDateButtons();
+                        populateMarketTabs();
+                        applyFilters();
+                        updateStatus('Live');
+                        showLoading(false);
+                    });
+                } else {
+                    allMatches = data.matches || [];
+                    extractBookmakers();
+                    extractMarketCategories();
+                    populateLeagueDropdown();
+                    populateDateButtons();
+                    populateMarketTabs();
+                    applyFilters();
+                    updateStatus('Live');
+                    showLoading(false);
+                }
             } catch (error) {
                 console.error('Error loading data:', error);
                 updateStatus('Error');
@@ -1163,8 +1107,8 @@
             });
         }
 
-        // Filters
-        function applyFilters() {
+        // Filters with performance optimization
+        const applyFilters = debounce(function() {
             let matches = [...allMatches];
 
             // League filter
@@ -1182,11 +1126,12 @@
 
             // Search filter
             if (searchQuery) {
+                const query = searchQuery.toLowerCase();
                 matches = matches.filter(m =>
-                    m.match_name?.toLowerCase().includes(searchQuery) ||
-                    m.league?.toLowerCase().includes(searchQuery) ||
-                    m.home_team?.toLowerCase().includes(searchQuery) ||
-                    m.away_team?.toLowerCase().includes(searchQuery)
+                    m.match_name?.toLowerCase().includes(query) ||
+                    m.league?.toLowerCase().includes(query) ||
+                    m.home_team?.toLowerCase().includes(query) ||
+                    m.away_team?.toLowerCase().includes(query)
                 );
             }
 
@@ -1195,191 +1140,151 @@
             // Update stats
             document.getElementById('totalMatches').textContent = filteredMatches.length;
 
-            // Render table
-            renderTable();
-        }
+            // Render with requestAnimationFrame for smooth performance
+            requestAnimationFrame(() => renderTable());
+        }, 100);
 
-        // Render Table
+        // Render Matches with optimized card-based layout
         function renderTable() {
-            const tableHead = document.getElementById('tableHead');
-            const tableBody = document.getElementById('tableBody');
+            const container = document.getElementById('matchesContainer');
 
             if (filteredMatches.length === 0) {
                 showEmptyState('no-results');
                 return;
             }
 
-            // Render header with best odds column
-            tableHead.innerHTML = `
-                <tr>
-                    <th>Match</th>
-                    <th class="best-odds-col">
-                        <div class="outcome-header">
-                            <i class="fas fa-star" style="color: var(--green-light);"></i>
-                            <div class="outcome-label">Best Odds</div>
-                        </div>
-                    </th>
-                    ${bookmakers.map(bm => `
-                        <th>
-                            <div class="bookmaker-header">
-                                <div class="bookmaker-logo-container">
-                                    <img class="bookmaker-logo" 
-                                         src="${getBookmakerLogo(bm.code)}" 
-                                         alt="${bm.name}"
-                                         onerror="this.style.display='none'; this.parentElement.innerHTML='${getBookmakerInitials(bm.code)}'">
-                                </div>
-                                <div class="bookmaker-name">${bm.name}</div>
-                            </div>
-                        </th>
-                    `).join('')}
-                </tr>
-            `;
+            // Use requestAnimationFrame and document fragment for optimal performance
+            requestAnimationFrame(() => {
+                const fragment = document.createDocumentFragment();
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'matches-grid fade-in';
 
-            // Render body
-            const rows = filteredMatches.map(match => renderMatchRow(match)).join('');
-            tableBody.innerHTML = rows;
+                // Batch rendering in chunks for better performance with large datasets
+                const BATCH_SIZE = 20;
+                let currentBatch = 0;
+
+                function renderBatch() {
+                    const start = currentBatch * BATCH_SIZE;
+                    const end = Math.min(start + BATCH_SIZE, filteredMatches.length);
+
+                    for (let i = start; i < end; i++) {
+                        const matchCard = createMatchCard(filteredMatches[i]);
+                        gridDiv.appendChild(matchCard);
+                    }
+
+                    currentBatch++;
+
+                    if (end < filteredMatches.length) {
+                        // Continue rendering next batch in next frame
+                        requestAnimationFrame(renderBatch);
+                    } else {
+                        // All done - add to DOM
+                        fragment.appendChild(gridDiv);
+                        container.innerHTML = '';
+                        container.appendChild(fragment);
+                    }
+                }
+
+                // Start first batch
+                renderBatch();
+            });
         }
 
-        function renderMatchRow(match) {
+        function createMatchCard(match) {
+            const card = document.createElement('div');
+            card.className = 'match-card';
+
             const teams = match.match_name ? match.match_name.split(' v ') : ['Team 1', 'Team 2'];
             const matchDate = match.match_date ? new Date(match.match_date) : null;
             const timeStr = matchDate ?
                 `${matchDate.getMonth() + 1}/${matchDate.getDate()} - ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
                 'TBD';
 
-            // Get market data for current market
-            const marketData = getMarketData(match, currentMarket);
+            // Get the popular markets
+            const popularMarkets = match.markets?.['popular markets'] || [];
+            const winMarket = popularMarkets.find(m => m.market_name?.toLowerCase().includes('win'));
 
-            // Generate rows for each outcome (Home, Draw, Away)
-            const outcomes = ['home', 'draw', 'away'];
-            const rows = [];
-
-            outcomes.forEach((outcome, idx) => {
-                const outcomeLabel = outcome.charAt(0).toUpperCase() + outcome.slice(1);
-                const oddsData = marketData.get(outcome);
-
-                // Find best odds for this outcome
-                const bestOdd = oddsData ? Math.max(...Array.from(oddsData.values()).filter(v => v && v.decimal_odds).map(v => v.decimal_odds)) : null;
-
-                rows.push(`
-                    <tr>
-                        ${idx === 0 ? `
-                        <td rowspan="3">
-                            <div class="match-cell">
-                                <div class="match-time">
-                                    <i class="fas fa-clock"></i>
-                                    <span>${timeStr}</span>
-                                </div>
-                                <div class="match-teams">
-                                    <div class="team-name">${teams[0] || 'Team 1'}</div>
-                                    <div class="team-name">${teams[1] || 'Team 2'}</div>
-                                </div>
-                                <div class="match-league">${match.league || 'Unknown'}</div>
-                            </div>
-                        </td>
-                        ` : ''}
-                        <td class="best-odds-col-cell">
-                            <div class="odds-cell best-odds-highlight">
-                                <div class="odds-value">
-                                    <span style="font-size: 11px; color: var(--text-muted);">${outcomeLabel}:</span>
-                                    <span>${bestOdd ? formatOdds(bestOdd) : '-'}</span>
-                                </div>
-                            </div>
-                        </td>
-                        ${bookmakers.map(bm => {
-                    const odd = oddsData ? oddsData.get(bm.code) : null;
-                    return renderOddsCell(odd, match.match_name, bm.code, outcome, bestOdd);
-                }).join('')}
-                    </tr>
-                `);
-            });
-
-            return rows.join('');
-        }
-
-        function getMarketData(match, marketCategory) {
-            // Returns a Map of outcome -> Map of bookmaker_code -> odd
-            const outcomeMap = new Map([
-                ['home', new Map()],
-                ['draw', new Map()],
-                ['away', new Map()]
-            ]);
-
-            if (!match.markets || !match.markets[marketCategory]) {
-                return outcomeMap;
-            }
-
-            const markets = match.markets[marketCategory];
-            if (!Array.isArray(markets)) return outcomeMap;
-
-            // Find the main market (usually contains "win" or "match winner" or "moneyline")
-            const mainMarket = markets.find(m =>
-                m.market_name?.toLowerCase().includes('win') ||
-                m.market_name?.toLowerCase().includes('match winner') ||
-                m.market_name?.toLowerCase().includes('moneyline') ||
-                m.market_name?.toLowerCase().includes('full time result')
-            ) || markets[0];
-
-            if (mainMarket && mainMarket.odds) {
-                mainMarket.odds.forEach(odd => {
-                    if (!odd.bookmaker_code) return;
-
-                    const selection = (odd.selection || '').toLowerCase();
-                    let outcome = null;
-
-                    if (selection.includes('home') || selection.includes('1')) {
-                        outcome = 'home';
-                    } else if (selection.includes('draw') || selection.includes('tie') || selection.includes('x')) {
-                        outcome = 'draw';
-                    } else if (selection.includes('away') || selection.includes('2')) {
-                        outcome = 'away';
+            let marketsHtml = '';
+            if (winMarket && winMarket.odds) {
+                // Group odds by selection
+                const oddsGrouped = {};
+                winMarket.odds.forEach(odd => {
+                    const selection = odd.selection || 'unknown';
+                    if (!oddsGrouped[selection]) {
+                        oddsGrouped[selection] = [];
                     }
-
-                    if (outcome) {
-                        outcomeMap.get(outcome).set(odd.bookmaker_code, odd);
-                    }
+                    oddsGrouped[selection].push(odd);
                 });
-            }
 
-            return outcomeMap;
-        }
+                // Render each selection group
+                marketsHtml = Object.entries(oddsGrouped).map(([selection, odds]) => {
+                    const sortedOdds = odds.sort((a, b) => (b.decimal_odds || 0) - (a.decimal_odds || 0));
 
-        function renderOddsCell(odd, matchName, bookmakerCode, outcome, bestOdd) {
-            if (!odd || !odd.decimal_odds) {
-                return '<td><div class="odds-cell locked"><div class="odds-value">-</div></div></td>';
-            }
-
-            const oddKey = `${matchName}-${bookmakerCode}-${outcome}`;
-            const prevOdd = previousOdds.get(oddKey);
-            let arrowHtml = '';
-            let flashClass = '';
-
-            if (prevOdd && prevOdd !== odd.decimal_odds) {
-                const isUp = odd.decimal_odds > prevOdd;
-                arrowHtml = `<i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
-                flashClass = isUp ? 'flash-up' : 'flash-down';
-            }
-
-            previousOdds.set(oddKey, odd.decimal_odds);
-
-            // Determine if this is the best odds
-            const isBest = bestOdd && Math.abs(odd.decimal_odds - bestOdd) < 0.01;
-            const rankClass = isBest ? 'best' : 'average';
-            const clickoutUrl = odd.clickout_url || '#';
-
-            return `
-                <td>
-                    <a href="${clickoutUrl}" target="_blank" style="text-decoration: none;">
-                        <div class="odds-cell ${rankClass} ${flashClass}">
-                            <div class="odds-value">
-                                ${arrowHtml}
-                                <span>${formatOdds(odd.decimal_odds)}</span>
+                    return `
+                        <div class="market-block">
+                            <div class="market-header-block">
+                                <div class="market-title">
+                                    <i class="fas fa-trophy"></i>
+                                    ${selection.charAt(0).toUpperCase() + selection.slice(1)}
+                                </div>
+                                <div class="market-count">${odds.length} bookmakers</div>
                             </div>
-                            ${odd.fractional_odds ? `<div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${odd.fractional_odds}</div>` : ''}
+                            <div class="odds-grid">
+                                ${sortedOdds.map(odd => {
+                        const oddKey = `${match.match_name}-${selection}-${odd.bookmaker_code}`;
+                        const prevOdd = previousOdds.get(oddKey);
+                        const priceClass = prevOdd && prevOdd !== odd.decimal_odds ?
+                            (odd.decimal_odds > prevOdd ? 'price-up' : 'price-down') : '';
+                        previousOdds.set(oddKey, odd.decimal_odds);
+
+                        return `
+                                        <a href="${odd.clickout_url || '#'}" 
+                                           target="_blank" 
+                                           class="odds-button ${odd.is_best_odds ? 'best-odds' : ''} ${priceClass}"
+                                           ${!odd.clickout_url ? 'onclick="return false;"' : ''}>
+                                            <div class="bookmaker-logo-text">${odd.bookmaker_name || 'Unknown'}</div>
+                                            <div class="odds-value">${odd.decimal_odds || 'N/A'}</div>
+                                            ${odd.odds_movement ? `
+                                                <div class="odds-movement ${odd.odds_movement}">
+                                                    <i class="fas fa-arrow-${odd.odds_movement === 'up' ? 'up' : 'down'}"></i>
+                                                    ${odd.odds_change ? (odd.odds_change > 0 ? '+' : '') + odd.odds_change.toFixed(2) : ''}
+                                                </div>
+                                            ` : ''}
+                                            <div class="odds-meta">
+                                                <span>${odd.fractional_odds || ''}</span>
+                                                ${odd.is_best_odds ? '<span style="color: #10b981;">Best</span>' : ''}
+                                            </div>
+                                        </a>
+                                        `;
+                    }).join('')}
+                            </div>
                         </div>
-                    </a>
-                </td>
+                    `;
+                }).join('');
+            }
+
+            card.innerHTML = `
+                <div class="match-header">
+                    <div class="match-league">
+                        <i class="fas fa-flag"></i>
+                        ${match.league || 'Unknown'}
+                    </div>
+                    <div class="match-time">
+                        <i class="fas fa-clock"></i>
+                        ${timeStr}
+                    </div>
+                </div>
+                <div class="match-teams">
+                    <div class="team-name">${teams[0] || 'Team 1'}</div>
+                    <div class="vs-separator">VS</div>
+                    <div class="team-name">${teams[1] || 'Team 2'}</div>
+                </div>
+                <div class="markets-container">
+                    ${marketsHtml || '<div style="text-align: center; color: #6b7280; padding: 20px;">No odds available</div>'}
+                </div>
             `;
+
+            return card;
         }
 
         // Utilities
@@ -1398,23 +1303,19 @@
         }
 
         function showEmptyState(type) {
-            const tableBody = document.getElementById('tableBody');
+            const container = document.getElementById('matchesContainer');
             const icon = type === 'error' ? 'fa-exclamation-triangle' : 'fa-search';
             const title = type === 'error' ? 'Error Loading Data' : 'No Matches Found';
             const description = type === 'error' ?
                 'There was an error loading the data. Please try again.' :
                 'Try adjusting your filters or search query.';
 
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="100%">
-                        <div class="empty-state fade-in">
-                            <div class="empty-icon"><i class="fas ${icon}"></i></div>
-                            <div class="empty-title">${title}</div>
-                            <div class="empty-description">${description}</div>
-                        </div>
-                    </td>
-                </tr>
+            container.innerHTML = `
+                <div class="empty-state fade-in">
+                    <div class="empty-icon"><i class="fas ${icon}"></i></div>
+                    <div class="empty-title">${title}</div>
+                    <div class="empty-description">${description}</div>
+                </div>
             `;
         }
 
