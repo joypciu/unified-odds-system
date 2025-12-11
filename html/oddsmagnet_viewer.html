@@ -147,12 +147,14 @@
 
         /* Filters Bar */
         .filters-bar {
+            position: relative;
             display: flex;
             align-items: center;
             gap: 8px;
             padding: 12px 24px;
             overflow-x: auto;
             scrollbar-width: none;
+            z-index: 100;
         }
 
         .filters-bar::-webkit-scrollbar {
@@ -197,7 +199,7 @@
 
         .dropdown-menu {
             position: absolute;
-            top: calc(100% + 4px);
+            top: calc(100% + 8px);
             left: 0;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -206,7 +208,7 @@
             min-width: 250px;
             max-height: 400px;
             overflow-y: auto;
-            z-index: 10000;
+            z-index: 10001;
             display: none;
         }
 
@@ -434,7 +436,8 @@
             font-size: 12px;
             animation: bounce 0.3s ease-out;
             display: inline-block;
-            margin-right: 3px;
+            margin-left: 4px;
+            vertical-align: middle;
         }
 
         .odds-arrow.up {
@@ -684,7 +687,7 @@
 
         .date-calendar {
             position: absolute;
-            top: calc(100% + 4px);
+            top: calc(100% + 8px);
             left: 0;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -692,7 +695,7 @@
             padding: 16px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
             min-width: 280px;
-            z-index: 10000;
+            z-index: 10001;
             display: none;
         }
 
@@ -1407,7 +1410,7 @@
 
             if (prevOdd && prevOdd !== odd.decimal_odds) {
                 const isUp = odd.decimal_odds > prevOdd;
-                arrowHtml = `<i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
+                arrowHtml = ` <i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
             }
 
             previousOdds.set(oddKey, odd.decimal_odds);
@@ -1423,8 +1426,7 @@
             return `
                 <td>
                     <div class="odds-cell ${cellClass}" ${clickHandler}>
-                        ${arrowHtml}
-                        <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>
+                        <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>${arrowHtml}
                     </div>
                 </td>
             `;
