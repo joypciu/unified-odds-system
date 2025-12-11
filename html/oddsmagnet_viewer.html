@@ -203,10 +203,10 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            min-width: 200px;
+            min-width: 250px;
             max-height: 400px;
             overflow-y: auto;
-            z-index: 200;
+            z-index: 1000;
             display: none;
         }
 
@@ -239,28 +239,32 @@
             padding: 0 24px;
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            scrollbar-width: thin;
         }
 
         .market-tab {
             padding: 12px 20px;
             background: transparent;
             border: none;
-            border-bottom: 2px solid transparent;
+            border-bottom: 3px solid transparent;
             color: var(--text-secondary);
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .market-tab:hover {
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(59, 130, 246, 0.05);
         }
 
         .market-tab.active {
-            color: var(--text-primary);
+            color: var(--accent-primary);
             border-bottom-color: var(--accent-primary);
+            background: rgba(59, 130, 246, 0.1);
         }
 
         /* Stats Bar */
@@ -469,16 +473,52 @@
         /* Odds Cell */
         .odds-cell {
             position: relative;
-            cursor: pointer;
             transition: all 0.2s;
-            padding: 8px;
-            border-radius: 4px;
-            min-width: 75px;
+            padding: 4px;
+            min-width: 80px;
         }
 
         .odds-cell:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .odds-selections {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .odds-selection-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            padding: 6px 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .odds-selection-row:hover {
             background: rgba(59, 130, 246, 0.1);
-            transform: scale(1.05);
+            transform: translateX(2px);
+        }
+
+        .selection-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            min-width: 40px;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .selection-odds {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .odds-value {
@@ -493,13 +533,30 @@
 
         /* Movement Arrow */
         .odds-arrow {
-            font-size: 10px;
+            font-size: 11px;
+            font-weight: 700;
             animation: bounce 0.6s ease-out;
         }
 
         .odds-arrow.up {
             color: var(--green-light);
         }
+
+        .odds-arrow.down {
+            color: var(--red-light);
+        }
+
+        /* Bookmaker specific colors */
+        .bm-bh { background: linear-gradient(135deg, #FF6B6B, #C0392B); }
+        .bm-eb { background: linear-gradient(135deg, #4ECDC4, #16A085); }
+        .bm-ee { background: linear-gradient(135deg, #FFD93D, #F39C12); }
+        .bm-fr { background: linear-gradient(135deg, #00539C, #003D6B); }
+        .bm-nt { background: linear-gradient(135deg, #6BCB77, #27AE60); }
+        .bm-tn { background: linear-gradient(135deg, #FF6B6B, #E74C3C); }
+        .bm-vb { background: linear-gradient(135deg, #9D84B7, #8E44AD); }
+        .bm-vc { background: linear-gradient(135deg, #E74C3C, #C0392B); }
+        .bm-wh { background: linear-gradient(135deg, #27AE60, #229954); }
+        .bm-xb { background: linear-gradient(135deg, #0652DD, #1e3c72); }
 
         .odds-arrow.down {
             color: var(--red-light);
@@ -845,19 +902,19 @@
 
         // Bookmaker logo mapping
         const bookmakerLogos = {
-            'draftkings': 'https://www.draftkings.com/dkjs/header/v1/web/d7b0d4827ea7c9be1ba4d6a91cdcbf4f.svg',
-            'fanduel': 'https://sportsbook.fanduel.com/images/fanduel-logo-white.svg',
-            'betmgm': 'https://sports.betmgm.com/assets/images/betmgm-logo.svg',
-            'caesars': 'https://www.williamhill.com/us/static/images/logo.svg',
-            'pointsbet': 'https://www.pointsbet.com/content/dam/web/logos/logo-white.svg',
-            'barstool': 'https://www.barstoolsportsbook.com/logo.svg',
-            'unibet': 'https://b1.unibetcdn.com/client/content/images/client/brand/unibet-logo-red.svg',
-            'wynnbet': 'https://www.wynnbet.com/assets/images/logo.svg',
-            'bet365': 'https://www.bet365.com/images/shared/logo.svg',
-            'betrivers': 'https://www.betrivers.com/assets/images/logo.svg'
+            'bh': 'https://ui-avatars.com/api/?name=BH&background=FF6B6B&color=fff&size=80',
+            'eb': 'https://ui-avatars.com/api/?name=10B&background=4ECDC4&color=fff&size=80',
+            'ee': 'https://ui-avatars.com/api/?name=888&background=FFD93D&color=000&size=80',
+            'fr': 'https://ui-avatars.com/api/?name=BF&background=00539C&color=fff&size=80',
+            'nt': 'https://ui-avatars.com/api/?name=NB&background=6BCB77&color=fff&size=80',
+            'tn': 'https://ui-avatars.com/api/?name=TB&background=FF6B6B&color=fff&size=80',
+            'vb': 'https://ui-avatars.com/api/?name=VB&background=9D84B7&color=fff&size=80',
+            'vc': 'https://ui-avatars.com/api/?name=BV&background=E74C3C&color=fff&size=80',
+            'wh': 'https://ui-avatars.com/api/?name=WH&background=27AE60&color=fff&size=80',
+            'xb': 'https://ui-avatars.com/api/?name=1X&background=0652DD&color=fff&size=80'
         };
 
-        // Initialize
+        // Initialize        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             setupEventListeners();
             loadData();
@@ -1297,7 +1354,7 @@
 
         // Utilities
         function getBookmakerLogo(code) {
-            const cleanCode = code.toLowerCase().replace(/[^a-z]/g, '');
+            const cleanCode = code.toLowerCase();
             return bookmakerLogos[cleanCode] || `https://ui-avatars.com/api/?name=${code}&background=random&size=80`;
         }
 
