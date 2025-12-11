@@ -24,6 +24,10 @@ jobs:
           command_timeout: 2m
           script: |
             cd /home/ubuntu/services/unified-odds
+
+            # Ensure origin points to joypciu repo
+            git remote set-url origin https://github.com/joypciu/unified-odds-system.git
+
             git fetch origin
             git reset --hard origin/main
 
