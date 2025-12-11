@@ -1042,10 +1042,16 @@ async def get_oddsmagnet_top10():
         
         # Filter matches for top 10 leagues only
         all_matches = data.get('matches', [])
-        top10_matches = [
-            match for match in all_matches
-            if match.get('league_slug', '').lower() in TOP_10_LEAGUES
-        ]
+        top10_matches = []
+        for match in all_matches:
+            # Extract league slug from match_uri (e.g., "football/spain-laliga/...")
+            match_uri = match.get('match_uri', '')
+            if '/' in match_uri:
+                parts = match_uri.split('/')
+                if len(parts) >= 2:
+                    league_slug = parts[1].lower()  # Get the second part (league slug)
+                    if league_slug in TOP_10_LEAGUES:
+                        top10_matches.append(match)
         
         return {
             'source': 'oddsmagnet_top10',
