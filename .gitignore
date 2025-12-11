@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Runtime data files (exclude from git)
+data/
+*.json
+!config/*.json
+!config/*.json.template
+!package.json
+!package-lock.json
+
 # C extensions
 *.so
 
