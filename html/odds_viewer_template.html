@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -134,15 +133,8 @@
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         /* Filters Bar */
@@ -578,9 +570,7 @@
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
         /* Scrollbar */
@@ -616,15 +606,8 @@
 
         /* Animations */
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .fade-in {
@@ -633,27 +616,13 @@
 
         /* Highlight flash on update */
         @keyframes flashGreen {
-
-            0%,
-            100% {
-                background-color: transparent;
-            }
-
-            50% {
-                background-color: rgba(16, 185, 129, 0.3);
-            }
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(16, 185, 129, 0.3); }
         }
 
         @keyframes flashRed {
-
-            0%,
-            100% {
-                background-color: transparent;
-            }
-
-            50% {
-                background-color: rgba(239, 68, 68, 0.3);
-            }
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(239, 68, 68, 0.3); }
         }
 
         .flash-up {
@@ -665,48 +634,18 @@
         }
 
         /* Bookmaker color coding */
-        .bm-D {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-        }
-
-        .bm-F {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        }
-
-        .bm-BM {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        }
-
-        .bm-C {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-
-        .bm-BE {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-        }
-
-        .bm-P {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-        }
-
-        .bm-B {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        }
-
-        .bm-1X {
-            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-        }
-
-        .bm-S {
-            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-        }
-
-        .bm-default {
-            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-        }
+        .bm-D { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
+        .bm-F { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .bm-BM { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .bm-C { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .bm-BE { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .bm-P { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .bm-B { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .bm-1X { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
+        .bm-S { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
+        .bm-default { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
     </style>
 </head>
-
 <body>
     <!-- Header -->
     <header class="header">
@@ -898,7 +837,7 @@
 
                     if (menuId === 'leagueMenu') {
                         selectedLeague = e.target.dataset.value;
-                        document.getElementById('leagueLabel').textContent =
+                        document.getElementById('leagueLabel').textContent = 
                             e.target.textContent;
                         applyFilters();
                     }
@@ -919,16 +858,16 @@
                 const data = await response.json();
 
                 allMatches = data.matches || [];
-
+                
                 // Extract unique bookmakers
                 extractBookmakers();
-
+                
                 // Populate league dropdown
                 populateLeagueDropdown();
 
                 // Apply filters and render
                 applyFilters();
-
+                
                 updateStatus('Live');
                 showLoading(false);
             } catch (error) {
@@ -941,7 +880,7 @@
 
         function extractBookmakers() {
             const bookmakerSet = new Set();
-
+            
             allMatches.forEach(match => {
                 if (match.markets && match.markets['popular markets']) {
                     match.markets['popular markets'].forEach(market => {
@@ -969,12 +908,12 @@
         function populateLeagueDropdown() {
             const leagues = [...new Set(allMatches.map(m => m.league))].sort();
             const menu = document.getElementById('leagueMenu');
-
+            
             menu.innerHTML = `
                 <div class="dropdown-item selected" data-value="all">All Leagues</div>
-                ${leagues.map(league =>
-                `<div class="dropdown-item" data-value="${league}">${league}</div>`
-            ).join('')}
+                ${leagues.map(league => 
+                    `<div class="dropdown-item" data-value="${league}">${league}</div>`
+                ).join('')}
             `;
 
             document.getElementById('totalLeagues').textContent = leagues.length;
@@ -991,7 +930,7 @@
 
             // Search filter
             if (searchQuery) {
-                matches = matches.filter(m =>
+                matches = matches.filter(m => 
                     m.match_name?.toLowerCase().includes(searchQuery) ||
                     m.league?.toLowerCase().includes(searchQuery) ||
                     m.home_team?.toLowerCase().includes(searchQuery) ||
@@ -1014,10 +953,10 @@
             }
 
             filteredMatches = matches;
-
+            
             // Update stats
             document.getElementById('totalMatches').textContent = filteredMatches.length;
-
+            
             // Render table
             renderTable();
         }
@@ -1055,8 +994,8 @@
         function renderMatchRow(match) {
             const teams = match.match_name ? match.match_name.split(' v ') : ['Team 1', 'Team 2'];
             const matchDate = match.match_date ? new Date(match.match_date) : null;
-            const timeStr = matchDate ?
-                `${matchDate.getMonth() + 1}/${matchDate.getDate()} - ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
+            const timeStr = matchDate ? 
+                `${matchDate.getMonth() + 1}/${matchDate.getDate()} - ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` : 
                 'TBD';
 
             // Get odds for this match
@@ -1078,22 +1017,22 @@
                         </div>
                     </td>
                     ${bookmakers.map(bm => {
-                const odd = oddsMap.get(bm.code);
-                return renderOddsCell(odd, match.match_name, bm.code);
-            }).join('')}
+                        const odd = oddsMap.get(bm.code);
+                        return renderOddsCell(odd, match.match_name, bm.code);
+                    }).join('')}
                 </tr>
             `;
         }
 
         function getMatchOdds(match, marketType) {
             const oddsMap = new Map();
-
+            
             if (!match.markets || !match.markets['popular markets']) {
                 return oddsMap;
             }
 
             // Find the right market (simplified - looking for "win" market)
-            const winMarket = match.markets['popular markets'].find(m =>
+            const winMarket = match.markets['popular markets'].find(m => 
                 m.market_name?.toLowerCase().includes('win')
             );
 
@@ -1117,11 +1056,11 @@
             const oddKey = `${matchName}-${bookmakerCode}`;
             const prevOdd = previousOdds.get(oddKey);
             let flashClass = '';
-
+            
             if (prevOdd && prevOdd !== odd.decimal_odds) {
                 flashClass = odd.decimal_odds > prevOdd ? 'flash-up' : 'flash-down';
             }
-
+            
             previousOdds.set(oddKey, odd.decimal_odds);
 
             const rankClass = odd.is_best_odds ? 'best' : 'average';
@@ -1165,7 +1104,7 @@
             const tableBody = document.getElementById('tableBody');
             const icon = type === 'error' ? 'fa-exclamation-triangle' : 'fa-search';
             const title = type === 'error' ? 'Error Loading Data' : 'No Matches Found';
-            const description = type === 'error' ?
+            const description = type === 'error' ? 
                 'There was an error loading the data. Please try again.' :
                 'Try adjusting your filters or search query.';
 
@@ -1215,5 +1154,4 @@
         }, 30000);
     </script>
 </body>
-
 </html>
