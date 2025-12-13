@@ -52,7 +52,7 @@ class LiveParallelCollector:
         }
         
     def _update_json(self):
-        """Update the single JSON file with current progress"""
+        """Update the single JSON file with current progress - atomic write for live UI updates"""
         with self.lock:
             # Update stats
             elapsed = time.time() - self.results['processing_start_time']
@@ -60,10 +60,17 @@ class LiveParallelCollector:
             if elapsed > 0:
                 self.results['matches_per_minute'] = round((self.results['matches_processed'] / elapsed) * 60, 2)
             
-            # Write to file
+            # Atomic write: write to temp file then rename (prevents UI from reading incomplete JSON)
             try:
-                with open(self.output_file, 'w', encoding='utf-8') as f:
+                temp_file = str(self.output_file) + '.tmp'
+                with open(temp_file, 'w', encoding='utf-8') as f:
                     json.dump(self.results, f, indent=2, ensure_ascii=False)
+                    f.flush()  # Ensure data is written to disk
+                    os.fsync(f.fileno())  # Force OS to write to disk
+                
+                # Atomic rename - UI will always read complete valid JSON
+                import os
+                os.replace(temp_file, self.output_file)
             except Exception as e:
                 print(f"⚠️ Error updating JSON: {e}")
     
