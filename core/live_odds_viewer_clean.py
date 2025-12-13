@@ -509,6 +509,16 @@ async def get_oddsmagnet_page():
     return HTMLResponse(content=html_content)
 
 
+@app.get("/oddsmagnet/top10", response_class=HTMLResponse)
+async def get_oddsmagnet_top10_page():
+    """Serve the optimized OddsMagnet Top 10 viewer page with progressive loading"""
+    template_path = BASE_DIR / 'html' / 'oddsmagnet_top10_optimized.html'
+    if not template_path.exists():
+        return HTMLResponse(content="<h1>OddsMagnet Top 10 viewer not found</h1>", status_code=404)
+    html_content = open(template_path, 'r', encoding='utf-8').read()
+    return HTMLResponse(content=html_content)
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates"""
@@ -1083,6 +1093,8 @@ async def get_oddsmagnet_top10(
 ):
     """Get OddsMagnet football matches from top 10 leagues with pagination and filtering
     
+    This endpoint uses a dedicated collector that tracks ONLY the top 10 leagues.
+    
     Query Parameters:
     - page: Page number (default: 1)
     - page_size: Items per page (default: 50, max: 200)
@@ -1094,46 +1106,32 @@ async def get_oddsmagnet_top10(
         page = max(1, page)
         page_size = min(max(1, page_size), 200)
         
-        # Top 10 football leagues for faster endpoint
-        TOP_10_LEAGUES = [
-            'england-premier-league',
-            'spain-laliga',
-            'italy-serie-a', 
-            'germany-bundesliga',
-            'france-ligue-1',
-            'uefa-champions-league',
-            'uefa-europa-league',
-            'england-championship',
-            'netherlands-eredivisie',
-            'portugal-primeira-liga'
-        ]
+        # Read from dedicated top 10 leagues collector
+        # Try top10 file first, fall back to realtime file
+        oddsmagnet_top10_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10.json"
+        oddsmagnet_realtime_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime.json"
         
-        oddsmagnet_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime.json"
-        if not oddsmagnet_file.exists():
+        data_file = None
+        if oddsmagnet_top10_file.exists():
+            data_file = oddsmagnet_top10_file
+        elif oddsmagnet_realtime_file.exists():
+            data_file = oddsmagnet_realtime_file
+        
+        if not data_file:
             return {
-                'error': 'OddsMagnet data not available',
-                'message': 'Real-time collector not running',
+                'error': 'OddsMagnet Top 10 data not available',
+                'message': 'Top 10 leagues collector not running. Start the system with: python core/launch_odds_system.py --include-live',
                 'matches': []
             }
         
-        with open(oddsmagnet_file, 'r', encoding='utf-8') as f:
+        with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Filter matches for top 10 leagues only
+        # Data is already filtered to top 10 leagues by dedicated collector
         all_matches = data.get('matches', [])
-        top10_matches = []
-        for match in all_matches:
-            # Extract league slug from match_uri (e.g., "football/spain-laliga/...")
-            match_uri = match.get('match_uri', '')
-            if '/' in match_uri:
-                parts = match_uri.split('/')
-                if len(parts) >= 2:
-                    league_slug = parts[1].lower()  # Get the second part (league slug)
-                    if league_slug in TOP_10_LEAGUES:
-                        top10_matches.append(match)
         
         # Apply additional filters
-        filtered_matches = top10_matches
+        filtered_matches = all_matches
         if league:
             league_lower = league.lower()
             filtered_matches = [
@@ -1172,8 +1170,9 @@ async def get_oddsmagnet_top10(
                 'league': league,
                 'search': search
             },
-            'total_matches_top10': len(top10_matches),
-            'leagues_included': TOP_10_LEAGUES,
+            'total_matches': len(all_matches),
+            'leagues_tracked': data.get('leagues_tracked', []),
+            'total_leagues': data.get('total_leagues', 10),
             'matches': paginated_matches
         }
     except Exception as e:

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 OddsMagnet - Top 10 Leagues Odds Comparison</title>
+    <title>⚡ OddsMagnet Pro - Live Odds Comparison</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -37,6 +37,33 @@
             color: var(--text-primary);
             line-height: 1.5;
             overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Glowing Cursor */
+        .cursor-glow {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.4) 40%, transparent 70%);
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .cursor-glow.clicking {
+            transform: scale(1.5);
+            background: radial-gradient(circle, rgba(59, 130, 246, 1) 0%, rgba(59, 130, 246, 0.6) 40%, transparent 70%);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Show default cursor on interactive elements for accessibility */
+        button, a, input, select, .clickable,
+        .filter-btn, .market-tab, .filter-menu-item,
+        .odds-cell, .calendar-day, .calendar-nav {
+            cursor: pointer !important;
         }
 
         /* Header & Navigation */
@@ -169,7 +196,7 @@
             color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
-            cursor: pointer;
+            cursor: pointer !important;
             transition: all 0.2s;
             white-space: nowrap;
             display: flex;
@@ -277,7 +304,7 @@
 
         .dropdown-item {
             padding: 12px 20px;
-            cursor: pointer;
+            cursor: pointer !important;
             transition: background 0.2s;
             font-size: 14px;
             color: var(--text-secondary);
@@ -323,7 +350,7 @@
             color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
-            cursor: pointer;
+            cursor: pointer !important;
             transition: all 0.2s;
             white-space: nowrap;
         }
@@ -385,6 +412,18 @@
         }
 
         /* Table */
+        .table-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: calc(100vh - 220px);
+            position: relative;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            will-change: scroll-position;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
         .odds-table {
             width: 100%;
             border-collapse: collapse;
@@ -396,6 +435,7 @@
             top: 0;
             z-index: 10;
             background: var(--bg-secondary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .odds-table th {
@@ -414,15 +454,19 @@
             position: sticky;
             left: 0;
             z-index: 11;
+            background: var(--bg-secondary);
+            box-shadow: 2px 0 4px rgba(0,0,0,0.2);
         }
 
         .odds-table tbody tr {
             border-bottom: 1px solid var(--border-color);
-            transition: background 0.15s ease;
+            transition: all 0.2s ease;
         }
 
         .odds-table tbody tr:hover {
-            background: rgba(59, 130, 246, 0.05);
+            background: rgba(59, 130, 246, 0.12);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+            transform: translateX(2px);
         }
 
         .odds-table td {
@@ -439,10 +483,13 @@
             left: 0;
             background: var(--bg-primary);
             z-index: 5;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.2);
+            transition: background 0.2s ease;
         }
 
         .odds-table tbody tr:hover td:first-child {
-            background: rgba(59, 130, 246, 0.05);
+            background: rgba(59, 130, 246, 0.12);
+            box-shadow: 2px 0 8px rgba(59, 130, 246, 0.3);
         }
 
         /* Match Cell */
@@ -471,15 +518,39 @@
             text-transform: uppercase;
         }
 
+        .selection-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-start;
+        }
+
         .selection-type {
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--text-muted);
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-secondary);
             text-transform: uppercase;
-            padding: 2px 8px;
-            background: var(--bg-tertiary);
+            padding: 3px 10px;
             border-radius: 4px;
             display: inline-block;
+            letter-spacing: 0.5px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+        }
+
+        .selection-type.home,
+        .selection-type.draw,
+        .selection-type.away {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .selection-team {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: block;
+            text-align: center;
         }
 
         /* Odds Cell */
@@ -602,21 +673,30 @@
 
         /* Scrollbar */
         .table-container::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 16px;
+            height: 16px;
         }
 
         .table-container::-webkit-scrollbar-track {
             background: var(--bg-secondary);
+            border-radius: 8px;
+            margin: 4px 0;
         }
 
         .table-container::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
+            background: linear-gradient(180deg, #3a4558, #2a3548);
+            border-radius: 8px;
+            border: 3px solid var(--bg-secondary);
+            min-height: 40px;
         }
 
         .table-container::-webkit-scrollbar-thumb:hover {
-            background: #2a3548;
+            background: linear-gradient(180deg, #4a5568, #3a4558);
+            border: 2px solid var(--bg-secondary);
+        }
+
+        .table-container::-webkit-scrollbar-thumb:active {
+            background: var(--accent-primary);
         }
 
         .filter-modal-body::-webkit-scrollbar {
@@ -659,12 +739,28 @@
 
         @media (max-width: 768px) {
             .logo {
-                font-size: 18px;
+                font-size: 14px;
+            }
+
+            .logo-icon {
+                width: 28px;
+                height: 28px;
+            }
+
+            .search-input {
+                width: 200px;
+                font-size: 12px;
+                padding: 6px 12px 6px 32px;
             }
 
             .stats-bar {
                 flex-wrap: wrap;
                 gap: 12px;
+                padding: 8px 16px;
+            }
+
+            .stat-item {
+                flex: 1 1 45%;
             }
 
             .odds-table th,
@@ -681,24 +777,125 @@
                 font-size: 11px;
             }
 
+            .match-time, .match-league {
+                font-size: 9px;
+            }
+
             .bookmaker-logo {
                 width: 20px;
                 height: 20px;
             }
 
+            .bookmaker-name {
+                font-size: 8px;
+            }
+
             .odds-value {
                 font-size: 11px;
+            }
+
+            .selection-type {
+                font-size: 9px;
+                padding: 1px 4px;
+            }
+
+            .table-container {
+                max-height: calc(100vh - 280px);
             }
         }
 
         @media (max-width: 480px) {
+            .header-top {
+                padding: 8px 12px;
+            }
+
+            .logo {
+                font-size: 12px;
+            }
+
+            .logo-icon {
+                width: 24px;
+                height: 24px;
+                font-size: 14px;
+            }
+
+            .search-input {
+                width: 150px;
+                font-size: 11px;
+            }
+
+            .live-indicator {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+
+            .filters-bar {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+
+            .filter-btn {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+
+            .market-tabs {
+                padding: 0 12px;
+            }
+
+            .market-tab {
+                font-size: 11px;
+                padding: 8px 12px;
+            }
+
+            .stats-bar {
+                padding: 8px 12px;
+            }
+
+            .stat-label {
+                font-size: 9px;
+            }
+
+            .stat-value {
+                font-size: 14px;
+            }
+
             .table-container {
+                font-size: 10px;
+                max-height: calc(100vh - 320px);
+            }
+
+            .odds-table th,
+            .odds-table td {
+                padding: 4px 2px;
                 font-size: 10px;
             }
 
             .odds-cell {
-                min-width: 40px;
+                min-width: 35px;
                 padding: 3px 4px;
+                font-size: 10px;
+            }
+
+            .match-info {
+                min-width: 100px;
+            }
+
+            .match-teams {
+                font-size: 10px;
+            }
+
+            .match-time, .match-league {
+                font-size: 8px;
+            }
+
+            .bookmaker-logo {
+                width: 16px;
+                height: 16px;
+            }
+
+            .bookmaker-name {
+                font-size: 7px;
             }
         }
 
@@ -902,6 +1099,40 @@
             background: var(--accent-primary);
             color: white;
         }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-to-top.visible {
+            display: flex;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .back-to-top:active {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -911,7 +1142,7 @@
         <div class="header-top">
             <div class="logo">
                 <div class="logo-icon">⚡</div>
-                <div>OddsMagnet Pro <span style="font-size: 11px; opacity: 0.7; font-weight: 400;">Top 10 Leagues</span></div>
+                <div>OddsMagnet Pro <span style="font-size: 11px; opacity: 0.7; font-weight: 400;">⚽ Football Leagues</span></div>
             </div>
             <div class="header-actions">
                 <div class="search-box">
@@ -940,6 +1171,14 @@
                 <button class="filter-btn" id="dateBtn">
                     <i class="fas fa-calendar-alt"></i>
                     <span id="dateLabel">All Dates</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="marketBtn">
+                    <i class="fas fa-chart-line"></i>
+                    <span id="marketLabel">All Markets</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
             </div>
@@ -1006,6 +1245,24 @@
         </div>
     </div>
 
+    <!-- Market Filter Modal -->
+    <div class="filter-modal" id="marketModal">
+        <div class="filter-modal-content">
+            <div class="filter-modal-header">
+                <div class="filter-modal-title">
+                    <i class="fas fa-chart-line" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                    Select Market
+                </div>
+                <button class="filter-modal-close" id="marketModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-modal-body" id="marketMenu">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
     <!-- Date Filter Modal -->
     <div class="date-calendar-modal" id="dateModal">
         <div class="date-calendar">
@@ -1024,6 +1281,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" title="Back to Top (Home key)">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
     <script>
         // Global State
@@ -1054,9 +1316,106 @@
 
         // Initialize        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            initGlowingCursor();
             setupEventListeners();
+            setupScrollNavigation();
             loadData();
         });
+
+        // Scroll Navigation
+        function setupScrollNavigation() {
+            const backToTopBtn = document.getElementById('backToTop');
+            const tableContainer = document.querySelector('.table-container');
+
+            // Show/hide back to top button based on scroll position
+            tableContainer.addEventListener('scroll', () => {
+                if (tableContainer.scrollTop > 300) {
+                    backToTopBtn.classList.add('visible');
+                } else {
+                    backToTopBtn.classList.remove('visible');
+                }
+            });
+
+            // Back to top button click
+            backToTopBtn.addEventListener('click', () => {
+                tableContainer.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                // Only handle if not typing in input
+                if (e.target.tagName === 'INPUT') return;
+
+                const scrollAmount = 500;
+                
+                switch(e.key) {
+                    case 'Home':
+                        e.preventDefault();
+                        tableContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        tableContainer.scrollTo({ top: tableContainer.scrollHeight, behavior: 'smooth' });
+                        break;
+                    case 'PageUp':
+                        e.preventDefault();
+                        tableContainer.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+                        break;
+                    case 'PageDown':
+                        e.preventDefault();
+                        tableContainer.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+                        break;
+                    case 'ArrowUp':
+                        if (e.ctrlKey) {
+                            e.preventDefault();
+                            tableContainer.scrollBy({ top: -100, behavior: 'smooth' });
+                        }
+                        break;
+                    case 'ArrowDown':
+                        if (e.ctrlKey) {
+                            e.preventDefault();
+                            tableContainer.scrollBy({ top: 100, behavior: 'smooth' });
+                        }
+                        break;
+                }
+            });
+        }
+
+        // Glowing Cursor Effect
+        function initGlowingCursor() {
+            const cursorGlow = document.createElement('div');
+            cursorGlow.className = 'cursor-glow';
+            document.body.appendChild(cursorGlow);
+
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            document.addEventListener('mousedown', () => {
+                cursorGlow.classList.add('clicking');
+            });
+
+            document.addEventListener('mouseup', () => {
+                cursorGlow.classList.remove('clicking');
+            });
+
+            // Smooth cursor animation
+            function animateCursor() {
+                const speed = 0.2;
+                cursorX += (mouseX - cursorX) * speed;
+                cursorY += (mouseY - cursorY) * speed;
+                
+                cursorGlow.style.left = cursorX - 10 + 'px';
+                cursorGlow.style.top = cursorY - 10 + 'px';
+                
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+        }
 
         // Event Listeners
         function setupEventListeners() {
@@ -1075,8 +1434,84 @@
             // League modal
             setupLeagueModal();
             
+            // Market modal
+            setupMarketModal();
+            
             // Date calendar modal
             setupCalendarModal();
+        }
+
+        function setupMarketModal() {
+            const marketBtn = document.getElementById('marketBtn');
+            const marketModal = document.getElementById('marketModal');
+            const marketModalClose = document.getElementById('marketModalClose');
+            const marketMenu = document.getElementById('marketMenu');
+            
+            marketBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                populateMarketMenu();
+                marketModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            
+            marketModalClose.addEventListener('click', () => {
+                marketModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            marketModal.addEventListener('click', (e) => {
+                if (e.target === marketModal) {
+                    marketModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            marketMenu.addEventListener('click', (e) => {
+                const menuItem = e.target.closest('.filter-menu-item');
+                if (menuItem) {
+                    const value = menuItem.dataset.value;
+                    currentMarket = value === 'all' ? '' : value;
+                    document.getElementById('marketLabel').textContent = value === 'all' ? 'All Markets' : value;
+                    
+                    // Update market tabs visual state
+                    document.querySelectorAll('.market-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                        if (tab.dataset.market === currentMarket || (currentMarket === '' && tab.dataset.market === marketCategories[0])) {
+                            tab.classList.add('active');
+                        }
+                    });
+                    
+                    marketModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    renderTable();
+                }
+            });
+        }
+
+        function populateMarketMenu() {
+            const marketMenu = document.getElementById('marketMenu');
+            
+            // Add "All Markets" option
+            let html = `
+                <div class="filter-menu-item" data-value="all" style="background: var(--accent-primary); color: white; font-weight: 600;">
+                    <i class="fas fa-globe" style="margin-right: 8px;"></i>
+                    All Markets
+                </div>
+            `;
+            
+            // Add each market category
+            marketCategories.forEach(market => {
+                const isActive = market === currentMarket;
+                html += `
+                    <div class="filter-menu-item ${isActive ? 'active' : ''}" data-value="${market}">
+                        <i class="fas fa-chart-bar" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                        ${market}
+                    </div>
+                `;
+            });
+            
+            marketMenu.innerHTML = html;
         }
 
         function setupLeagueModal() {
@@ -1313,10 +1748,10 @@
             const startTime = performance.now();
 
             try {
-                // Fetch from top 10 leagues endpoint
+                // Fetch from local JSON file
                 // Includes: Premier League, La Liga, Serie A, Bundesliga, Ligue 1,
                 // Champions League, Europa League, Championship, Eredivisie, Primeira Liga
-                const response = await fetch('/oddsmagnet/football/top10');
+                const response = await fetch('../bookmakers/oddsmagnet/oddsmagnet_top10.json');
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
@@ -1500,7 +1935,7 @@
 
             // Render header only if bookmakers changed
             if (!tableHead.dataset.rendered || tableHead.dataset.bookmakerCount !== String(bookmakers.length)) {
-                const headerCells = ['<th>Match</th>', '<th style="width: 80px;">Type</th>'];
+                const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
                 
                 for (const bm of bookmakers) {
                     const logo = bookmakerLogos[bm.code] || `https://ui-avatars.com/api/?name=${encodeURIComponent(bm.name)}&size=80`;
@@ -1536,6 +1971,10 @@
                 `${matchDate.getMonth() + 1}/${matchDate.getDate()} ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
                 'TBD';
 
+            // Get team names for selection labels
+            const homeTeam = match.home_team || 'Home';
+            const awayTeam = match.away_team || 'Away';
+
             // Get odds map by selection (home/draw/away) for current market
             const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
 
@@ -1560,15 +1999,30 @@
                             <div class="match-league">${match.league || 'Unknown'}</div>
                         </div>
                     </td>
-                    <td><span class="selection-type">Home</span></td>
+                    <td>
+                        <span class="selection-team">${homeTeam}</span>
+                    </td>
+                    <td>
+                        <span class="selection-type home">HOME</span>
+                    </td>
                     ${homeCells.join('')}
                 </tr>
                 <tr>
-                    <td><span class="selection-type">Draw</span></td>
+                    <td>
+                        <span class="selection-team" style="opacity: 0.3;">—</span>
+                    </td>
+                    <td>
+                        <span class="selection-type draw">DRAW</span>
+                    </td>
                     ${drawCells.join('')}
                 </tr>
                 <tr>
-                    <td><span class="selection-type">Away</span></td>
+                    <td>
+                        <span class="selection-team">${awayTeam}</span>
+                    </td>
+                    <td>
+                        <span class="selection-type away">AWAY</span>
+                    </td>
                     ${awayCells.join('')}
                 </tr>
             `;

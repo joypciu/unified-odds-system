@@ -141,6 +141,40 @@ class OddsMagnetOptimizedCollector:
         
         return all_matches
     
+    def _process_single_match(self, match_info: tuple) -> Optional[Dict]:
+        """Process a single match - designed for parallel execution"""
+        i, total, match, market_filter, max_markets = match_info
+        
+        logging.info(f"\n[{i}/{total}] Processing: {match['match_name']}")
+        
+        try:
+            match_data = self.scraper.scrape_match_all_markets(
+                match_uri=match['match_uri'],
+                match_name=match['match_name'],
+                league_name=match['league'],
+                match_date=match['match_date'],
+                market_filter=market_filter,
+                max_markets_per_category=max_markets,
+                use_concurrent=True
+            )
+            
+            if match_data:
+                # Add extra info
+                match_data['home_team'] = match.get('home_team', '')
+                match_data['away_team'] = match.get('away_team', '')
+                match_data['league_slug'] = match.get('league_slug', '')
+                
+                odds_count = match_data.get('total_odds_collected', 0)
+                logging.info(f"  ✓ [{i}/{total}] Collected {odds_count} odds")
+                return match_data
+            else:
+                logging.warning(f"  ✗ [{i}/{total}] No data collected")
+                return None
+                
+        except Exception as e:
+            logging.error(f"  Error processing match [{i}/{total}]: {e}")
+            return None
+    
     def collect_matches_with_odds(self,
                                  matches: List[Dict],
                                  market_filter: Optional[List[str]] = None,
@@ -148,7 +182,7 @@ class OddsMagnetOptimizedCollector:
                                  save_interval: int = 10,
                                  output_file: str = 'oddsmagnet_collection.json') -> Dict:
         """
-        Collect odds for a list of matches with progress tracking
+        Collect odds for a list of matches with parallel processing and progress tracking
         
         Args:
             matches: List of match dictionaries
@@ -166,41 +200,51 @@ class OddsMagnetOptimizedCollector:
         }
         
         start_time = time.time()
+        total_matches = len(matches)
         
-        for i, match in enumerate(matches, 1):
-            logging.info(f"\n[{i}/{len(matches)}] Processing: {match['match_name']}")
+        # Parallel batch processing with ThreadPoolExecutor
+        batch_size = self.scraper.max_workers * 3  # Process 3 batches per worker
+        processed_count = 0
+        
+        logging.info(f"\n{'='*80}")
+        logging.info(f"Starting parallel collection with batch size: {batch_size}")
+        logging.info(f"Total matches: {total_matches}")
+        logging.info(f"{'='*80}\n")
+        
+        # Process in batches
+        for batch_start in range(0, total_matches, batch_size):
+            batch_end = min(batch_start + batch_size, total_matches)
+            batch_matches = matches[batch_start:batch_end]
             
-            try:
-                match_data = self.scraper.scrape_match_all_markets(
-                    match_uri=match['match_uri'],
-                    match_name=match['match_name'],
-                    league_name=match['league'],
-                    match_date=match['match_date'],
-                    market_filter=market_filter,
-                    max_markets_per_category=max_markets_per_category,
-                    use_concurrent=True
-                )
-                
-                if match_data:
-                    # Add extra info
-                    match_data['home_team'] = match.get('home_team', '')
-                    match_data['away_team'] = match.get('away_team', '')
-                    match_data['league_slug'] = match.get('league_slug', '')
-                    
-                    results['matches'].append(match_data)
-                    results['matches_processed'] += 1
-                    
-                    odds_count = match_data.get('total_odds_collected', 0)
-                    logging.info(f"  ✓ Collected {odds_count} odds")
-                else:
-                    logging.warning(f"  ✗ No data collected")
-                
-                # Save progress
-                if i % save_interval == 0:
-                    self._save_progress(results, f"progress_{i}_matches.json")
+            logging.info(f"\nProcessing batch {batch_start+1}-{batch_end} of {total_matches}")
             
-            except Exception as e:
-                logging.error(f"  Error processing match: {e}")
+            # Prepare match info tuples for parallel processing
+            match_infos = [
+                (batch_start + i + 1, total_matches, match, market_filter, max_markets_per_category)
+                for i, match in enumerate(batch_matches)
+            ]
+            
+            # Execute batch in parallel
+            with ThreadPoolExecutor(max_workers=self.scraper.max_workers) as executor:
+                future_to_match = {
+                    executor.submit(self._process_single_match, match_info): match_info
+                    for match_info in match_infos
+                }
+                
+                # Collect results as they complete
+                for future in as_completed(future_to_match):
+                    match_data = future.result()
+                    if match_data:
+                        results['matches'].append(match_data)
+                        results['matches_processed'] += 1
+                        processed_count += 1
+                        
+                        # Save progress at intervals
+                        if processed_count % save_interval == 0:
+                            self._save_progress(results, f"progress_{processed_count}_matches.json")
+            
+            # Save progress after each batch
+            self._save_progress(results, f"progress_batch_{batch_end}.json")
         
         # Final stats
         elapsed = time.time() - start_time

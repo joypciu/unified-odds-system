@@ -14,23 +14,34 @@ from threading import Lock
 import logging
 
 class RateLimiter:
-    """Thread-safe rate limiter"""
-    def __init__(self, requests_per_second: float = 3.0):
-        self.min_interval = 1.0 / requests_per_second
-        self.last_request_time = 0
+    """Thread-safe token bucket rate limiter with burst support"""
+    def __init__(self, requests_per_second: float = 3.0, burst_size: int = 10):
+        self.rate = requests_per_second
+        self.burst_size = burst_size
+        self.tokens = burst_size
+        self.last_update = time.time()
         self.lock = Lock()
     
     def wait(self):
-        """Wait if necessary to respect rate limit"""
+        """Wait if necessary to respect rate limit (token bucket algorithm)"""
         with self.lock:
             current_time = time.time()
-            time_since_last = current_time - self.last_request_time
             
-            if time_since_last < self.min_interval:
-                sleep_time = self.min_interval - time_since_last
-                time.sleep(sleep_time)
+            # Refill tokens based on time elapsed
+            time_passed = current_time - self.last_update
+            self.tokens = min(self.burst_size, self.tokens + time_passed * self.rate)
+            self.last_update = current_time
             
-            self.last_request_time = time.time()
+            # If we have tokens, consume one and proceed
+            if self.tokens >= 1.0:
+                self.tokens -= 1.0
+                return
+            
+            # Otherwise wait until we have a token
+            wait_time = (1.0 - self.tokens) / self.rate
+            time.sleep(wait_time)
+            self.tokens = 0
+            self.last_update = time.time()
 
 
 class OddsMagnetOptimizedScraper:
@@ -59,15 +70,16 @@ class OddsMagnetOptimizedScraper:
             requests_per_second: Rate limit (default: 3.0)
         """
         self.max_workers = max_workers
-        self.rate_limiter = RateLimiter(requests_per_second)
+        # Token bucket with burst capacity for better throughput
+        self.rate_limiter = RateLimiter(requests_per_second, burst_size=max_workers * 2)
         self.base_url = "https://oddsmagnet.com"
         
-        # Session with connection pooling
+        # Enhanced session with larger connection pool
         self.session = requests.Session()
         adapter = requests.adapters.HTTPAdapter(
-            pool_connections=10,
-            pool_maxsize=20,
-            max_retries=3,
+            pool_connections=max_workers * 2,
+            pool_maxsize=max_workers * 4,
+            max_retries=2,
             pool_block=False
         )
         self.session.mount('https://', adapter)
@@ -84,9 +96,11 @@ class OddsMagnetOptimizedScraper:
             'Sec-Fetch-Site': 'same-origin',
         }
         
-        # Cache for frequently accessed data
+        # Enhanced cache with TTL
         self._cache = {}
+        self._cache_ttl = {}  # Timestamp for cache expiry
         self._cache_lock = Lock()
+        self._cache_max_age = 300  # 5 minutes cache
     
     def _make_request(self, url: str, timeout: int = 10) -> Optional[Dict]:
         """Make rate-limited request with retry logic"""
@@ -107,19 +121,26 @@ class OddsMagnetOptimizedScraper:
             return None
     
     def get_all_markets_for_match(self, match_uri: str) -> Dict[str, List]:
-        """Get all available markets for a match (cached)"""
-        # Check cache
+        """Get all available markets for a match (cached with TTL)"""
+        # Check cache with TTL validation
         with self._cache_lock:
             if match_uri in self._cache:
-                return self._cache[match_uri]
+                cache_time = self._cache_ttl.get(match_uri, 0)
+                if time.time() - cache_time < self._cache_max_age:
+                    return self._cache[match_uri]
+                else:
+                    # Cache expired, remove it
+                    del self._cache[match_uri]
+                    del self._cache_ttl[match_uri]
         
         url = f"{self.base_url}/api/markets?subevent_uri={match_uri}"
         markets_data = self._make_request(url)
         
         if markets_data and isinstance(markets_data, dict):
-            # Cache result
+            # Cache result with timestamp
             with self._cache_lock:
                 self._cache[match_uri] = markets_data
+                self._cache_ttl[match_uri] = time.time()
             return markets_data
         
         return {}

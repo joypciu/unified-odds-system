@@ -232,15 +232,15 @@ def main():
     # Top 10 football leagues
     top_10_leagues = [
         'england-premier-league',
-        'spain-la-liga',
-        'germany-bundesliga',
+        'spain-laliga',
         'italy-serie-a',
+        'germany-bundesliga',
         'france-ligue-1',
+        'champions-league',  # UEFA Champions League
+        'europe-uefa-europa-league',  # UEFA Europa League
         'england-championship',
         'netherlands-eredivisie',
-        'portugal-primeira-liga',
-        'brazil-serie-a',
-        'argentina-primera-division'
+        'portugal-primeira-liga'
     ]
     
     oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
