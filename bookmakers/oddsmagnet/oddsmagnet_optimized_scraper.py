@@ -312,9 +312,14 @@ class OddsMagnetOptimizedScraper:
         if not markets_data:
             return None
         
+        # Extract league slug from match_uri (e.g., "football/spain-laliga/..." -> "spain-laliga")
+        league_slug = match_uri.split('/')[1] if '/' in match_uri else 'unknown'
+        
         result = {
             'match_name': match_name,
             'league': league_name,
+            'league_name': league_name,  # Explicit field for UI
+            'league_slug': league_slug,  # Extract from URI
             'match_date': match_date,
             'match_uri': match_uri,
             'markets': {}
