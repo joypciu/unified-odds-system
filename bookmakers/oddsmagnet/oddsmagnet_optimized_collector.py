@@ -5,12 +5,18 @@ High-performance bulk collection with concurrent processing
 """
 
 import json
+import sys
+from pathlib import Path
 from datetime import datetime
 import time
 from typing import Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 from oddsmagnet_optimized_scraper import OddsMagnetOptimizedScraper
+
+# Add project root to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from utils.helpers.match_name_cleaner import clean_match_data
 
 # Configure logging
 logging.basicConfig(
@@ -103,6 +109,8 @@ class OddsMagnetOptimizedCollector:
                     'away_team': match[6] if len(match) > 6 else '',
                     'sport': match[7] if len(match) > 7 else sport,
                 }
+                # Clean match names to remove unnecessary suffixes like "Women"
+                match_info = clean_match_data(match_info)
                 processed.append(match_info)
             
             return processed

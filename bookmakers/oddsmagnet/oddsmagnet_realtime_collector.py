@@ -11,8 +11,13 @@ from typing import Dict, List, Optional, Set
 import signal
 import sys
 import argparse
+from pathlib import Path
 from oddsmagnet_optimized_scraper import OddsMagnetOptimizedScraper
 from oddsmagnet_optimized_collector import OddsMagnetOptimizedCollector
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from utils.helpers.match_name_cleaner import clean_match_data
 
 class RealTimeOddsCollector:
     """Collects odds data in real-time with 1-second intervals"""

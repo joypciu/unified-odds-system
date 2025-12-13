@@ -12,6 +12,11 @@ import json
 import logging
 from threading import Lock
 import sys
+from pathlib import Path
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from utils.helpers.match_name_cleaner import clean_match_data
 
 # Configure logging to be minimal
 logging.basicConfig(
@@ -94,6 +99,9 @@ class LiveParallelCollector:
                 match_data['home_team'] = match.get('home_team', '')
                 match_data['away_team'] = match.get('away_team', '')
                 match_data['league_slug'] = match.get('league_slug', '')
+                
+                # Clean match names to remove unnecessary suffixes like "Women"
+                match_data = clean_match_data(match_data)
                 
                 odds_count = match_data.get('total_odds_collected', 0)
                 
