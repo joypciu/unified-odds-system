@@ -2006,10 +2006,10 @@
 
             filteredMatches = matches;
 
-            // Batch DOM updates
-            requestAnimationFrame(() => {
+            // Batch DOM updates with async rendering support
+            requestAnimationFrame(async () => {
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
-                renderTable();
+                await renderTable();
                 const filterTime = (performance.now() - startTime).toFixed(0);
                 console.log(`Filtered and rendered in ${filterTime}ms`);
             });
