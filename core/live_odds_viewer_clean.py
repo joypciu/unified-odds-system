@@ -5,13 +5,14 @@ Real-time monitoring of unified_odds.json and source files
 """
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, EmailStr
 import json
 import asyncio
 import time
+import hashlib
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -1091,6 +1092,7 @@ async def get_oddsmagnet_football(
 
 @app.get("/oddsmagnet/football/top10")
 async def get_oddsmagnet_top10(
+    request: Request,
     page: int = 1,
     page_size: int = 999,
     league: str = None,
@@ -1099,6 +1101,7 @@ async def get_oddsmagnet_top10(
     """Get OddsMagnet football matches from top 10 leagues with pagination and filtering
     
     This endpoint uses a dedicated collector that tracks ONLY the top 10 leagues.
+    Supports ETag caching for faster subsequent loads.
     
     Query Parameters:
     - page: Page number (default: 1)
@@ -1123,11 +1126,26 @@ async def get_oddsmagnet_top10(
             data_file = oddsmagnet_realtime_file
         
         if not data_file:
-            return {
-                'error': 'OddsMagnet Top 10 data not available',
-                'message': 'Top 10 leagues collector not running. Start the system with: python core/launch_odds_system.py --include-live',
-                'matches': []
-            }
+            return JSONResponse(
+                content={
+                    'error': 'OddsMagnet Top 10 data not available',
+                    'message': 'Top 10 leagues collector not running. Start the system with: python core/launch_odds_system.py --include-live',
+                    'matches': []
+                }
+            )
+        
+        # Check file modification time for ETag
+        file_mtime = data_file.stat().st_mtime
+        file_size = data_file.stat().st_size
+        
+        # Generate ETag from file metadata + query params
+        etag_base = f"{file_mtime}-{file_size}-{page}-{page_size}-{league}-{search}"
+        etag = hashlib.md5(etag_base.encode()).hexdigest()
+        
+        # Check if client has cached version
+        if_none_match = request.headers.get('if-none-match')
+        if if_none_match == etag:
+            return Response(status_code=304)  # Not Modified
         
         with open(data_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -1159,7 +1177,7 @@ async def get_oddsmagnet_top10(
         end_idx = start_idx + page_size
         paginated_matches = filtered_matches[start_idx:end_idx]
         
-        return {
+        response_data = {
             'source': 'oddsmagnet_top10',
             'timestamp': data.get('timestamp'),
             'iteration': data.get('iteration'),
@@ -1180,11 +1198,23 @@ async def get_oddsmagnet_top10(
             'total_leagues': data.get('total_leagues', 10),
             'matches': paginated_matches
         }
+        
+        # Return response with ETag header
+        return JSONResponse(
+            content=response_data,
+            headers={
+                'ETag': etag,
+                'Cache-Control': 'no-cache',  # Force revalidation but allow caching
+            }
+        )
+        
     except Exception as e:
-        return {
-            'error': str(e),
-            'matches': []
-        }
+        return JSONResponse(
+            content={
+                'error': str(e),
+                'matches': []
+            }
+        )
 
 
 @app.get("/bet365")

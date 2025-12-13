@@ -665,6 +665,55 @@
         .empty-description {
             font-size: 14px;
         }
+        
+        /* Skeleton Loader */
+        .skeleton-loader {
+            padding: 24px;
+        }
+        
+        .skeleton-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        
+        .skeleton-box {
+            background: linear-gradient(
+                90deg,
+                var(--bg-tertiary) 0%,
+                var(--border-color) 50%,
+                var(--bg-tertiary) 100%
+            );
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+            border-radius: 8px;
+        }
+        
+        .skeleton-match {
+            height: 60px;
+            flex: 0 0 200px;
+        }
+        
+        .skeleton-team {
+            height: 40px;
+            flex: 0 0 100px;
+        }
+        
+        .skeleton-odds {
+            height: 40px;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
 
         @keyframes spin {
             to {
@@ -1796,6 +1845,12 @@
             
             isLoading = true;
             updateStatus('Loading...');
+            
+            // SHOW SKELETON IMMEDIATELY for first load or force refresh
+            if (!dataCache || forceRefresh) {
+                showSkeletonLoader();
+            }
+            
             const startTime = performance.now();
 
             try {
@@ -2048,28 +2103,46 @@
                 tableHead.dataset.bookmakerCount = bookmakers.length;
             }
 
-            // PROGRESSIVE RENDERING: Render in chunks to keep UI responsive
-            const BATCH_SIZE = 20; // Render 20 matches at a time
+            // OPTIMIZED PROGRESSIVE RENDERING
+            const FIRST_BATCH = 10;  // Show first 10 matches immediately (visible viewport)
+            const BATCH_SIZE = 30;    // Then render 30 at a time
             const totalMatches = filteredMatches.length;
             
-            // Clear and show loading for large datasets
-            if (totalMatches > BATCH_SIZE) {
-                tableBody.innerHTML = '<tr><td colspan="100" style="text-align: center; padding: 40px; color: var(--text-secondary);"><i class="fas fa-spinner fa-spin" style="font-size: 24px;"></i><br><br>Rendering matches...</td></tr>';
-            }
+            // Clear table body
+            tableBody.innerHTML = '';
             
-            // Render first batch immediately (visible viewport)
-            const firstBatch = filteredMatches.slice(0, BATCH_SIZE);
-            const rows = firstBatch.map(match => renderMatchRow(match));
-            tableBody.innerHTML = rows.join('');
+            // Render FIRST BATCH immediately (what user sees first)
+            const firstBatch = filteredMatches.slice(0, FIRST_BATCH);
+            const firstRows = firstBatch.map(match => renderMatchRow(match));
+            tableBody.innerHTML = firstRows.join('');
             tableBody.classList.add('fade-in');
             
-            // Render remaining batches progressively in background
-            if (totalMatches > BATCH_SIZE) {
-                for (let i = BATCH_SIZE; i < totalMatches; i += BATCH_SIZE) {
-                    await new Promise(resolve => requestAnimationFrame(resolve));
-                    const batch = filteredMatches.slice(i, Math.min(i + BATCH_SIZE, totalMatches));
+            // Render remaining batches progressively in background (non-blocking)
+            if (totalMatches > FIRST_BATCH) {
+                // Use requestIdleCallback for background rendering when browser is idle
+                const renderNextBatch = (startIdx) => {
+                    if (startIdx >= totalMatches) return;
+                    
+                    const endIdx = Math.min(startIdx + BATCH_SIZE, totalMatches);
+                    const batch = filteredMatches.slice(startIdx, endIdx);
                     const batchRows = batch.map(match => renderMatchRow(match));
                     tableBody.insertAdjacentHTML('beforeend', batchRows.join(''));
+                    
+                    // Schedule next batch
+                    if (endIdx < totalMatches) {
+                        if (window.requestIdleCallback) {
+                            requestIdleCallback(() => renderNextBatch(endIdx), { timeout: 100 });
+                        } else {
+                            setTimeout(() => renderNextBatch(endIdx), 0);
+                        }
+                    }
+                };
+                
+                // Start background rendering
+                if (window.requestIdleCallback) {
+                    requestIdleCallback(() => renderNextBatch(FIRST_BATCH), { timeout: 100 });
+                } else {
+                    setTimeout(() => renderNextBatch(FIRST_BATCH), 0);
                 }
             }
         }
@@ -2223,6 +2296,35 @@
         }
 
         // Utilities
+        function showSkeletonLoader() {
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
+            
+            // Show minimal header
+            tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 12px;">Loading data...</th></tr>';
+            
+            // Show skeleton rows
+            const skeletonRows = [];
+            for (let i = 0; i < 10; i++) {
+                skeletonRows.push(`
+                    <tr>
+                        <td colspan="100%">
+                            <div class="skeleton-row">
+                                <div class="skeleton-box skeleton-match"></div>
+                                <div class="skeleton-box skeleton-team"></div>
+                                <div class="skeleton-box skeleton-odds"></div>
+                                <div class="skeleton-box skeleton-odds"></div>
+                                <div class="skeleton-box skeleton-odds"></div>
+                                <div class="skeleton-box skeleton-odds"></div>
+                                <div class="skeleton-box skeleton-odds"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            }
+            tableBody.innerHTML = skeletonRows.join('');
+        }
+        
         function showEmptyState(type) {
             const tableBody = document.getElementById('tableBody');
             const icon = type === 'error' ? 'fa-exclamation-triangle' : 'fa-search';
