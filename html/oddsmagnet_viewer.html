@@ -2053,7 +2053,8 @@
             
             // Clear and show loading for large datasets
             if (totalMatches > BATCH_SIZE) {
-                tableBody.innerHTML = '<tr><td colspan=\"100\" style=\"text-align: center; padding: 40px; color: var(--text-secondary);\"><i class=\"fas fa-spinner fa-spin\" style=\"font-size: 24px;\"></i><br><br>Rendering matches...</td></tr>';\n            }
+                tableBody.innerHTML = '<tr><td colspan="100" style="text-align: center; padding: 40px; color: var(--text-secondary);"><i class="fas fa-spinner fa-spin" style="font-size: 24px;"></i><br><br>Rendering matches...</td></tr>';
+            }
             
             // Render first batch immediately (visible viewport)
             const firstBatch = filteredMatches.slice(0, BATCH_SIZE);
@@ -2063,7 +2064,14 @@
             
             // Render remaining batches progressively in background
             if (totalMatches > BATCH_SIZE) {
-                for (let i = BATCH_SIZE; i < totalMatches; i += BATCH_SIZE) {\n                    await new Promise(resolve => requestAnimationFrame(resolve));\n                    const batch = filteredMatches.slice(i, Math.min(i + BATCH_SIZE, totalMatches));\n                    const batchRows = batch.map(match => renderMatchRow(match));\n                    tableBody.insertAdjacentHTML('beforeend', batchRows.join(''));\n                }\n            }\n        }
+                for (let i = BATCH_SIZE; i < totalMatches; i += BATCH_SIZE) {
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+                    const batch = filteredMatches.slice(i, Math.min(i + BATCH_SIZE, totalMatches));
+                    const batchRows = batch.map(match => renderMatchRow(match));
+                    tableBody.insertAdjacentHTML('beforeend', batchRows.join(''));
+                }
+            }
+        }
 
         function renderMatchRow(match) {
             const teams = match.match_name || 'Unknown Match';
