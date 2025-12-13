@@ -1183,12 +1183,7 @@
                 </button>
             </div>
 
-            <button class="filter-btn" id="clearFiltersBtn" title="Reset all filters">
-                <i class="fas fa-eraser"></i>
-                <span>Clear Filters</span>
-            </button>
-
-            <button class="filter-btn" id="refreshBtn" title="Reload data from server">
+            <button class="filter-btn" id="refreshBtn">
                 <i class="fas fa-sync-alt"></i>
                 <span>Refresh</span>
             </button>
@@ -1304,21 +1299,6 @@
         let searchQuery = '';
         let previousOdds = new Map();
         let isLoading = false;
-        let dataCache = null; // Cache for fetched data
-        let lastETag = null; // ETag for conditional requests
-        
-        // Debounce utility for performance
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
 
         // Bookmaker logo mapping
         const bookmakerLogos = {
@@ -1446,19 +1426,9 @@
                 applyFilters();
             }, 300));
 
-            // Clear filters button
-            document.getElementById('clearFiltersBtn').addEventListener('click', () => {
-                clearFilters();
-            });
-            
-            // Refresh button - force reload from server
+            // Refresh button
             document.getElementById('refreshBtn').addEventListener('click', () => {
-                const btn = document.getElementById('refreshBtn');
-                const icon = btn.querySelector('i');
-                icon.classList.add('fa-spin');
-                loadData(true).finally(() => {
-                    setTimeout(() => icon.classList.remove('fa-spin'), 500);
-                });
+                loadData();
             });
 
             // League modal
@@ -1769,8 +1739,8 @@
             document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
-        // Load Data with performance optimization and caching
-        async function loadData(forceRefresh = false) {
+        // Load Data with performance optimization
+        async function loadData() {
             if (isLoading) return; // Prevent concurrent loads
             
             isLoading = true;
@@ -1778,37 +1748,14 @@
             const startTime = performance.now();
 
             try {
-                // Use cached data if available and not forcing refresh
-                if (dataCache && !forceRefresh) {
-                    allMatches = dataCache;
-                    const loadTime = (performance.now() - startTime).toFixed(0);
-                    console.log(`Loaded from cache in ${loadTime}ms - ${allMatches.length} matches`);
-                } else {
-                    // Fetch from API with conditional request (ETag support)
-                    const headers = {};
-                    if (lastETag && !forceRefresh) {
-                        headers['If-None-Match'] = lastETag;
-                    }
-                    
-                    const response = await fetch('/oddsmagnet/football/top10', { headers });
-                    
-                    // 304 Not Modified - use cache
-                    if (response.status === 304) {
-                        allMatches = dataCache;
-                        const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`Data unchanged (304) - loaded from cache in ${loadTime}ms`);
-                    } else if (response.ok) {
-                        const data = await response.json();
-                        allMatches = data.matches || [];
-                        dataCache = allMatches; // Cache the data
-                        lastETag = response.headers.get('ETag'); // Store ETag
-                        
-                        const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`Fresh data loaded in ${loadTime}ms - ${allMatches.length} matches`);
-                    } else {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                }
+                // Fetch from API endpoint (VPS production)
+                // Includes: Premier League, La Liga, Serie A, Bundesliga, Ligue 1,
+                // Champions League, Europa League, Championship, Eredivisie, Primeira Liga
+                const response = await fetch('/oddsmagnet/football/top10');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                allMatches = data.matches || [];
                 
                 // Log leagues info if available
                 if (data.leagues_included) {
@@ -1932,32 +1879,6 @@
         }
 
         // Optimized Filters with early returns
-        // Clear all filters and reset to defaults
-        function clearFilters() {
-            selectedLeague = 'all';
-            selectedDate = 'all';
-            searchQuery = '';
-            currentMarket = marketCategories.length > 0 ? marketCategories[0] : '';
-            
-            // Update UI labels
-            document.getElementById('leagueLabel').textContent = 'All Leagues';
-            document.getElementById('dateLabel').textContent = 'All Dates';
-            
-            // Clear search if exists
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) searchInput.value = '';
-            
-            // Refresh league dropdown UI
-            document.querySelectorAll('#leagueMenu .dropdown-item').forEach(item => {
-                item.classList.toggle('selected', item.dataset.value === 'all');
-            });
-            
-            // Apply filters to show all data
-            applyFilters();
-            
-            console.log('All filters cleared - showing all data');
-        }
-
         const applyFilters = debounce(function() {
             const startTime = performance.now();
             

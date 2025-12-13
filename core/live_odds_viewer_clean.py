@@ -4,8 +4,10 @@ Live Odds Viewer - Modern Web UI with FastAPI
 Real-time monitoring of unified_odds.json and source files
 """
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, EmailStr
 import json
 import asyncio
@@ -36,6 +38,9 @@ async def lifespan(app: FastAPI):
     pass
 
 app = FastAPI(title="Live Odds Viewer", lifespan=lifespan)
+
+# Add GZip compression middleware for better performance
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Base directory - should be project root, not core/
 BASE_DIR = Path(__file__).parent.parent
