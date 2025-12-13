@@ -69,10 +69,34 @@ class RealTimeOddsCollector:
         
         # Get all available matches
         all_matches = self.collector.get_all_matches_summary(use_cache=True)
+        print(f"\n🔍 DEBUG: Total matches fetched from API: {len(all_matches)}")
+        
+        # Debug: Show unique leagues from API
+        api_leagues = set(m['league_slug'] for m in all_matches)
+        print(f"🔍 DEBUG: Unique leagues from API ({len(api_leagues)}):")
+        for league in sorted(api_leagues)[:20]:  # Show first 20
+            count = len([m for m in all_matches if m['league_slug'] == league])
+            print(f"   - {league}: {count} matches")
+        if len(api_leagues) > 20:
+            print(f"   ... and {len(api_leagues) - 20} more leagues")
         
         # Filter by league if specified
         if league_slugs:
+            print(f"\n🔍 DEBUG: Filtering for requested leagues ({len(league_slugs)}):")
+            for league in league_slugs:
+                print(f"   - {league}")
+            
+            before_filter = len(all_matches)
             all_matches = [m for m in all_matches if m['league_slug'] in league_slugs]
+            print(f"🔍 DEBUG: Matches before filter: {before_filter}, after filter: {len(all_matches)}")
+            
+            # Show which requested leagues had no matches
+            matched_leagues = set(m['league_slug'] for m in all_matches)
+            missing_leagues = set(league_slugs) - matched_leagues
+            if missing_leagues:
+                print(f"\n⚠️  WARNING: These requested leagues had NO matches:")
+                for league in missing_leagues:
+                    print(f"   - {league}")
         
         # Group matches by league
         matches_by_league = {}
@@ -91,7 +115,7 @@ class RealTimeOddsCollector:
         if max_total_matches:
             selected_matches = selected_matches[:max_total_matches]
         
-        print(f"\nSelected {len(selected_matches)} matches from {len(matches_by_league)} leagues:")
+        print(f"\n✅ Selected {len(selected_matches)} matches from {len(matches_by_league)} leagues:")
         print(f"  ({matches_per_league} match per league)")
         
         # Show sample
@@ -110,12 +134,14 @@ class RealTimeOddsCollector:
         
         Args:
             match: Match information dictionary
-            market_filter: Markets to track (None = popular markets only)
+            market_filter: Markets to track (None = ALL markets)
         """
         try:
-            # Default to popular markets for speed
+            # Debug: Show what market filter is being used
             if not market_filter:
-                market_filter = ['popular markets']
+                print(f"  🔍 DEBUG: No market filter specified, fetching ALL markets for {match['match_name']}")
+            else:
+                print(f"  🔍 DEBUG: Market filter: {market_filter} for {match['match_name']}")
             
             match_data = self.scraper.scrape_match_all_markets(
                 match_uri=match['match_uri'],
@@ -123,7 +149,7 @@ class RealTimeOddsCollector:
                 league_name=match['league'],
                 match_date=match['match_date'],
                 market_filter=market_filter,
-                max_markets_per_category=5,  # Limit for speed
+                max_markets_per_category=None,  # No limit - get all markets
                 use_concurrent=True
             )
             
@@ -131,6 +157,10 @@ class RealTimeOddsCollector:
                 match_data['fetch_timestamp'] = datetime.now().isoformat()
                 match_data['home_team'] = match.get('home_team', '')
                 match_data['away_team'] = match.get('away_team', '')
+                
+                # Debug: Show how many markets were fetched
+                total_markets = sum(len(markets) for markets in match_data.get('markets', {}).values())
+                print(f"  ✅ Fetched {total_markets} markets for {match['match_name']}")
                 
             return match_data
             
@@ -350,18 +380,19 @@ def main():
         'matches_per_league': args.matches_per_league,
         'max_total_matches': None,  # No limit (track all available)
         'update_interval': args.interval,
-        'market_filter': ['popular markets'],  # Only popular markets for speed
+        'market_filter': None,  # None = ALL markets (not just popular)
         'league_slugs': args.leagues  # None = ALL leagues (117+)
     }
     
     mode = "AUTOMATED" if args.auto else "MANUAL"
     print(f"\nMode: {mode}")
-    print(f"\nConfiguration:")
+    print(f"\n🔍 DEBUG: Configuration:")
     print(f"  Update interval: {config['update_interval']}s")
     print(f"  Matches per league: {config['matches_per_league']} {'(ALL available)' if config['matches_per_league'] >= 999 else ''}")
     print(f"  Max total matches: {config['max_total_matches'] or 'No limit'}")
     print(f"  Concurrent workers: {config['max_workers']}")
     print(f"  Rate limit: {config['requests_per_second']} req/s")
+    print(f"  Market filter: {config['market_filter'] or 'ALL MARKETS'}")
     if config['league_slugs']:
         print(f"  Leagues: {len(config['league_slugs'])} selected leagues")
         for league in config['league_slugs']:
