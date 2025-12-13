@@ -1750,6 +1750,26 @@
             }
         }
 
+        // Process data progressively in chunks for instant UI feedback
+        async function processDataProgressively() {
+            // Phase 1: Extract bookmakers and categories (fast)
+            extractBookmakers();
+            extractMarketCategories();
+            
+            // Phase 2: Build dropdowns (fast)
+            populateLeagueDropdown();
+            populateMarketTabs();
+            
+            // Phase 3: Apply filters and render (can be slower with large data)
+            // Use requestAnimationFrame for smooth rendering
+            await new Promise(resolve => {
+                requestAnimationFrame(() => {
+                    applyFilters();
+                    resolve();
+                });
+            });
+        }
+
         function populateLeagueDropdown() {
             const leagueSet = new Set();
             for (const match of allMatches) {
@@ -1769,20 +1789,23 @@
             document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
-        // Load Data with performance optimization and caching
+        // Load Data with progressive rendering - show data immediately as it arrives
         async function loadData(forceRefresh = false) {
             if (isLoading) return; // Prevent concurrent loads
             
             isLoading = true;
-            updateStatus('Fetching...');
+            updateStatus('Loading...');
             const startTime = performance.now();
 
             try {
                 // Use cached data if available and not forcing refresh
                 if (dataCache && !forceRefresh) {
                     allMatches = dataCache;
+                    // IMMEDIATE UI UPDATE - don't wait
+                    processDataProgressively();
                     const loadTime = (performance.now() - startTime).toFixed(0);
                     console.log(`Loaded from cache in ${loadTime}ms - ${allMatches.length} matches`);
+                    updateStatus('Live');
                 } else {
                     // Fetch from API with conditional request (ETag support)
                     const headers = {};
@@ -1795,36 +1818,27 @@
                     // 304 Not Modified - use cache
                     if (response.status === 304) {
                         allMatches = dataCache;
+                        processDataProgressively();
                         const loadTime = (performance.now() - startTime).toFixed(0);
                         console.log(`Data unchanged (304) - loaded from cache in ${loadTime}ms`);
+                        updateStatus('Live');
                     } else if (response.ok) {
                         const data = await response.json();
                         allMatches = data.matches || [];
                         dataCache = allMatches; // Cache the data
                         lastETag = response.headers.get('ETag'); // Store ETag
                         
+                        // PROGRESSIVE RENDERING - start showing data immediately
+                        updateStatus('Rendering...');
+                        await processDataProgressively();
+                        
                         const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`Fresh data loaded in ${loadTime}ms - ${allMatches.length} matches`);
+                        console.log(`Fresh data loaded & rendered in ${loadTime}ms - ${allMatches.length} matches`);
+                        updateStatus('Live');
                     } else {
                         throw new Error(`HTTP ${response.status}`);
                     }
                 }
-                
-                // Log leagues info if available
-                if (data.leagues_included) {
-                    console.log('Top 10 Leagues:', data.leagues_included.join(', '));
-                }
-                
-                // Process data efficiently
-                extractBookmakers();
-                extractMarketCategories();
-                populateLeagueDropdown();
-                populateMarketTabs();
-                applyFilters();
-                
-                const loadTime = (performance.now() - startTime).toFixed(0);
-                console.log(`Data loaded in ${loadTime}ms - ${allMatches.length} matches from top leagues`);
-                updateStatus('Live');
             } catch (error) {
                 console.error('Error loading data:', error);
                 updateStatus('Error');
@@ -2001,8 +2015,8 @@
             });
         }, 150);
 
-        // Optimized Render Table with batch updates and lazy loading
-        function renderTable() {
+        // Progressive table rendering - show first batch immediately, rest in background
+        async function renderTable() {
             const tableHead = document.getElementById('tableHead');
             const tableBody = document.getElementById('tableBody');
 
@@ -2033,15 +2047,23 @@
                 tableHead.dataset.bookmakerCount = bookmakers.length;
             }
 
-            // Use array for faster string concatenation
-            const rows = [];
-            for (const match of filteredMatches) {
-                rows.push(renderMatchRow(match));
-            }
+            // PROGRESSIVE RENDERING: Render in chunks to keep UI responsive
+            const BATCH_SIZE = 20; // Render 20 matches at a time
+            const totalMatches = filteredMatches.length;
             
+            // Clear and show loading for large datasets
+            if (totalMatches > BATCH_SIZE) {
+                tableBody.innerHTML = '<tr><td colspan=\"100\" style=\"text-align: center; padding: 40px; color: var(--text-secondary);\"><i class=\"fas fa-spinner fa-spin\" style=\"font-size: 24px;\"></i><br><br>Rendering matches...</td></tr>';\n            }
+            
+            // Render first batch immediately (visible viewport)
+            const firstBatch = filteredMatches.slice(0, BATCH_SIZE);
+            const rows = firstBatch.map(match => renderMatchRow(match));
             tableBody.innerHTML = rows.join('');
             tableBody.classList.add('fade-in');
-        }
+            
+            // Render remaining batches progressively in background
+            if (totalMatches > BATCH_SIZE) {
+                for (let i = BATCH_SIZE; i < totalMatches; i += BATCH_SIZE) {\n                    await new Promise(resolve => requestAnimationFrame(resolve));\n                    const batch = filteredMatches.slice(i, Math.min(i + BATCH_SIZE, totalMatches));\n                    const batchRows = batch.map(match => renderMatchRow(match));\n                    tableBody.insertAdjacentHTML('beforeend', batchRows.join(''));\n                }\n            }\n        }
 
         function renderMatchRow(match) {
             const teams = match.match_name || 'Unknown Match';
