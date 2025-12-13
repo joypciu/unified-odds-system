@@ -26,12 +26,15 @@ logging.basicConfig(
 
 class LiveParallelCollector:
     def __init__(self, max_workers=12, requests_per_second=20.0, output_file='oddsmagnet_top10.json'):
+        # Ensure output file is in the correct directory
+        if not Path(output_file).is_absolute():
+            output_file = Path(__file__).parent / output_file
+        self.output_file = str(output_file)
         self.scraper = OddsMagnetOptimizedScraper(
             max_workers=max_workers,
             requests_per_second=requests_per_second
         )
         self.max_workers = max_workers
-        self.output_file = output_file
         self.lock = Lock()
         
         # Initialize result structure
@@ -192,6 +195,7 @@ def main():
     ]
     
     start_time = time.time()
+    # Output file will be saved in bookmakers/oddsmagnet/ directory
     output_file = 'oddsmagnet_top10.json'
     
     # Create collector
