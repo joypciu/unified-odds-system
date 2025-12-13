@@ -1087,7 +1087,7 @@ async def get_oddsmagnet_football(
 @app.get("/oddsmagnet/football/top10")
 async def get_oddsmagnet_top10(
     page: int = 1,
-    page_size: int = 50,
+    page_size: int = 999,
     league: str = None,
     search: str = None
 ):
@@ -1097,14 +1097,14 @@ async def get_oddsmagnet_top10(
     
     Query Parameters:
     - page: Page number (default: 1)
-    - page_size: Items per page (default: 50, max: 200)
+    - page_size: Items per page (default: 999 [all], max: 999)
     - league: Filter by specific league from top 10 (partial match)
     - search: Search in match name (partial match, case-insensitive)
     """
     try:
         # Validate pagination parameters
         page = max(1, page)
-        page_size = min(max(1, page_size), 200)
+        page_size = min(max(1, page_size), 999)
         
         # Read from dedicated top 10 leagues collector
         # Try top10 file first, fall back to realtime file
