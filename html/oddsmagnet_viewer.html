@@ -1748,10 +1748,10 @@
             const startTime = performance.now();
 
             try {
-                // Fetch from local JSON file
+                // Fetch from API endpoint (VPS production)
                 // Includes: Premier League, La Liga, Serie A, Bundesliga, Ligue 1,
                 // Champions League, Europa League, Championship, Eredivisie, Primeira Liga
-                const response = await fetch('../bookmakers/oddsmagnet/oddsmagnet_top10.json');
+                const response = await fetch('/oddsmagnet/football/top10');
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
