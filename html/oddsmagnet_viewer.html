@@ -1503,11 +1503,23 @@
             
             // Refresh button - force reload from server
             document.getElementById('refreshBtn').addEventListener('click', () => {
+                console.log('\ud83d\udd04 Refresh button clicked - forcing fresh data fetch...');
                 const btn = document.getElementById('refreshBtn');
                 const icon = btn.querySelector('i');
+                const tableHead = document.getElementById('tableHead');
+                
+                // Clear header cache to force rebuild
+                if (tableHead) {
+                    tableHead.dataset.rendered = 'false';
+                    tableHead.dataset.bookmakerCount = '0';
+                }
+                
                 icon.classList.add('fa-spin');
                 loadData(true).finally(() => {
-                    setTimeout(() => icon.classList.remove('fa-spin'), 500);
+                    setTimeout(() => {
+                        icon.classList.remove('fa-spin');
+                        console.log('\u2713 Refresh complete!');
+                    }, 500);
                 });
             });
 
@@ -1802,19 +1814,27 @@
 
         // Process data progressively in chunks for instant UI feedback
         async function processDataProgressively() {
+            console.log('📊 Processing data progressively...');
+            
             // Phase 1: Extract bookmakers and categories (fast)
+            console.log('  ↳ Extracting bookmakers and market categories...');
             extractBookmakers();
             extractMarketCategories();
+            console.log(`  ✓ Found ${bookmakers.length} bookmakers, ${marketCategories.length} markets`);
             
             // Phase 2: Build dropdowns (fast)
+            console.log('  ↳ Building UI dropdowns...');
             populateLeagueDropdown();
             populateMarketTabs();
+            console.log('  ✓ UI components ready');
             
             // Phase 3: Apply filters and render (can be slower with large data)
+            console.log('  ↳ Rendering table...');
             // Use requestAnimationFrame for smooth rendering
             await new Promise(resolve => {
                 requestAnimationFrame(() => {
                     applyFilters();
+                    console.log('  ✓ Initial render complete');
                     resolve();
                 });
             });
@@ -1858,9 +1878,9 @@
                 if (dataCache && !forceRefresh) {
                     allMatches = dataCache;
                     // IMMEDIATE UI UPDATE - don't wait
-                    processDataProgressively();
+                    await processDataProgressively();
                     const loadTime = (performance.now() - startTime).toFixed(0);
-                    console.log(`Loaded from cache in ${loadTime}ms - ${allMatches.length} matches`);
+                    console.log(`✓ Loaded from cache in ${loadTime}ms - ${allMatches.length} matches`);
                     updateStatus('Live');
                 } else {
                     // Fetch from API with conditional request (ETag support)
@@ -1873,30 +1893,34 @@
                     
                     // 304 Not Modified - use cache
                     if (response.status === 304) {
+                        console.log('✓ 304 Not Modified - using cached data');
                         allMatches = dataCache;
-                        processDataProgressively();
+                        await processDataProgressively();
                         const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`Data unchanged (304) - loaded from cache in ${loadTime}ms`);
+                        console.log(`✓ Loaded from cache in ${loadTime}ms`);
                         updateStatus('Live');
                     } else if (response.ok) {
+                        console.log('⬇ Fetching fresh data from API...');
                         const data = await response.json();
                         allMatches = data.matches || [];
                         dataCache = allMatches; // Cache the data
                         lastETag = response.headers.get('ETag'); // Store ETag
+                        
+                        console.log(`✓ Downloaded ${allMatches.length} matches - starting progressive render...`);
                         
                         // PROGRESSIVE RENDERING - start showing data immediately
                         updateStatus('Rendering...');
                         await processDataProgressively();
                         
                         const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`Fresh data loaded & rendered in ${loadTime}ms - ${allMatches.length} matches`);
+                        console.log(`✓ Complete! Fresh data rendered in ${loadTime}ms`);
                         updateStatus('Live');
                     } else {
                         throw new Error(`HTTP ${response.status}`);
                     }
                 }
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.error('❌ Error loading data:', error);
                 updateStatus('Error');
                 showEmptyState('error');
             } finally {
@@ -1932,7 +1956,12 @@
             bookmakers = Array.from(bookmakerMap.values())
                 .sort((a, b) => a.code.localeCompare(b.code));
 
-            document.getElementById('totalBookmakers').textContent = bookmakers.length;
+            const totalBookmakers = bookmakers.length;
+            document.getElementById('totalBookmakers').textContent = totalBookmakers;
+            
+            if (totalBookmakers === 0) {
+                console.warn('\u26a0 No bookmakers found in the data. Check if odds data is present.');
+            }
         }
 
         function extractMarketCategories() {
@@ -2082,8 +2111,9 @@
                 return;
             }
 
-            // Render header only if bookmakers changed
-            if (!tableHead.dataset.rendered || tableHead.dataset.bookmakerCount !== String(bookmakers.length)) {
+            // ALWAYS render header if bookmakers are available (ensures refresh works)
+            if (bookmakers.length > 0 && (!tableHead.dataset.rendered || tableHead.dataset.bookmakerCount !== String(bookmakers.length))) {
+                console.log(`  ↳ Building table header for ${bookmakers.length} bookmakers...`);
                 const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
                 
                 for (const bm of bookmakers) {
@@ -2101,6 +2131,9 @@
                 tableHead.innerHTML = `<tr>${headerCells.join('')}</tr>`;
                 tableHead.dataset.rendered = 'true';
                 tableHead.dataset.bookmakerCount = bookmakers.length;
+                console.log('  ✓ Table header rendered');
+            } else if (bookmakers.length === 0) {
+                console.warn('  ⚠ No bookmakers found in data!');
             }
 
             // OPTIMIZED PROGRESSIVE RENDERING
