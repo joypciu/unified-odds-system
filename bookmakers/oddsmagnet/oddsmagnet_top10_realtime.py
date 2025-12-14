@@ -40,15 +40,15 @@ class Top10RealtimeCollector:
     IMPORTANT_MARKETS = [
         'popular markets',           # Match Winner, 1X2, BTTS
         'over under betting',        # Over/Under goals
-        'alternative match goals',   # Alternative goal lines
-        'asian handicap',            # Asian handicap betting
-        'double chance',             # Double chance markets
-        'corners',                   # Corner markets
-        'cards',                     # Yellow/Red cards
+        'handicap betting',          # Handicap/Asian handicap betting
+        'double chance bet',         # Double chance markets
+        'corner bet',                # Corner markets
         'both teams to score',       # BTTS
-        'half time full time',       # HT/FT
-        'correct score',             # Correct score markets
-        'goalscorer'                 # First/Anytime goalscorer
+        '1st half markets',          # First half markets
+        '2nd half markets',          # Second half markets
+        'correct score betting',     # Correct score markets
+        'to score odds',             # Goalscorer (First/Anytime)
+        'odd even betting'           # Odd/Even goals
     ]
     
     def __init__(self, max_workers: int = 30, requests_per_second: float = 20.0):
