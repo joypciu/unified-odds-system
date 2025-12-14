@@ -35,41 +35,32 @@ jobs:
             source venv/bin/activate
             pip install -r config/requirements.txt --upgrade
 
-            # Copy updated service files
+# Copy updated service file
             sudo cp deployment/unified-odds.service /etc/systemd/system/unified-odds.service
-            sudo cp deployment/unified-odds-web.service /etc/systemd/system/unified-odds-web.service
             sudo systemctl daemon-reload
-
+            
             # Copy nginx configuration
             sudo cp deployment/nginx/unified-odds.conf /etc/nginx/sites-available/unified-odds.conf
             sudo ln -sf /etc/nginx/sites-available/unified-odds.conf /etc/nginx/sites-enabled/unified-odds.conf
-
-            # Test nginx configuration
-            sudo nginx -t
-
-            # Reload nginx if config is valid
+            
+            # Test and reload nginx
             if sudo nginx -t 2>&1 | grep -q "successful"; then
                 sudo systemctl reload nginx
-                echo "✅ Nginx configuration reloaded"
+                echo "✅ Nginx reloaded"
             else
-                echo "⚠️ Nginx configuration test failed"
+                echo "⚠️ Nginx test failed"
             fi
 
             # Kill any process on port 8000
             sudo fuser -k 8000/tcp || true
 
-            # Restart the services
+            # Restart the unified-odds service (includes both scraper and web server)
             sudo systemctl restart unified-odds
-            sudo systemctl restart unified-odds-web
-
-            # Enable services to start on boot
             sudo systemctl enable unified-odds
-            sudo systemctl enable unified-odds-web
 
-            # Wait a moment and check status
+            # Wait and check status
             sleep 5
             sudo systemctl status unified-odds --no-pager || true
-            sudo systemctl status unified-odds-web --no-pager || true
 
             # Check if port 8000 is listening
             echo "=== Port 8000 status ==="
