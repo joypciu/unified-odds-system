@@ -41,10 +41,14 @@ class Top10RealtimeCollector:
         'popular markets',           # Match Winner, 1X2, BTTS
         'over under betting',        # Over/Under goals
         'alternative match goals',   # Alternative goal lines
+        'asian handicap',            # Asian handicap betting
+        'double chance',             # Double chance markets
         'corners',                   # Corner markets
         'cards',                     # Yellow/Red cards
         'both teams to score',       # BTTS
-        'half time full time'        # HT/FT
+        'half time full time',       # HT/FT
+        'correct score',             # Correct score markets
+        'goalscorer'                 # First/Anytime goalscorer
     ]
     
     def __init__(self, max_workers: int = 30, requests_per_second: float = 20.0):
@@ -163,7 +167,7 @@ class Top10RealtimeCollector:
         print(f"Update interval: {update_interval}s")
         print(f"Output file: {self.output_file}")
         print(f"Markets: {len(self.IMPORTANT_MARKETS)} important categories (optimized)")
-        print(f"  • " + ", ".join(self.IMPORTANT_MARKETS[:3]) + "...")
+        print(f"  • " + ", ".join(self.IMPORTANT_MARKETS[:4]) + "...")
         print(f"Workers: {self.max_workers} concurrent (HIGH SPEED)")
         print(f"Rate limit: {self.requests_per_second} req/s")
         print("Press Ctrl+C to stop gracefully")
