@@ -1375,15 +1375,219 @@ async def get_oddsmagnet_basketball(
         )
 
 
-@app.get("/oddsmagnet/api/nba-ncaa")
-@app.get("/oddsmagnet/nba-ncaa")  # Keep for backward compatibility
-async def get_oddsmagnet_nba_ncaa(
+@app.get("/oddsmagnet/api/basketball/nba")
+async def get_oddsmagnet_basketball_nba(
     request: Request,
     page: int = 1,
     page_size: int = 999,
-    league: str = None,
     search: str = None
 ):
+    """Get NBA basketball matches only
+    
+    Filters basketball data to show only NBA matches.
+    Supports ETag caching for faster subsequent loads.
+    
+    Query Parameters:
+    - page: Page number (default: 1)
+    - page_size: Items per page (default: 999 [all], max: 999)
+    - search: Search in match name (partial match, case-insensitive)
+    """
+    try:
+        # Validate pagination parameters
+        page = max(1, page)
+        page_size = min(max(1, page_size), 999)
+        
+        # Read from basketball realtime collector
+        basketball_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_basketball.json"
+        
+        if not basketball_file.exists():
+            return JSONResponse(
+                content={
+                    'error': 'OddsMagnet Basketball data not available',
+                    'message': 'Basketball collector not running',
+                    'matches': []
+                }
+            )
+        
+        # Read data
+        with open(basketball_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Generate ETag
+        data_timestamp = data.get('timestamp', '')
+        data_iteration = data.get('iteration', 0)
+        etag_base = f"{data_timestamp}-{data_iteration}-nba-{page}-{page_size}-{search}"
+        etag = f'"{hashlib.md5(etag_base.encode()).hexdigest()}"'
+        
+        # Check cache
+        if_none_match = request.headers.get('if-none-match')
+        if if_none_match == etag:
+            return Response(
+                status_code=304,
+                headers={'ETag': etag, 'Cache-Control': 'no-cache'}
+            )
+        
+        # Filter for NBA only
+        all_matches = data.get('matches', [])
+        nba_matches = [
+            m for m in all_matches 
+            if m.get('league_slug', '') == 'usa-nba'
+        ]
+        
+        # Apply search filter
+        if search:
+            search_lower = search.lower()
+            nba_matches = [
+                m for m in nba_matches 
+                if search_lower in m.get('match_name', '').lower()
+            ]
+        
+        # Pagination
+        total_matches = len(nba_matches)
+        total_pages = (total_matches + page_size - 1) // page_size if total_matches > 0 else 1
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_matches = nba_matches[start_idx:end_idx]
+        
+        response_data = {
+            'source': 'oddsmagnet_basketball',
+            'sport': 'basketball',
+            'league': 'NBA',
+            'timestamp': data_timestamp,
+            'iteration': data_iteration,
+            'pagination': {
+                'page': page,
+                'page_size': page_size,
+                'total_items': total_matches,
+                'total_pages': total_pages,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            },
+            'total_matches': total_matches,
+            'matches': paginated_matches
+        }
+        
+        return JSONResponse(
+            content=response_data,
+            headers={
+                'ETag': etag,
+                'Cache-Control': 'no-cache',
+                'X-Data-Timestamp': data_timestamp,
+                'X-Data-Iteration': str(data_iteration),
+            }
+        )
+        
+    except Exception as e:
+        return JSONResponse(content={'error': str(e), 'matches': []})
+
+
+@app.get("/oddsmagnet/api/basketball/ncaa")
+async def get_oddsmagnet_basketball_ncaa(
+    request: Request,
+    page: int = 1,
+    page_size: int = 999,
+    search: str = None
+):
+    """Get NCAA basketball matches only
+    
+    Filters basketball data to show only NCAA matches.
+    Supports ETag caching for faster subsequent loads.
+    
+    Query Parameters:
+    - page: Page number (default: 1)
+    - page_size: Items per page (default: 999 [all], max: 999)
+    - search: Search in match name (partial match, case-insensitive)
+    """
+    try:
+        # Validate pagination parameters
+        page = max(1, page)
+        page_size = min(max(1, page_size), 999)
+        
+        # Read from basketball realtime collector
+        basketball_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_basketball.json"
+        
+        if not basketball_file.exists():
+            return JSONResponse(
+                content={
+                    'error': 'OddsMagnet Basketball data not available',
+                    'message': 'Basketball collector not running',
+                    'matches': []
+                }
+            )
+        
+        # Read data
+        with open(basketball_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Generate ETag
+        data_timestamp = data.get('timestamp', '')
+        data_iteration = data.get('iteration', 0)
+        etag_base = f"{data_timestamp}-{data_iteration}-ncaa-{page}-{page_size}-{search}"
+        etag = f'"{hashlib.md5(etag_base.encode()).hexdigest()}"'
+        
+        # Check cache
+        if_none_match = request.headers.get('if-none-match')
+        if if_none_match == etag:
+            return Response(
+                status_code=304,
+                headers={'ETag': etag, 'Cache-Control': 'no-cache'}
+            )
+        
+        # Filter for NCAA only
+        all_matches = data.get('matches', [])
+        ncaa_matches = [
+            m for m in all_matches 
+            if m.get('league_slug', '') == 'usa-ncaa'
+        ]
+        
+        # Apply search filter
+        if search:
+            search_lower = search.lower()
+            ncaa_matches = [
+                m for m in ncaa_matches 
+                if search_lower in m.get('match_name', '').lower()
+            ]
+        
+        # Pagination
+        total_matches = len(ncaa_matches)
+        total_pages = (total_matches + page_size - 1) // page_size if total_matches > 0 else 1
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_matches = ncaa_matches[start_idx:end_idx]
+        
+        response_data = {
+            'source': 'oddsmagnet_basketball',
+            'sport': 'basketball',
+            'league': 'NCAA',
+            'timestamp': data_timestamp,
+            'iteration': data_iteration,
+            'pagination': {
+                'page': page,
+                'page_size': page_size,
+                'total_items': total_matches,
+                'total_pages': total_pages,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            },
+            'total_matches': total_matches,
+            'matches': paginated_matches
+        }
+        
+        return JSONResponse(
+            content=response_data,
+            headers={
+                'ETag': etag,
+                'Cache-Control': 'no-cache',
+                'X-Data-Timestamp': data_timestamp,
+                'X-Data-Iteration': str(data_iteration),
+            }
+        )
+        
+    except Exception as e:
+        return JSONResponse(content={'error': str(e), 'matches': []})
+
+
+@app.get("/bet365")
     """Get OddsMagnet NBA & NCAA basketball matches with pagination
     
     This endpoint provides real-time basketball odds ONLY from USA NBA and NCAA.
