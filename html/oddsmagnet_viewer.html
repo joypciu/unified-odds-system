@@ -1356,6 +1356,7 @@
         let isLoading = false;
         let dataCache = null; // Cache for fetched data
         let lastETag = null; // ETag for conditional requests
+        let lastDataTimestamp = null; // Track last data timestamp to detect updates
         
         // Debounce utility for performance
         function debounce(func, wait) {
@@ -1907,6 +1908,15 @@
                         console.log(`📊 Data source: ${data.source || 'unknown'}`);
                         console.log(`⏰ Data timestamp: ${data.timestamp || 'unknown'}`);
                         console.log(`🔄 Iteration: ${data.iteration || 'N/A'}`);
+                        
+                        // Check if data has been updated
+                        const currentTimestamp = data.timestamp;
+                        if (lastDataTimestamp && currentTimestamp !== lastDataTimestamp) {
+                            console.log(`🆕 DATA UPDATED! Old: ${lastDataTimestamp} → New: ${currentTimestamp}`);
+                        } else if (lastDataTimestamp === currentTimestamp) {
+                            console.log(`⏸️  Data unchanged (same timestamp as before)`);
+                        }
+                        lastDataTimestamp = currentTimestamp;
                         
                         allMatches = data.matches || [];
                         dataCache = allMatches; // Cache the data
