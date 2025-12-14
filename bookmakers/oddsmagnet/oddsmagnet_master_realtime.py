@@ -84,19 +84,24 @@ class MasterRealtimeCollector:
             return None
     
     def save_snapshot(self, snapshot: Dict):
-        """Save current snapshot to JSON file"""
+        """Save current snapshot to JSON file with proper cache busting"""
         try:
+            import os
+            from pathlib import Path
+            
             # Atomic write: write to temp file then rename
             temp_file = str(self.output_file) + '.tmp'
             with open(temp_file, 'w', encoding='utf-8') as f:
                 json.dump(snapshot, f, indent=2, ensure_ascii=False)
                 f.flush()
-                import os
                 os.fsync(f.fileno())
             
-            # Atomic rename
-            import os
+            # Atomic rename (replaces old file)
             os.replace(temp_file, self.output_file)
+            
+            # CRITICAL: Touch the file to update mtime for cache busting
+            # os.replace() may not update mtime on all systems
+            Path(self.output_file).touch(exist_ok=True)
             
             return True
         except Exception as e:

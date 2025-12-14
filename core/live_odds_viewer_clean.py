@@ -1134,21 +1134,28 @@ async def get_oddsmagnet_top10(
                 }
             )
         
-        # Check file modification time for ETag
-        file_mtime = data_file.stat().st_mtime
-        file_size = data_file.stat().st_size
+        # Read data first to generate content-based ETag
+        with open(data_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
         
-        # Generate ETag from file metadata + query params
-        etag_base = f"{file_mtime}-{file_size}-{page}-{page_size}-{league}-{search}"
-        etag = hashlib.md5(etag_base.encode()).hexdigest()
+        # Generate ETag from actual data content (timestamp + iteration + query params)
+        # This ensures ETag changes when data actually changes
+        data_timestamp = data.get('timestamp', '')
+        data_iteration = data.get('iteration', 0)
+        etag_base = f"{data_timestamp}-{data_iteration}-{page}-{page_size}-{league}-{search}"
+        etag = f'"{hashlib.md5(etag_base.encode()).hexdigest()}"'  # Wrap in quotes per HTTP spec
         
         # Check if client has cached version
         if_none_match = request.headers.get('if-none-match')
         if if_none_match == etag:
-            return Response(status_code=304)  # Not Modified
-        
-        with open(data_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            # Return 304 with proper cache control headers
+            return Response(
+                status_code=304,
+                headers={
+                    'ETag': etag,
+                    'Cache-Control': 'no-cache',  # Require revalidation
+                }
+            )
         
         # Data is already filtered to top 10 leagues by dedicated collector
         all_matches = data.get('matches', [])
@@ -1198,6 +1205,17 @@ async def get_oddsmagnet_top10(
             'total_leagues': data.get('total_leagues', 10),
             'matches': paginated_matches
         }
+        
+        # Return with proper cache control headers and ETag
+        return JSONResponse(
+            content=response_data,
+            headers={
+                'ETag': etag,
+                'Cache-Control': 'no-cache',  # Force revalidation with server
+                'X-Data-Timestamp': data_timestamp,  # For debugging
+                'X-Data-Iteration': str(data_iteration),  # For debugging
+            }
+        )
         
         # Return response with ETag header
         return JSONResponse(
