@@ -1645,11 +1645,11 @@
                 }
                 
                 // Clear cache when switching sports to prevent stale data
+                // DO NOT clear allMatches here - it causes "no data" flash
                 dataCache = null;
                 lastETag = null;
                 lastDataTimestamp = null;
-                allMatches = [];
-                console.log('🔄 Sport switched - cache cleared');
+                console.log('🔄 Sport switched - cache cleared, loading fresh data...');
                 
                 // Reset filters and reload data
                 selectedLeague = 'all';
@@ -1661,6 +1661,7 @@
                 document.getElementById('searchInput').value = '';
                 
                 // Force refresh to load new sport data
+                // This will replace allMatches with new data
                 loadData(true);
             });
         }
@@ -1935,11 +1936,13 @@
             try {
                 // Get current sport (default: football)
                 const currentSport = window.currentSport || 'football';
-                const sportPath = currentSport === 'basketball' ? 'basketball/nba' : 'football/top10';
+                // For basketball, show all leagues (not just NBA)
+                // For football, show top 10 leagues
+                const sportPath = currentSport === 'basketball' ? 'basketball' : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport
-                // Port 9000: /om/football/top10 or /om/basketball/nba
-                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball/nba
+                // Port 9000: /om/football/top10 or /om/basketball
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball
                 const apiEndpoint = window.location.port === '9000' 
                     ? `/om/${sportPath}` 
                     : `/oddsmagnet/api/${sportPath}`;
