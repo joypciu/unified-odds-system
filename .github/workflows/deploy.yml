@@ -40,6 +40,21 @@ jobs:
             sudo cp deployment/unified-odds-web.service /etc/systemd/system/unified-odds-web.service
             sudo systemctl daemon-reload
 
+            # Copy nginx configuration
+            sudo cp deployment/nginx/unified-odds.conf /etc/nginx/sites-available/unified-odds.conf
+            sudo ln -sf /etc/nginx/sites-available/unified-odds.conf /etc/nginx/sites-enabled/unified-odds.conf
+
+            # Test nginx configuration
+            sudo nginx -t
+
+            # Reload nginx if config is valid
+            if sudo nginx -t 2>&1 | grep -q "successful"; then
+                sudo systemctl reload nginx
+                echo "✅ Nginx configuration reloaded"
+            else
+                echo "⚠️ Nginx configuration test failed"
+            fi
+
             # Kill any process on port 8000
             sudo fuser -k 8000/tcp || true
 
@@ -55,6 +70,10 @@ jobs:
             sleep 5
             sudo systemctl status unified-odds --no-pager || true
             sudo systemctl status unified-odds-web --no-pager || true
+
+            # Check if port 8000 is listening
+            echo "=== Port 8000 status ==="
+            sudo netstat -tlnp | grep :8000 || echo "Port 8000 not listening"
 
             # Show recent logs to see what's happening
             echo "=== Scraper service logs ==="
