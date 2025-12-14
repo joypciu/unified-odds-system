@@ -1875,79 +1875,71 @@
             const startTime = performance.now();
 
             try {
-                // Use cached data if available and not forcing refresh
-                if (dataCache && !forceRefresh) {
+                // ALWAYS fetch from API to check for updates (using ETag for efficiency)
+                // The server will return 304 if data hasn't changed, making this very fast
+                const headers = {};
+                if (lastETag && !forceRefresh) {
+                    headers['If-None-Match'] = lastETag;
+                }
+                
+                const response = await fetch('/om/football/top10', { 
+                    headers,
+                    cache: 'no-store'  // Disable browser HTTP cache, rely on ETag only
+                });
+                    
+                
+                // 304 Not Modified - server says data unchanged
+                if (response.status === 304) {
+                    console.log('⏸️  304 Not Modified - server confirmed data unchanged');
+                    console.log(`   ETag: ${lastETag}`);
+                    
+                    // Use cached data
                     allMatches = dataCache;
-                    // IMMEDIATE UI UPDATE - don't wait
                     await processDataProgressively();
                     const loadTime = (performance.now() - startTime).toFixed(0);
-                    console.log(`✓ Loaded from cache in ${loadTime}ms - ${allMatches.length} matches`);
+                    console.log(`✓ Loaded from cache (validated) in ${loadTime}ms - ${allMatches.length} matches`);
+                    updateStatus('Live');
+                } else if (response.ok) {
+                    console.log('⬇ Fetching fresh data from API...');
+                    const data = await response.json();
+                    
+                    // Extract debug headers
+                    const serverTimestamp = response.headers.get('X-Data-Timestamp');
+                    const serverIteration = response.headers.get('X-Data-Iteration');
+                    const newETag = response.headers.get('ETag');
+                    
+                    // Log data source and timestamp for debugging
+                    console.log(`📊 Data source: ${data.source || 'unknown'}`);
+                    console.log(`⏰ Server timestamp: ${serverTimestamp || data.timestamp || 'unknown'}`);
+                    console.log(`🔄 Server iteration: ${serverIteration || data.iteration || 'N/A'}`);
+                    console.log(`🏷️  New ETag: ${newETag}`);
+                    
+                    // Check if data has been updated
+                    const currentTimestamp = data.timestamp;
+                    if (lastDataTimestamp && currentTimestamp !== lastDataTimestamp) {
+                        console.log(`🆕 DATA UPDATED! Old: ${lastDataTimestamp} → New: ${currentTimestamp}`);
+                    } else if (lastDataTimestamp === currentTimestamp) {
+                        console.log(`⏸️  Data unchanged (same timestamp)`);
+                    } else if (!lastDataTimestamp) {
+                        console.log('📍 Initial data load');
+                    }
+                    lastDataTimestamp = currentTimestamp;
+                    
+                    allMatches = data.matches || [];
+                    dataCache = allMatches; // Cache the data
+                    lastETag = newETag; // Store new ETag
+                    
+                    console.log(`✓ Downloaded ${allMatches.length} matches - starting progressive render...`);
+                    
+                    // PROGRESSIVE RENDERING - start showing data immediately
+                    updateStatus('Rendering...');
+                    await processDataProgressively();
+                    
+                    const loadTime = (performance.now() - startTime).toFixed(0);
+                    console.log(`✓ Complete! Fresh data rendered in ${loadTime}ms`);
                     updateStatus('Live');
                 } else {
-                    // Fetch from API with conditional request (ETag support)
-                    const headers = {};
-                    if (lastETag && !forceRefresh) {
-                        headers['If-None-Match'] = lastETag;
-                    }
-                    
-                    const response = await fetch('/om/football/top10', { 
-                        headers,
-                        cache: 'no-store'  // Disable browser HTTP cache, rely on ETag only
-                    });
-                    
-                    // 304 Not Modified - server says data unchanged
-                    if (response.status === 304) {
-                        console.log('⏸️  304 Not Modified - server confirmed data unchanged');
-                        console.log(`   ETag: ${lastETag}`);
-                        
-                        // Use cached data
-                        allMatches = dataCache;
-                        await processDataProgressively();
-                        const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`✓ Loaded from cache (validated) in ${loadTime}ms - ${allMatches.length} matches`);
-                        updateStatus('Live');
-                    } else if (response.ok) {
-                        console.log('⬇ Fetching fresh data from API...');
-                        const data = await response.json();
-                        
-                        // Extract debug headers
-                        const serverTimestamp = response.headers.get('X-Data-Timestamp');
-                        const serverIteration = response.headers.get('X-Data-Iteration');
-                        const newETag = response.headers.get('ETag');
-                        
-                        // Log data source and timestamp for debugging
-                        console.log(`📊 Data source: ${data.source || 'unknown'}`);
-                        console.log(`⏰ Server timestamp: ${serverTimestamp || data.timestamp || 'unknown'}`);
-                        console.log(`🔄 Server iteration: ${serverIteration || data.iteration || 'N/A'}`);
-                        console.log(`🏷️  New ETag: ${newETag}`);
-                        
-                        // Check if data has been updated
-                        const currentTimestamp = data.timestamp;
-                        if (lastDataTimestamp && currentTimestamp !== lastDataTimestamp) {
-                            console.log(`🆕 DATA UPDATED! Old: ${lastDataTimestamp} → New: ${currentTimestamp}`);
-                        } else if (lastDataTimestamp === currentTimestamp) {
-                            console.log(`⏸️  Data unchanged (same timestamp)`);
-                        } else if (!lastDataTimestamp) {
-                            console.log('📍 Initial data load');
-                        }
-                        lastDataTimestamp = currentTimestamp;
-                        
-                        allMatches = data.matches || [];
-                        dataCache = allMatches; // Cache the data
-                        lastETag = newETag; // Store new ETag
-                        
-                        console.log(`✓ Downloaded ${allMatches.length} matches - starting progressive render...`);
-                        
-                        // PROGRESSIVE RENDERING - start showing data immediately
-                        updateStatus('Rendering...');
-                        await processDataProgressively();
-                        
-                        const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`✓ Complete! Fresh data rendered in ${loadTime}ms`);
-                        updateStatus('Live');
-                    } else {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
+                    throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
                 console.error('❌ Error loading data:', error);
