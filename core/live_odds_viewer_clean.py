@@ -1129,7 +1129,7 @@ async def get_oddsmagnet_top10(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Top 10 data not available',
-                    'message': 'Top 10 leagues collector not running. Start the system with: python core/launch_odds_system.py --include-live',
+                    'message': 'Top 10 leagues collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_top10_realtime.py',
                     'matches': []
                 }
             )

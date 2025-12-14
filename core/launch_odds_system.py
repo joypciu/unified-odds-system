@@ -243,19 +243,16 @@ def main():
         'portugal-primeira-liga'
     ]
     
-    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
+    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10_realtime.py"
     if oddsmagnet_script.exists():
         try:
-            # Start OddsMagnet collector in background - ALL matches from top 10 leagues
+            # Start OddsMagnet TOP 10 collector in background
             oddsmagnet_process = subprocess.Popen(
-                [sys.executable, str(oddsmagnet_script), "--auto", 
-                 "--matches-per-league", "999",  # Fetch ALL matches per league
-                 "--interval", "15",  # Update every 15 seconds
-                 "--leagues"] + top_10_leagues,  # Top 10 leagues only
+                [sys.executable, str(oddsmagnet_script)],
                 cwd=str(base_dir / "bookmakers" / "oddsmagnet")
             )
             processes.append(oddsmagnet_process)
-            print("✅ OddsMagnet collector started (PID: {})".format(oddsmagnet_process.pid))
+            print("✅ OddsMagnet TOP 10 collector started (PID: {})".format(oddsmagnet_process.pid))
             print()
             
             # Give it a moment to initialize
@@ -266,7 +263,7 @@ def main():
             print("   Continuing without OddsMagnet...")
             print()
     else:
-        print("⚠️  oddsmagnet_realtime_collector.py not found, skipping OddsMagnet")
+        print("⚠️  oddsmagnet_top10_realtime.py not found, skipping OddsMagnet")
         print()
     
     # Start the web viewer
@@ -404,10 +401,10 @@ def main():
                 if oddsmagnet_status is not None:
                     print(f"\n⚠️  OddsMagnet collector exited with code {oddsmagnet_status}")
                     print("🔄 Restarting OddsMagnet collector...")
-                    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_realtime_collector.py"
+                    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10_realtime.py"
                     if oddsmagnet_script.exists():
                         oddsmagnet_process = subprocess.Popen(
-                            [sys.executable, str(oddsmagnet_script), "--auto"],
+                            [sys.executable, str(oddsmagnet_script)],
                             cwd=str(base_dir / "bookmakers" / "oddsmagnet")
                         )
                         processes[oddsmagnet_idx] = oddsmagnet_process

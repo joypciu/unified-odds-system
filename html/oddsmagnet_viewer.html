@@ -1897,11 +1897,17 @@
                         allMatches = dataCache;
                         await processDataProgressively();
                         const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`✓ Loaded from cache in ${loadTime}ms`);
+                        console.log(`✓ Loaded from cache in ${loadTime}ms - ${allMatches.length} matches`);
                         updateStatus('Live');
                     } else if (response.ok) {
                         console.log('⬇ Fetching fresh data from API...');
                         const data = await response.json();
+                        
+                        // Log data source and timestamp for debugging
+                        console.log(`📊 Data source: ${data.source || 'unknown'}`);
+                        console.log(`⏰ Data timestamp: ${data.timestamp || 'unknown'}`);
+                        console.log(`🔄 Iteration: ${data.iteration || 'N/A'}`);
+                        
                         allMatches = data.matches || [];
                         dataCache = allMatches; // Cache the data
                         lastETag = response.headers.get('ETag'); // Store ETag

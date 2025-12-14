@@ -2,17 +2,17 @@
 
 ## Overview
 
-A comprehensive Python-based scraping solution for collecting betting odds data from OddsMagnet.com with **real-time updates every 1 second**. The system can collect odds from **ALL 69 betting markets** across **ALL 807+ available matches** from **117+ football leagues worldwide**.
+A high-performance Python-based scraping solution for collecting betting odds data from OddsMagnet.com with **real-time updates every 30 seconds**. The system collects odds from **7 important betting markets** across **162 matches** from the **TOP 10 football leagues worldwide**.
 
 ### ✨ Key Features
 
-- ✅ **Real-time data collection** (1-second updates)
-- ✅ **9 bookmakers tracked** with proper names (Bet365, William Hill, 1xBet, etc.)
-- ✅ **Odds comparison** (up/down indicators, best odds marking)
-- ✅ **Performance optimized** (3x faster with concurrent requests)
+- ✅ **Real-time data collection** (30-second updates, matches UI refresh)
+- ✅ **Fast parallel fetching** (30 concurrent workers, 20 req/s)
+- ✅ **Important markets only** (optimized for speed)
 - ✅ **Automatic change detection** (tracks odds movements)
-- ✅ **69 betting markets** per match
-- ✅ **807+ matches** from 117+ leagues
+- ✅ **ETag caching** (efficient API responses)
+- ✅ **162 matches** from TOP 10 leagues
+- ✅ **~39,000 odds** collected per cycle
 
 ---
 
@@ -21,23 +21,26 @@ A comprehensive Python-based scraping solution for collecting betting odds data 
 ### Core Production Files
 
 ```
-additional_scrapers/
-├── oddsmagnet_realtime_collector.py      # ⭐ Real-time collector (1s updates)
-├── oddsmagnet_optimized_scraper.py       # Optimized scraper (3x faster)
-├── oddsmagnet_optimized_collector.py     # Bulk collector (concurrent)
-├── oddsmagnet_multi_market_scraper.py    # Multi-market scraper
-├── oddsmagnet_complete_collector.py      # Complete collector (all matches)
-├── start_realtime_collector.bat          # Windows launcher
+bookmakers/oddsmagnet/
+├── oddsmagnet_top10_realtime.py          # ⭐ TOP 10 leagues collector (30s updates)
+├── oddsmagnet_master_realtime.py         # Master collector (all leagues)
+├── oddsmagnet_optimized_scraper.py       # Core scraper (concurrent)
+├── oddsmagnet_optimized_collector.py     # Match fetcher
 └── README_ODDSMAGNET.md                  # This file
 ```
 
 ### Data Output Files
 
 ```
-├── oddsmagnet_realtime.json              # Current odds snapshot
-├── oddsmagnet_history.json               # Odds changes history
-├── football_matches_cache.json           # Cached matches (1 hour)
-└── all_matches_summary.json              # All 807+ matches metadata
+├── oddsmagnet_top10.json                 # TOP 10 leagues data (UI uses this)
+└── oddsmagnet_realtime.json              # All leagues data (master)
+```
+
+### UI Integration
+
+```
+html/oddsmagnet_viewer.html               # Web UI (auto-refresh every 30s)
+core/live_odds_viewer_clean.py            # Backend API server
 ```
 
 ---
@@ -50,54 +53,189 @@ additional_scrapers/
 pip install requests beautifulsoup4
 ```
 
-### Real-Time Collection (Recommended)
+### TOP 10 Leagues Real-Time Collection (Recommended)
 
-**Automatic 1-second updates with odds change tracking:**
+**Automatic 30-second updates optimized for UI:**
 
 ```bash
-# Windows
-start_realtime_collector.bat
-
-# Or manually
-python oddsmagnet_realtime_collector.py
+python bookmakers/oddsmagnet/oddsmagnet_top10_realtime.py
 ```
-
-**Output:**
-
-- `oddsmagnet_realtime.json` - Current odds (updated every 1 second)
-- `oddsmagnet_history.json` - Odds changes log
 
 **Features:**
 
-- Tracks 5-10 matches simultaneously
-- Detects odds changes > 0.05
-- Shows which bookmaker has best odds
-- Indicates if odds went up ↑ or down ↓
+- **TOP 10 leagues**: Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Champions League, Europa League, Championship, Eredivisie, Primeira Liga
+- **7 important markets**: Popular markets, Over/Under, Alternative goals, Corners, Cards, BTTS, HT/FT
+- **30 concurrent workers** for fast parallel fetching
+- **20 requests/second** rate limit
+- **~39,000 odds** collected per cycle
+- **98-second** average cycle time
 - Graceful shutdown with Ctrl+C
 
-### Basic Usage (One-Time Collection)
+**Output:**
 
-```python
-from oddsmagnet_complete_collector import OddsMagnetCompleteCollector
+- `oddsmagnet_top10.json` - Current odds (updated every 30 seconds)
+- Atomic writes (prevents UI reading incomplete data)
+- ETag support for efficient caching
 
-# Initialize collector
-collector = OddsMagnetCompleteCollector()
+### Master Collection (All Leagues)
 
-# Get all available matches (fast - no odds collection)
-all_matches = collector.get_all_matches_summary()
-print(f"Found {len(all_matches)} matches")
+**For collecting all available leagues:**
 
-# Collect odds for specific leagues
-data = collector.collect_all_matches_with_odds(
-    leagues=['spain-laliga', 'england-premier-league'],
-    max_matches_per_league=5,
-    market_filter=['popular markets', 'over under betting']
-)
+```bash
+python bookmakers/oddsmagnet/oddsmagnet_master_realtime.py
 ```
+
+**Features:**
+
+- Collects from ALL available leagues
+- Updates every 60 seconds
+- Max 500 matches per update
+- Same optimization (30 workers, 20 req/s)
 
 ---
 
 ## 📚 Detailed Usage
+
+### TOP 10 Real-Time Collector (Primary Script)
+
+**File:** `oddsmagnet_top10_realtime.py`
+
+```python
+# Run standalone
+python bookmakers/oddsmagnet/oddsmagnet_top10_realtime.py
+```
+
+**Configuration:**
+
+```python
+class Top10RealtimeCollector:
+    # Top 10 leagues
+    TOP_10_LEAGUES = [
+        'england-premier-league',
+        'spain-laliga',
+        'italy-serie-a',
+        'germany-bundesliga',
+        'france-ligue-1',
+        'champions-league',
+        'europe-uefa-europa-league',
+        'england-championship',
+        'netherlands-eredivisie',
+        'portugal-primeira-liga'
+    ]
+
+    # Important markets (optimized for speed)
+    IMPORTANT_MARKETS = [
+        'popular markets',        # Match Winner, 1X2, BTTS
+        'over under betting',     # Over/Under goals
+        'alternative match goals',# Alternative goal lines
+        'corners',               # Corner markets
+        'cards',                 # Yellow/Red cards
+        'both teams to score',   # BTTS
+        'half time full time'    # HT/FT
+    ]
+
+# Performance settings
+collector = Top10RealtimeCollector(
+    max_workers=30,          # 30 concurrent workers
+    requests_per_second=20.0 # 20 req/s rate limit
+)
+
+# Update interval: 30 seconds (matches UI refresh)
+collector.run_realtime_loop(update_interval=30.0)
+```
+
+**Output Format:**
+
+```json
+{
+  "timestamp": "2025-12-14T10:50:41.260448",
+  "iteration": 1,
+  "source": "oddsmagnet",
+  "leagues": ["england-premier-league", "..."],
+  "market_categories": ["popular markets", "..."],
+  "total_matches": 162,
+  "matches_processed": 162,
+  "total_odds_collected": 39340,
+  "matches": [
+    {
+      "match_name": "Manchester United v Liverpool",
+      "league": "England Premier League",
+      "match_uri": "football/england-premier-league/...",
+      "match_date": "2025-12-15",
+      "home_team": "Manchester United",
+      "away_team": "Liverpool",
+      "total_odds_collected": 245,
+      "markets": {
+        "popular markets": [...],
+        "over under betting": [...],
+        ...
+      }
+    }
+  ]
+}
+```
+
+### UI Integration
+
+**Web UI:** `html/oddsmagnet_viewer.html`
+
+**Features:**
+
+- Auto-refresh every 30 seconds
+- ETag caching for efficiency
+- Progressive rendering
+- Real-time odds change indicators
+- League filtering
+- Search functionality
+
+**Start Full System:**
+
+```bash
+# Terminal 1: Start collector
+python bookmakers/oddsmagnet/oddsmagnet_top10_realtime.py
+
+# Terminal 2: Start backend API
+python core/live_odds_viewer_clean.py
+
+# Open browser
+http://localhost:8000/oddsmagnet/top10
+```
+
+**Browser Console Logs:**
+
+```javascript
+// Initial load
+⬇ Fetching fresh data from API...
+📊 Data source: oddsmagnet
+⏰ Data timestamp: 2025-12-14T10:50:41.260448
+🔄 Iteration: 1
+✓ Downloaded 162 matches - starting progressive render...
+✓ Complete! Fresh data rendered in 245ms
+
+// Subsequent refreshes (every 30s)
+✓ 304 Not Modified - using cached data
+✓ Loaded from cache in 12ms - 162 matches
+```
+
+### Verification
+
+**Check Integration:**
+
+```bash
+python verify_ui_integration.py
+```
+
+This verifies:
+
+- ✅ Data file exists and is fresh
+- ✅ Backend API configured correctly
+- ✅ UI uses correct endpoint
+- ✅ Auto-refresh enabled
+- ✅ Collector settings match UI
+
+---
+
+## 🔧 Advanced Usage
 
 ### 1. OddsMagnetMultiMarketScraper
 
