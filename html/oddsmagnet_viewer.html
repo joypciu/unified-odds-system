@@ -1892,9 +1892,18 @@
                     
                     const response = await fetch('/oddsmagnet/football/top10', { headers });
                     
-                    // 304 Not Modified - use cache
+                    // 304 Not Modified - use cache but still check if we need fresh data
                     if (response.status === 304) {
-                        console.log('✓ 304 Not Modified - using cached data');
+                        console.log('⏸️  304 Not Modified - server says data unchanged, using cached data');
+                        
+                        // Force bypass ETag every 35 seconds to get absolutely fresh data
+                        const now = Date.now();
+                        if (!window.lastForcedRefresh || (now - window.lastForcedRefresh) > 35000) {
+                            console.log('🔄 Forcing fresh fetch (bypassing cache)...');
+                            window.lastForcedRefresh = now;
+                            return loadData(true); // Force fresh fetch
+                        }
+                        
                         allMatches = dataCache;
                         await processDataProgressively();
                         const loadTime = (performance.now() - startTime).toFixed(0);
@@ -1915,6 +1924,8 @@
                             console.log(`🆕 DATA UPDATED! Old: ${lastDataTimestamp} → New: ${currentTimestamp}`);
                         } else if (lastDataTimestamp === currentTimestamp) {
                             console.log(`⏸️  Data unchanged (same timestamp as before)`);
+                        } else if (!lastDataTimestamp) {
+                            console.log('📍 Initial data load');
                         }
                         lastDataTimestamp = currentTimestamp;
                         
