@@ -507,12 +507,9 @@ async def get_home():
 
 @app.get("/oddsmagnet", response_class=HTMLResponse)
 async def get_oddsmagnet_page():
-    """Serve the OddsMagnet viewer page"""
-    template_path = BASE_DIR / 'html' / 'oddsmagnet_viewer.html'
-    if not template_path.exists():
-        return HTMLResponse(content="<h1>OddsMagnet viewer not found</h1>", status_code=404)
-    html_content = open(template_path, 'r', encoding='utf-8').read()
-    return HTMLResponse(content=html_content)
+    """Serve the OddsMagnet viewer page (root redirects to top10)"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/oddsmagnet/top10")
 
 
 @app.get("/oddsmagnet/top10", response_class=HTMLResponse)
@@ -1008,7 +1005,8 @@ async def get_fanduel_live_optic_odds():
     return optic_format
 
 
-@app.get("/oddsmagnet/football")
+@app.get("/oddsmagnet/api/football")
+@app.get("/oddsmagnet/football")  # Keep for backward compatibility
 async def get_oddsmagnet_football(
     page: int = 1,
     page_size: int = 50,
@@ -1016,6 +1014,10 @@ async def get_oddsmagnet_football(
     search: str = None
 ):
     """Get all OddsMagnet football matches with pagination and filtering
+    
+    Accessible via:
+    - /oddsmagnet/api/football (recommended)
+    - /oddsmagnet/football (legacy)
     
     Query Parameters:
     - page: Page number (default: 1)
@@ -1090,7 +1092,8 @@ async def get_oddsmagnet_football(
         }
 
 
-@app.get("/oddsmagnet/football/top10")
+@app.get("/oddsmagnet/api/football/top10")
+@app.get("/oddsmagnet/football/top10")  # Keep for backward compatibility
 async def get_oddsmagnet_top10(
     request: Request,
     page: int = 1,
@@ -1102,6 +1105,10 @@ async def get_oddsmagnet_top10(
     
     This endpoint uses a dedicated collector that tracks ONLY the top 10 leagues.
     Supports ETag caching for faster subsequent loads.
+    
+    Accessible via:
+    - /oddsmagnet/api/football/top10 (recommended)
+    - /oddsmagnet/football/top10 (legacy)
     
     Query Parameters:
     - page: Page number (default: 1)

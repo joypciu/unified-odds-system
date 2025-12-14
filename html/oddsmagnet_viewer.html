@@ -1875,6 +1875,13 @@
             const startTime = performance.now();
 
             try {
+                // Detect which API endpoint to use based on current URL
+                // Port 9000: /om/football/top10
+                // Port 8000 or 80: /oddsmagnet/api/football/top10
+                const apiEndpoint = window.location.port === '9000' 
+                    ? '/om/football/top10' 
+                    : '/oddsmagnet/api/football/top10';
+                
                 // ALWAYS fetch from API to check for updates (using ETag for efficiency)
                 // The server will return 304 if data hasn't changed, making this very fast
                 const headers = {};
@@ -1882,7 +1889,7 @@
                     headers['If-None-Match'] = lastETag;
                 }
                 
-                const response = await fetch('/om/football/top10', { 
+                const response = await fetch(apiEndpoint, { 
                     headers,
                     cache: 'no-store'  // Disable browser HTTP cache, rely on ETag only
                 });
