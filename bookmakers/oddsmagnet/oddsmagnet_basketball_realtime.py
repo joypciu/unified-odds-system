@@ -23,15 +23,14 @@ class BasketballRealtimeCollector:
     """Real-time collector for basketball odds"""
     
     # Important market categories for basketball
+    # NOTE: These are market CATEGORIES (not individual market names)
+    # Each category contains multiple markets like "win market", "handicaps", etc.
     IMPORTANT_MARKETS = [
-        'popular markets',           # Match Winner, Spreads, Totals
-        'over under betting',        # Over/Under points
-        'handicap betting',          # Point spreads
-        'double chance bet',         # Double chance markets
-        '1st half markets',          # First half markets
-        '2nd half markets',          # Second half markets
-        '1st quarter markets',       # First quarter markets
-        'team totals'                # Team point totals
+        'popular markets',           # Contains: win market, handicaps, totals
+        'over under betting',        # Total over/under markets
+        'handicap betting',          # Point spread markets  
+        '1st half markets',          # First half betting markets
+        'total markets'              # Total points markets
     ]
     
     def __init__(self, max_workers: int = 20, requests_per_second: float = 15.0):
