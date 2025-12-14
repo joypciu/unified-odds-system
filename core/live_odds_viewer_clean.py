@@ -518,7 +518,7 @@ async def get_oddsmagnet_page():
 @app.get("/oddsmagnet/top10", response_class=HTMLResponse)
 async def get_oddsmagnet_top10_page():
     """Serve the optimized OddsMagnet Top 10 viewer page with progressive loading"""
-    template_path = BASE_DIR / 'html' / 'oddsmagnet_top10_optimized.html'
+    template_path = BASE_DIR / 'html' / 'oddsmagnet_viewer.html'
     if not template_path.exists():
         return HTMLResponse(content="<h1>OddsMagnet Top 10 viewer not found</h1>", status_code=404)
     html_content = open(template_path, 'r', encoding='utf-8').read()
