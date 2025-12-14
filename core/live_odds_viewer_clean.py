@@ -1587,27 +1587,31 @@ async def get_oddsmagnet_basketball_ncaa(
         return JSONResponse(content={'error': str(e), 'matches': []})
 
 
-@app.get("/bet365")
+@app.get("/oddsmagnet/api/basketball/nba")
+@app.get("/oddsmagnet/api/basketball/ncaa")  # NCAA uses same endpoint
+@app.get("/oddsmagnet/basketball/nba")  # Keep for backward compatibility
+@app.get("/oddsmagnet/basketball/ncaa")  # Keep for backward compatibility
+async def get_oddsmagnet_basketball_nba_ncaa(
+    request: Request,
+    page: int = 1,
+    page_size: int = 999,
+    league: str = None,
+    search: str = None
+):
     """Get OddsMagnet NBA & NCAA basketball matches with pagination
     
-    This endpoint provides real-time basketball odds ONLY from USA NBA and NCAA.
-    Supports ETag caching for faster subsequent loads.
-    
-    Accessible via:
-    - /oddsmagnet/api/nba-ncaa (recommended)
-    - /oddsmagnet/nba-ncaa (legacy)
+    This endpoint provides real-time basketball odds from NBA and NCAA only.
+    Optimized for UI display with ETag caching and pagination.
     
     Query Parameters:
     - page: Page number (default: 1)
-    - page_size: Items per page (default: 999 [all], max: 999)
-    - league: Filter by specific league (partial match)
-    - search: Search in match name (partial match, case-insensitive)
+    - page_size: Items per page (default: 999)
+    - league: Filter by league (e.g., 'nba', 'ncaa')
+    - search: Search in match names
+    
+    Response includes ETag for cache validation.
     """
     try:
-        # Validate pagination parameters
-        page = max(1, page)
-        page_size = min(max(1, page_size), 999)
-        
         # Read from NBA/NCAA realtime collector
         nba_ncaa_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_nba_ncaa.json"
         
