@@ -1,0 +1,21 @@
+[Unit]
+Description=Unified Odds Web Server (FastAPI)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/services/unified-odds
+Environment="PATH=/home/ubuntu/services/unified-odds/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/ubuntu/services/unified-odds/venv/bin/python core/live_odds_viewer_clean.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

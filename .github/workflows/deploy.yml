@@ -35,23 +35,33 @@ jobs:
             source venv/bin/activate
             pip install -r config/requirements.txt --upgrade
 
-            # Copy updated service file
+            # Copy updated service files
             sudo cp deployment/unified-odds.service /etc/systemd/system/unified-odds.service
+            sudo cp deployment/unified-odds-web.service /etc/systemd/system/unified-odds-web.service
             sudo systemctl daemon-reload
 
             # Kill any process on port 8000
             sudo fuser -k 8000/tcp || true
 
-            # Restart the service
+            # Restart the services
             sudo systemctl restart unified-odds
+            sudo systemctl restart unified-odds-web
+
+            # Enable services to start on boot
+            sudo systemctl enable unified-odds
+            sudo systemctl enable unified-odds-web
 
             # Wait a moment and check status
             sleep 5
             sudo systemctl status unified-odds --no-pager || true
+            sudo systemctl status unified-odds-web --no-pager || true
 
             # Show recent logs to see what's happening
-            echo "=== Recent system logs ==="
-            sudo journalctl -u unified-odds -n 100 --no-pager || true
+            echo "=== Scraper service logs ==="
+            sudo journalctl -u unified-odds -n 50 --no-pager || true
+
+            echo "=== Web server logs ==="
+            sudo journalctl -u unified-odds-web -n 50 --no-pager || true
 
             # Check if data files are being created
             echo "=== Checking for data files ==="
