@@ -1644,6 +1644,13 @@
                     sportLabel.innerHTML = '⚽ Football Leagues';
                 }
                 
+                // Clear cache when switching sports to prevent stale data
+                dataCache = null;
+                lastETag = null;
+                lastDataTimestamp = null;
+                allMatches = [];
+                console.log('🔄 Sport switched - cache cleared');
+                
                 // Reset filters and reload data
                 selectedLeague = 'all';
                 selectedDate = null;
