@@ -1192,7 +1192,7 @@
         <div class="header-top">
             <div class="logo">
                 <div class="logo-icon">⚡</div>
-                <div>OddsMagnet Pro <span style="font-size: 11px; opacity: 0.7; font-weight: 400;">⚽ Football Leagues</span></div>
+                <div>OddsMagnet Pro <span style="font-size: 11px; opacity: 0.7; font-weight: 400;" id="sportLabel">⚽ Football Leagues</span></div>
             </div>
             <div class="header-actions">
                 <div class="search-box">
@@ -1209,6 +1209,14 @@
 
         <!-- Filters Bar -->
         <div class="filters-bar">
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="sportBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-weight: 600;">
+                    <i class="fas fa-futbol" id="sportIcon"></i>
+                    <span id="sportBtnLabel">Football</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+
             <div class="filter-dropdown">
                 <button class="filter-btn" id="leagueBtn">
                     <i class="fas fa-trophy"></i>
@@ -1524,6 +1532,9 @@
                 });
             });
 
+            // Sport selector
+            setupSportSelector();
+
             // League modal
             setupLeagueModal();
             
@@ -1605,6 +1616,46 @@
             });
             
             marketMenu.innerHTML = html;
+        }
+
+        function setupSportSelector() {
+            const sportBtn = document.getElementById('sportBtn');
+            const sportBtnLabel = document.getElementById('sportBtnLabel');
+            const sportIcon = document.getElementById('sportIcon');
+            const sportLabel = document.getElementById('sportLabel');
+            
+            // Initialize current sport
+            window.currentSport = 'football';
+            
+            sportBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Toggle between football and basketball
+                if (window.currentSport === 'football') {
+                    window.currentSport = 'basketball';
+                    sportBtnLabel.textContent = 'Basketball';
+                    sportIcon.className = 'fas fa-basketball-ball';
+                    sportLabel.innerHTML = '🏀 Basketball (NBA/NCAA)';
+                } else {
+                    window.currentSport = 'football';
+                    sportBtnLabel.textContent = 'Football';
+                    sportIcon.className = 'fas fa-futbol';
+                    sportLabel.innerHTML = '⚽ Football Leagues';
+                }
+                
+                // Reset filters and reload data
+                selectedLeague = 'all';
+                selectedDate = null;
+                selectedMarket = 'all';
+                document.getElementById('leagueLabel').textContent = 'All Leagues';
+                document.getElementById('dateLabel').textContent = 'All Dates';
+                document.getElementById('marketLabel').textContent = 'All Markets';
+                document.getElementById('searchInput').value = '';
+                
+                // Force refresh to load new sport data
+                loadData(true);
+            });
         }
 
         function setupLeagueModal() {
@@ -1875,12 +1926,16 @@
             const startTime = performance.now();
 
             try {
-                // Detect which API endpoint to use based on current URL
-                // Port 9000: /om/football/top10
-                // Port 8000 or 80: /oddsmagnet/api/football/top10
+                // Get current sport (default: football)
+                const currentSport = window.currentSport || 'football';
+                const sportPath = currentSport === 'basketball' ? 'basketball/nba' : 'football/top10';
+                
+                // Detect which API endpoint to use based on current URL and sport
+                // Port 9000: /om/football/top10 or /om/basketball/nba
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball/nba
                 const apiEndpoint = window.location.port === '9000' 
-                    ? '/om/football/top10' 
-                    : '/oddsmagnet/api/football/top10';
+                    ? `/om/${sportPath}` 
+                    : `/oddsmagnet/api/${sportPath}`;
                 
                 // ALWAYS fetch from API to check for updates (using ETag for efficiency)
                 // The server will return 304 if data hasn't changed, making this very fast
