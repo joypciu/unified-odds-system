@@ -1890,7 +1890,7 @@
                         headers['If-None-Match'] = lastETag;
                     }
                     
-                    const response = await fetch('/api/football/top10', { headers });
+                    const response = await fetch('/om/football/top10', { headers });
                     
                     // 304 Not Modified - use cache but still check if we need fresh data
                     if (response.status === 304) {
