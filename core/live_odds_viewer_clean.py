@@ -20,6 +20,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 import sys
 from pathlib import Path as PathlibPath
+import aiofiles
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(PathlibPath(__file__).parent.parent))
@@ -1279,13 +1280,56 @@ async def get_oddsmagnet_basketball(
                 content={
                     'error': 'OddsMagnet Basketball data not available',
                     'message': 'Basketball collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_basketball_realtime.py',
-                    'matches': []
-                }
+                    'matches': [],
+                    'timestamp': datetime.now().isoformat(),
+                    'source': 'oddsmagnet_basketball',
+                    'sport': 'basketball'
+                },
+                status_code=503
             )
         
-        # Read data first to generate content-based ETag
-        with open(basketball_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        # Read data with timeout (5 seconds max)
+        try:
+            # Python 3.11+ has asyncio.timeout, for older versions use wait_for
+            try:
+                # Try Python 3.11+ syntax
+                async with asyncio.timeout(5.0):  # 5 second timeout
+                    async with aiofiles.open(basketball_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        data = json.loads(content)
+            except AttributeError:
+                # Fallback for Python < 3.11
+                async def read_file():
+                    async with aiofiles.open(basketball_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        return json.loads(content)
+                data = await asyncio.wait_for(read_file(), timeout=5.0)
+        except asyncio.TimeoutError:
+            # File read timed out - likely file is being written or is very large
+            return JSONResponse(
+                content={
+                    'error': 'Request timeout',
+                    'message': 'Basketball data file is being updated. Please try again in a moment.',
+                    'matches': [],
+                    'timestamp': datetime.now().isoformat(),
+                    'source': 'oddsmagnet_basketball',
+                    'sport': 'basketball'
+                },
+                status_code=504
+            )
+        except json.JSONDecodeError as e:
+            # Corrupted JSON - likely file is being written
+            return JSONResponse(
+                content={
+                    'error': 'Data temporarily unavailable',
+                    'message': 'Basketball data is being updated. Please try again in a moment.',
+                    'matches': [],
+                    'timestamp': datetime.now().isoformat(),
+                    'source': 'oddsmagnet_basketball',
+                    'sport': 'basketball'
+                },
+                status_code=503
+            )
         
         # Generate ETag from actual data content (timestamp + iteration + query params)
         data_timestamp = data.get('timestamp', '')
@@ -1407,13 +1451,35 @@ async def get_oddsmagnet_basketball_nba(
                 content={
                     'error': 'OddsMagnet Basketball data not available',
                     'message': 'Basketball collector not running',
-                    'matches': []
-                }
+                    'matches': [],
+                    'timestamp': datetime.now().isoformat()
+                },
+                status_code=503
             )
         
-        # Read data
-        with open(basketball_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        # Read data with timeout (5 seconds max)
+        try:
+            try:
+                async with asyncio.timeout(5.0):
+                    async with aiofiles.open(basketball_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        data = json.loads(content)
+            except AttributeError:
+                async def read_file():
+                    async with aiofiles.open(basketball_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        return json.loads(content)
+                data = await asyncio.wait_for(read_file(), timeout=5.0)
+        except asyncio.TimeoutError:
+            return JSONResponse(
+                content={'error': 'Request timeout', 'message': 'Basketball data is being updated.', 'matches': []},
+                status_code=504
+            )
+        except json.JSONDecodeError:
+            return JSONResponse(
+                content={'error': 'Data temporarily unavailable', 'message': 'Basketball data is being updated.', 'matches': []},
+                status_code=503
+            )
         
         # Generate ETag
         data_timestamp = data.get('timestamp', '')
@@ -1514,13 +1580,35 @@ async def get_oddsmagnet_basketball_ncaa(
                 content={
                     'error': 'OddsMagnet Basketball data not available',
                     'message': 'Basketball collector not running',
-                    'matches': []
-                }
+                    'matches': [],
+                    'timestamp': datetime.now().isoformat()
+                },
+                status_code=503
             )
         
-        # Read data
-        with open(basketball_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        # Read data with timeout (5 seconds max)
+        try:
+            try:
+                async with asyncio.timeout(5.0):
+                    async with aiofiles.open(basketball_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        data = json.loads(content)
+            except AttributeError:
+                async def read_file():
+                    async with aiofiles.open(basketball_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        return json.loads(content)
+                data = await asyncio.wait_for(read_file(), timeout=5.0)
+        except asyncio.TimeoutError:
+            return JSONResponse(
+                content={'error': 'Request timeout', 'message': 'Basketball data is being updated.', 'matches': []},
+                status_code=504
+            )
+        except json.JSONDecodeError:
+            return JSONResponse(
+                content={'error': 'Data temporarily unavailable', 'message': 'Basketball data is being updated.', 'matches': []},
+                status_code=503
+            )
         
         # Generate ETag
         data_timestamp = data.get('timestamp', '')
