@@ -9,15 +9,52 @@
     <title>⚡ OddsMagnet Pro - Live Odds Comparison</title>
     <!-- v2.1.0 - Sport-specific dynamic UI -->
     
-    <!-- Preconnect to CDN for faster loading -->
+    <!-- Preconnect to CDN and API for faster loading -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="http://142.44.160.36:8000">
+    <link rel="dns-prefetch" href="http://142.44.160.36:8000">
+    
+    <!-- Preload critical Font Awesome font file -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>">
     
-    <!-- Defer non-critical CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <!-- Inline critical Font Awesome icons (only used ones) -->
+    <style>
+        /* Font Awesome subset - only icons we use */
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 900;
+            font-display: swap;
+            src: url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2) format('woff2');
+        }
+        .fas, .fa-solid {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-style: normal;
+            font-variant: normal;
+            text-rendering: auto;
+            line-height: 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .fa-futbol:before { content: "\f1e3"; }
+        .fa-basketball:before { content: "\f434"; }
+        .fa-football:before { content: "\f44e"; }
+        .fa-baseball:before { content: "\f433"; }
+        .fa-cricket:before { content: "\f449"; }
+        .fa-filter:before { content: "\f0b0"; }
+        .fa-search:before { content: "\f002"; }
+        .fa-sync:before { content: "\f021"; }
+        .fa-times:before { content: "\f00d"; }
+        .fa-chevron-down:before { content: "\f078"; }
+        .fa-star:before { content: "\f005"; }
+        .fa-arrow-up:before { content: "\f062"; }
+        .fa-arrow-down:before { content: "\f063"; }
+        .fa-check:before { content: "\f00c"; }
+    </style>
     
     <style>
         :root {
@@ -426,6 +463,7 @@
 
         .fade-in {
             animation: fadeIn 0.2s ease-out;
+            will-change: opacity;
         }
 
         /* Table */
@@ -480,6 +518,9 @@
         .odds-table tbody tr {
             border-bottom: 1px solid var(--border-color);
             transition: all 0.2s ease;
+            /* Performance optimization: only render visible rows */
+            content-visibility: auto;
+            contain-intrinsic-size: auto 60px;
         }
 
         .odds-table tbody tr:hover {
@@ -654,6 +695,7 @@
             vertical-align: middle;
             font-weight: bold;
             opacity: 1;
+            will-change: transform;
         }
 
         .odds-arrow.up {
@@ -1069,10 +1111,12 @@
 
         .flash-up {
             animation: flashGreen 0.6s ease-out;
+            will-change: background-color;
         }
 
         .flash-down {
             animation: flashRed 0.6s ease-out;
+            will-change: background-color;
         }
 
         /* Date Calendar Picker - Modal Based */
@@ -1106,6 +1150,7 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
             min-width: 320px;
             animation: slideDown 0.2s ease-out;
+            will-change: transform, opacity;
         }
 
         .calendar-header {
@@ -1552,12 +1597,23 @@
             'xb': 'https://ui-avatars.com/api/?name=1X&background=0652DD&color=fff&size=80'
         };
 
-        // Initialize        // Initialize
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            initGlowingCursor();
+            // Critical path - load data first
             setupEventListeners();
             setupScrollNavigation();
             loadData();
+            
+            // Defer non-critical visual effects until after initial render
+            if (window.requestIdleCallback) {
+                requestIdleCallback(() => {
+                    initGlowingCursor();
+                }, { timeout: 1000 });
+            } else {
+                setTimeout(() => {
+                    initGlowingCursor();
+                }, 1000);
+            }
         });
 
         // Scroll Navigation
@@ -1565,14 +1621,14 @@
             const backToTopBtn = document.getElementById('backToTop');
             const tableContainer = document.querySelector('.table-container');
 
-            // Show/hide back to top button based on scroll position
+            // Show/hide back to top button based on scroll position (passive for better performance)
             tableContainer.addEventListener('scroll', () => {
                 if (tableContainer.scrollTop > 300) {
                     backToTopBtn.classList.add('visible');
                 } else {
                     backToTopBtn.classList.remove('visible');
                 }
-            });
+            }, { passive: true });
 
             // Back to top button click
             backToTopBtn.addEventListener('click', () => {
@@ -2515,8 +2571,8 @@
             }
 
             // OPTIMIZED PROGRESSIVE RENDERING
-            const FIRST_BATCH = 10;  // Show first 10 matches immediately (visible viewport)
-            const BATCH_SIZE = 30;    // Then render 30 at a time
+            const FIRST_BATCH = 5;   // Show first 5 matches immediately for faster FCP
+            const BATCH_SIZE = 20;   // Then render 20 at a time for better performance
             const totalMatches = filteredMatches.length;
             
             // Clear table body
