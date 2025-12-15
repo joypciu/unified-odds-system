@@ -2558,102 +2558,6 @@
             }
         }
 
-        // Get sport-specific type labels for the odds table
-        function getTypeLabel(sport, market, selection, odd, match) {
-            const marketLower = (market || '').toLowerCase();
-            const selectionLower = (selection || '').toLowerCase();
-            
-            // Basketball-specific type labels
-            if (sport === 'basketball') {
-                // Handicap/Spread markets
-                if (marketLower.includes('handicap') || marketLower.includes('spread')) {
-                    if (odd && odd.selection) {
-                        // Extract spread value from selection (e.g., "Boston Celtics -5.5" or "-5.5")
-                        const spreadMatch = odd.selection.match(/([-+]\d+\.?\d*)/);
-                        if (spreadMatch) {
-                            return `${spreadMatch[1]}`;
-                        }
-                    }
-                    return 'Spread';
-                }
-                
-                // Over/Under markets
-                if (marketLower.includes('over') || marketLower.includes('under') || marketLower.includes('total')) {
-                    if (odd && odd.selection) {
-                        const selText = odd.selection.toLowerCase();
-                        const totalMatch = odd.selection.match(/(\d+\.?\d*)/);
-                        if (totalMatch) {
-                            const isOver = selText.includes('over');
-                            return `${isOver ? 'O' : 'U'} ${totalMatch[1]}`;
-                        }
-                    }
-                    if (selectionLower.includes('over')) return 'Over';
-                    if (selectionLower.includes('under')) return 'Under';
-                }
-                
-                // Quarter/Half markets
-                if (marketLower.includes('1st half') || marketLower.includes('first half')) {
-                    if (marketLower.includes('total') || marketLower.includes('over') || marketLower.includes('under')) {
-                        return selectionLower.includes('over') ? '1H O' : '1H U';
-                    }
-                    return '1H ML';
-                }
-                
-                if (marketLower.includes('quarter')) {
-                    const quarterNum = marketLower.match(/(\d+)/)?.[1] || '';
-                    return `Q${quarterNum}`;
-                }
-                
-                // Default: Moneyline
-                return 'ML';
-            }
-            
-            // American Football - similar to basketball
-            if (sport === 'americanfootball') {
-                if (marketLower.includes('handicap') || marketLower.includes('spread')) {
-                    if (odd && odd.selection) {
-                        const spreadMatch = odd.selection.match(/([-+]\d+\.?\d*)/);
-                        if (spreadMatch) return `${spreadMatch[1]}`;
-                    }
-                    return 'Spread';
-                }
-                
-                if (marketLower.includes('over') || marketLower.includes('under') || marketLower.includes('total')) {
-                    if (odd && odd.selection) {
-                        const totalMatch = odd.selection.match(/(\d+\.?\d*)/);
-                        if (totalMatch) {
-                            const isOver = odd.selection.toLowerCase().includes('over');
-                            return `${isOver ? 'O' : 'U'} ${totalMatch[1]}`;
-                        }
-                    }
-                    return selectionLower.includes('over') ? 'Over' : 'Under';
-                }
-                
-                if (marketLower.includes('1st half')) return '1H';
-                if (marketLower.includes('quarter')) {
-                    const quarterNum = marketLower.match(/(\d+)/)?.[1] || '';
-                    return `Q${quarterNum}`;
-                }
-                
-                return 'ML';
-            }
-            
-            // Cricket - Test/ODI/T20 specific
-            if (sport === 'cricket') {
-                if (marketLower.includes('innings')) return 'Innings';
-                if (marketLower.includes('batsman')) return 'Batsman';
-                if (selectionLower === 'draw') return 'DRAW';
-                return selection === 'home' ? 'HOME' : selection === 'away' ? 'AWAY' : 'WIN';
-            }
-            
-            // Football - traditional HOME/DRAW/AWAY
-            if (selectionLower === 'draw') return 'DRAW';
-            if (selection === 'home') return 'HOME';
-            if (selection === 'away') return 'AWAY';
-            
-            return selection.toUpperCase();
-        }
-
         function renderMatchRow(match) {
             const teams = match.match_name || 'Unknown Match';
             const matchDate = match.match_date ? new Date(match.match_date) : null;
@@ -2679,16 +2583,6 @@
             const drawCells = [];
             const awayCells = [];
             
-            // Get first odd from each selection to determine type labels
-            const sampleHomeOdd = homeOdds.values().next().value;
-            const sampleDrawOdd = drawOdds.values().next().value;
-            const sampleAwayOdd = awayOdds.values().next().value;
-            
-            // Get dynamic type labels based on sport and market
-            const homeTypeLabel = getTypeLabel(currentSport, currentMarket, 'home', sampleHomeOdd, match);
-            const drawTypeLabel = getTypeLabel(currentSport, currentMarket, 'draw', sampleDrawOdd, match);
-            const awayTypeLabel = getTypeLabel(currentSport, currentMarket, 'away', sampleAwayOdd, match);
-            
             for (const bm of bookmakers) {
                 homeCells.push(renderOddsCell(homeOdds.get(bm.code), match.match_name, bm.code, 'home'));
                 if (hasDraws) {
@@ -2711,7 +2605,7 @@
                         <span class="selection-team">${homeTeam}</span>
                     </td>
                     <td>
-                        <span class="selection-type home">${homeTypeLabel}</span>
+                        <span class="selection-type home">HOME</span>
                     </td>
                     ${homeCells.join('')}
                 </tr>`;
@@ -2724,7 +2618,7 @@
                         <span class="selection-team" style="opacity: 0.3;">—</span>
                     </td>
                     <td>
-                        <span class="selection-type draw">${drawTypeLabel}</span>
+                        <span class="selection-type draw">DRAW</span>
                     </td>
                     ${drawCells.join('')}
                 </tr>`;
@@ -2737,7 +2631,7 @@
                         <span class="selection-team">${awayTeam}</span>
                     </td>
                     <td>
-                        <span class="selection-type away">${awayTypeLabel}</span>
+                        <span class="selection-type away">AWAY</span>
                     </td>
                     ${awayCells.join('')}
                 </tr>`;
