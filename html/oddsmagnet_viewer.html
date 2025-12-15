@@ -2087,15 +2087,19 @@
                 }
             }
 
-            bookmakers = Array.from(bookmakerMap.values())
+            const newBookmakers = Array.from(bookmakerMap.values())
                 .sort((a, b) => a.code.localeCompare(b.code));
 
-            const totalBookmakers = bookmakers.length;
-            document.getElementById('totalBookmakers').textContent = totalBookmakers;
-            
-            if (totalBookmakers === 0) {
+            // Only update bookmakers if we found some, otherwise keep previous ones
+            if (newBookmakers.length > 0) {
+                bookmakers = newBookmakers;
+            } else if (bookmakers.length === 0) {
+                // First load and no bookmakers found
                 console.warn('\u26a0 No bookmakers found in the data. Check if odds data is present.');
             }
+            
+            const totalBookmakers = bookmakers.length;
+            document.getElementById('totalBookmakers').textContent = totalBookmakers;
         }
 
         function extractMarketCategories() {
