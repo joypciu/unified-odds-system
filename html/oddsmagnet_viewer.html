@@ -1325,6 +1325,38 @@
         </div>
     </div>
 
+    <!-- Sport Filter Modal -->
+    <div class="filter-modal" id="sportModal">
+        <div class="filter-modal-content">
+            <div class="filter-modal-header">
+                <div class="filter-modal-title">
+                    <i class="fas fa-futbol" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                    Select Sport
+                </div>
+                <button class="filter-modal-close" id="sportModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-modal-body" id="sportMenu">
+                <div class="dropdown-item selected" data-sport="football">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-futbol" style="margin-right: 8px;"></i>
+                    Football
+                </div>
+                <div class="dropdown-item" data-sport="basketball">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-basketball-ball" style="margin-right: 8px;"></i>
+                    Basketball
+                </div>
+                <div class="dropdown-item" data-sport="americanfootball">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-football-ball" style="margin-right: 8px;"></i>
+                    American Football
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Market Filter Modal -->
     <div class="filter-modal" id="marketModal">
         <div class="filter-modal-content">
@@ -1651,23 +1683,56 @@
             const sportBtnLabel = document.getElementById('sportBtnLabel');
             const sportIcon = document.getElementById('sportIcon');
             const sportLabel = document.getElementById('sportLabel');
+            const sportModal = document.getElementById('sportModal');
+            const sportModalClose = document.getElementById('sportModalClose');
+            const sportMenu = document.getElementById('sportMenu');
             
             // Initialize current sport
             window.currentSport = 'football';
             
-            sportBtn.addEventListener('click', async (e) => {
+            // Open sport modal when button clicked
+            sportBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                // Prevent double-clicking during load
                 if (isLoading) return;
                 
-                // Cycle through sports: football → basketball → americanfootball → football
-                const sports = ['football', 'basketball', 'americanfootball'];
-                const currentIndex = sports.indexOf(window.currentSport || 'football');
-                const newSport = sports[(currentIndex + 1) % sports.length];
+                sportModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            
+            // Close modal
+            sportModalClose.addEventListener('click', () => {
+                sportModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Close when clicking outside
+            sportModal.addEventListener('click', (e) => {
+                if (e.target === sportModal) {
+                    sportModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            // Handle sport selection
+            sportMenu.addEventListener('click', async (e) => {
+                const item = e.target.closest('.dropdown-item');
+                if (!item || isLoading) return;
+                
+                const newSport = item.dataset.sport;
+                if (newSport === window.currentSport) {
+                    sportModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    return;
+                }
                 
                 console.log(`🔄 Switching sport: ${window.currentSport} → ${newSport}`);
+                
+                // Update selected state in menu
+                sportMenu.querySelectorAll('.dropdown-item').forEach(menuItem => {
+                    menuItem.classList.remove('selected');
+                });
+                item.classList.add('selected');
                 
                 // Update UI immediately for responsive feel
                 if (newSport === 'basketball') {
@@ -1699,6 +1764,10 @@
                 document.getElementById('marketLabel').textContent = 'All Markets';
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.value = '';
+                
+                // Close modal
+                sportModal.classList.remove('active');
+                document.body.style.overflow = '';
                 
                 // Show loading status but don't clear table - keep showing previous sport's data
                 updateStatus('Loading...');
