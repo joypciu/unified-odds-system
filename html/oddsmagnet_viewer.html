@@ -1966,8 +1966,9 @@
             isLoading = true;
             updateStatus('Loading...');
             
-            // SHOW SKELETON IMMEDIATELY for first load or force refresh
-            if (!dataCache || forceRefresh) {
+            // SHOW SKELETON ONLY on very first load (no cache at all)
+            // Don't show skeleton when switching sports or force refreshing
+            if (!dataCache && !forceRefresh && allMatches.length === 0) {
                 showSkeletonLoader();
             }
             
