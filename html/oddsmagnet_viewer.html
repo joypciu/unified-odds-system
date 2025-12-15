@@ -4,9 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Live odds comparison from top bookmakers - Real-time betting odds tracker">
+    <meta name="theme-color" content="#0a0e1a">
     <title>⚡ OddsMagnet Pro - Live Odds Comparison</title>
+    
+    <!-- Preconnect to CDN for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Defer non-critical CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    
     <style>
         :root {
             --bg-primary: #0a0e1a;
@@ -42,16 +53,20 @@
         }
 
         /* Custom Glowing Cursor */
+        /* Custom Glowing Cursor */
         .cursor-glow {
             position: fixed;
+            left: 0;
+            top: 0;
             width: 20px;
             height: 20px;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.4) 40%, transparent 70%);
             pointer-events: none;
             z-index: 9999;
-            transition: transform 0.15s ease-out, opacity 0.15s ease-out;
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
+            will-change: transform;
+            contain: layout style paint;
         }
 
         .cursor-glow.clicking {
@@ -423,6 +438,8 @@
             will-change: scroll-position;
             transform: translateZ(0);
             backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+            contain: layout style paint;
         }
 
         .odds-table {
@@ -1468,11 +1485,13 @@
 
             let mouseX = 0, mouseY = 0;
             let cursorX = 0, cursorY = 0;
+            let rafId;
 
+            // Use passive event listeners for better scroll performance
             document.addEventListener('mousemove', (e) => {
                 mouseX = e.clientX;
                 mouseY = e.clientY;
-            });
+            }, { passive: true });
 
             document.addEventListener('mousedown', () => {
                 cursorGlow.classList.add('clicking');
@@ -1482,18 +1501,27 @@
                 cursorGlow.classList.remove('clicking');
             });
 
-            // Smooth cursor animation
+            // Smooth cursor animation with transform3d for GPU acceleration
             function animateCursor() {
                 const speed = 0.2;
                 cursorX += (mouseX - cursorX) * speed;
                 cursorY += (mouseY - cursorY) * speed;
                 
-                cursorGlow.style.left = cursorX - 10 + 'px';
-                cursorGlow.style.top = cursorY - 10 + 'px';
+                // Use transform3d instead of left/top for better performance
+                cursorGlow.style.transform = `translate3d(${cursorX - 10}px, ${cursorY - 10}px, 0)`;
                 
-                requestAnimationFrame(animateCursor);
+                rafId = requestAnimationFrame(animateCursor);
             }
             animateCursor();
+
+            // Pause animation when page is hidden to save CPU
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(rafId);
+                } else {
+                    animateCursor();
+                }
+            });
         }
 
         // Event Listeners
