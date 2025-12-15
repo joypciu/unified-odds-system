@@ -507,19 +507,19 @@ async def get_home():
 
 @app.get("/oddsmagnet", response_class=HTMLResponse)
 async def get_oddsmagnet_page():
-    """Serve the OddsMagnet viewer page (root redirects to top10)"""
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/oddsmagnet/top10")
+    """Serve the OddsMagnet multi-sport viewer page"""
+    template_path = BASE_DIR / 'html' / 'oddsmagnet_viewer.html'
+    if not template_path.exists():
+        return HTMLResponse(content="<h1>OddsMagnet viewer not found</h1>", status_code=404)
+    html_content = open(template_path, 'r', encoding='utf-8').read()
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/oddsmagnet/top10", response_class=HTMLResponse)
-async def get_oddsmagnet_top10_page():
-    """Serve the optimized OddsMagnet Top 10 viewer page with progressive loading"""
-    template_path = BASE_DIR / 'html' / 'oddsmagnet_viewer.html'
-    if not template_path.exists():
-        return HTMLResponse(content="<h1>OddsMagnet Top 10 viewer not found</h1>", status_code=404)
-    html_content = open(template_path, 'r', encoding='utf-8').read()
-    return HTMLResponse(content=html_content)
+async def get_oddsmagnet_top10_redirect():
+    """Redirect /oddsmagnet/top10 to /oddsmagnet for backward compatibility"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/oddsmagnet", status_code=301)
 
 
 @app.websocket("/ws")
