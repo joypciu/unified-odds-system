@@ -1662,8 +1662,10 @@
                 // Prevent double-clicking during load
                 if (isLoading) return;
                 
-                // Toggle between football and basketball
-                const newSport = window.currentSport === 'football' ? 'basketball' : 'football';
+                // Cycle through sports: football → basketball → americanfootball → football
+                const sports = ['football', 'basketball', 'americanfootball'];
+                const currentIndex = sports.indexOf(window.currentSport || 'football');
+                const newSport = sports[(currentIndex + 1) % sports.length];
                 
                 console.log(`🔄 Switching sport: ${window.currentSport} → ${newSport}`);
                 
@@ -1672,6 +1674,10 @@
                     sportBtnLabel.textContent = 'Basketball';
                     sportIcon.className = 'fas fa-basketball-ball';
                     sportLabel.innerHTML = '🏀 Basketball (NBA/NCAA)';
+                } else if (newSport === 'americanfootball') {
+                    sportBtnLabel.textContent = 'American Football';
+                    sportIcon.className = 'fas fa-football-ball';
+                    sportLabel.innerHTML = '🏈 American Football (NFL/NCAA)';
                 } else {
                     sportBtnLabel.textContent = 'Football';
                     sportIcon.className = 'fas fa-futbol';
@@ -1977,13 +1983,14 @@
             try {
                 // Get current sport (default: football)
                 const currentSport = window.currentSport || 'football';
-                // For basketball, show all leagues (not just NBA)
-                // For football, show top 10 leagues
-                const sportPath = currentSport === 'basketball' ? 'basketball' : 'football/top10';
+                // Build sport path based on current sport
+                const sportPath = currentSport === 'basketball' ? 'basketball' 
+                                : currentSport === 'americanfootball' ? 'americanfootball'
+                                : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport
-                // Port 9000: /om/football/top10 or /om/basketball
-                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball
+                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball
                 const apiEndpoint = window.location.port === '9000' 
                     ? `/om/${sportPath}` 
                     : `/oddsmagnet/api/${sportPath}`;
