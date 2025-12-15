@@ -1647,19 +1647,26 @@
                 // Clear ALL data when switching sports to prevent showing stale sport data
                 // Clear both cache AND allMatches to show loading state while fetching new sport
                 allMatches = [];
+                filteredMatches = [];
+                bookmakers = [];
+                marketCategories = [];
                 dataCache = null;
                 lastETag = null;
                 lastDataTimestamp = null;
                 console.log('🔄 Sport switched - all data cleared, loading fresh data...');
                 
-                // Reset filters and reload data
+                // Reset ALL filters to default state
                 selectedLeague = 'all';
-                selectedDate = null;
-                selectedMarket = 'all';
+                selectedDate = 'all';  // Must be 'all', not null
+                searchQuery = '';      // Reset search query variable, not just input
+                currentMarket = '';    // Will be set after market categories load
+                
+                // Update UI labels
                 document.getElementById('leagueLabel').textContent = 'All Leagues';
                 document.getElementById('dateLabel').textContent = 'All Dates';
                 document.getElementById('marketLabel').textContent = 'All Markets';
-                document.getElementById('searchInput').value = '';
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = '';
                 
                 // Show loading skeleton immediately
                 showSkeletonLoader();
@@ -2075,9 +2082,15 @@
 
             marketCategories = Array.from(categoriesSet).sort();
 
-            // Set default market if not set
-            if (!currentMarket && marketCategories.length > 0) {
-                currentMarket = marketCategories[0];
+            // Set default market to first category, or keep current if it exists in new categories
+            if (marketCategories.length > 0) {
+                // If current market doesn't exist in new categories, reset to first
+                if (!currentMarket || !marketCategories.includes(currentMarket)) {
+                    currentMarket = marketCategories[0];
+                    console.log(`  ✓ Market set to: ${currentMarket}`);
+                }
+            } else {
+                currentMarket = '';
             }
 
             document.getElementById('totalMarkets').textContent = marketCategories.length;
