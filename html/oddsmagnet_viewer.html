@@ -1694,8 +1694,7 @@
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.value = '';
                 
-                // Show loading state
-                showSkeletonLoader();
+                // Show loading status but don't clear table - keep showing previous sport's data
                 updateStatus('Loading...');
                 
                 // Load new sport data (this will replace allMatches when successful)
