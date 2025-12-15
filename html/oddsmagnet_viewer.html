@@ -1668,6 +1668,13 @@
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.value = '';
                 
+                // Clear table header state to force re-render with new bookmakers
+                const tableHead = document.getElementById('tableHead');
+                if (tableHead) {
+                    tableHead.dataset.rendered = 'false';
+                    tableHead.dataset.bookmakerCount = '0';
+                }
+                
                 // Show loading skeleton immediately
                 showSkeletonLoader();
                 
@@ -1906,9 +1913,12 @@
                 requestAnimationFrame(() => {
                     applyFilters();
                     console.log('  ✓ Initial render complete');
+                    // Update status after rendering completes
+                    updateStatus('Live');
                     resolve();
                 });
             });
+            console.log('  ✓ Data processing complete');
         }
 
         function populateLeagueDropdown() {
@@ -2222,8 +2232,16 @@
                 return;
             }
 
-            // ALWAYS render header if bookmakers are available (ensures refresh works)
-            if (bookmakers.length > 0 && (!tableHead.dataset.rendered || tableHead.dataset.bookmakerCount !== String(bookmakers.length))) {
+            // Check if bookmakers are available
+            if (bookmakers.length === 0) {
+                console.error('  ❌ No bookmakers found in data! Cannot render table.');
+                tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 20px; color: var(--text-secondary);">No bookmaker data available. Data may still be loading...</th></tr>';
+                tableBody.innerHTML = '';
+                return;  // Stop rendering if no bookmakers
+            }
+            
+            // ALWAYS render header if bookmakers changed or not yet rendered
+            if (tableHead.dataset.bookmakerCount !== String(bookmakers.length)) {
                 console.log(`  ↳ Building table header for ${bookmakers.length} bookmakers...`);
                 const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
                 
@@ -2243,8 +2261,6 @@
                 tableHead.dataset.rendered = 'true';
                 tableHead.dataset.bookmakerCount = bookmakers.length;
                 console.log('  ✓ Table header rendered');
-            } else if (bookmakers.length === 0) {
-                console.warn('  ⚠ No bookmakers found in data!');
             }
 
             // OPTIMIZED PROGRESSIVE RENDERING
