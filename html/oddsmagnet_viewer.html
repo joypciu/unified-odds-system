@@ -1227,7 +1227,7 @@
         <!-- Filters Bar -->
         <div class="filters-bar">
             <div class="filter-dropdown">
-                <button class="filter-btn" id="sportBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-weight: 600;">
+                <button class="filter-btn" id="sportBtn">
                     <i class="fas fa-futbol" id="sportIcon"></i>
                     <span id="sportBtnLabel">Football</span>
                     <i class="fas fa-chevron-down"></i>
@@ -1655,60 +1655,52 @@
             // Initialize current sport
             window.currentSport = 'football';
             
-            sportBtn.addEventListener('click', (e) => {
+            sportBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 
+                // Prevent double-clicking during load
+                if (isLoading) return;
+                
                 // Toggle between football and basketball
-                if (window.currentSport === 'football') {
-                    window.currentSport = 'basketball';
+                const newSport = window.currentSport === 'football' ? 'basketball' : 'football';
+                
+                console.log(`🔄 Switching sport: ${window.currentSport} → ${newSport}`);
+                
+                // Update UI immediately for responsive feel
+                if (newSport === 'basketball') {
                     sportBtnLabel.textContent = 'Basketball';
                     sportIcon.className = 'fas fa-basketball-ball';
                     sportLabel.innerHTML = '🏀 Basketball (NBA/NCAA)';
                 } else {
-                    window.currentSport = 'football';
                     sportBtnLabel.textContent = 'Football';
                     sportIcon.className = 'fas fa-futbol';
                     sportLabel.innerHTML = '⚽ Football Leagues';
                 }
                 
-                // Clear ALL data when switching sports to prevent showing stale sport data
-                // Clear both cache AND allMatches to show loading state while fetching new sport
-                allMatches = [];
-                filteredMatches = [];
-                bookmakers = [];
-                marketCategories = [];
-                dataCache = null;
-                lastETag = null;
-                lastDataTimestamp = null;
-                console.log('🔄 Sport switched - all data cleared, loading fresh data...');
+                // Update current sport BEFORE loading
+                window.currentSport = newSport;
                 
-                // Reset ALL filters to default state
+                // Reset filters
                 selectedLeague = 'all';
-                selectedDate = 'all';  // Must be 'all', not null
-                searchQuery = '';      // Reset search query variable, not just input
-                currentMarket = '';    // Will be set after market categories load
+                selectedDate = 'all';
+                searchQuery = '';
+                currentMarket = '';
                 
-                // Update UI labels
+                // Update filter UI
                 document.getElementById('leagueLabel').textContent = 'All Leagues';
                 document.getElementById('dateLabel').textContent = 'All Dates';
                 document.getElementById('marketLabel').textContent = 'All Markets';
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.value = '';
                 
-                // Clear table header state to force re-render with new bookmakers
-                const tableHead = document.getElementById('tableHead');
-                if (tableHead) {
-                    tableHead.dataset.rendered = 'false';
-                    tableHead.dataset.bookmakerCount = '0';
-                }
-                
-                // Show loading skeleton immediately
+                // Show loading state
                 showSkeletonLoader();
+                updateStatus('Loading...');
                 
-                // Force refresh to load new sport data
-                // This will replace allMatches with new data
-                loadData(true);
+                // Load new sport data (this will replace allMatches when successful)
+                // Don't clear data until new data is loaded to prevent error state flash
+                await loadData(true);
             });
         }
 
