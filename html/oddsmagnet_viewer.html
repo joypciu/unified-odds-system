@@ -1644,12 +1644,13 @@
                     sportLabel.innerHTML = '⚽ Football Leagues';
                 }
                 
-                // Clear cache when switching sports to prevent stale data
-                // DO NOT clear allMatches here - it causes "no data" flash
+                // Clear ALL data when switching sports to prevent showing stale sport data
+                // Clear both cache AND allMatches to show loading state while fetching new sport
+                allMatches = [];
                 dataCache = null;
                 lastETag = null;
                 lastDataTimestamp = null;
-                console.log('🔄 Sport switched - cache cleared, loading fresh data...');
+                console.log('🔄 Sport switched - all data cleared, loading fresh data...');
                 
                 // Reset filters and reload data
                 selectedLeague = 'all';
@@ -1659,6 +1660,9 @@
                 document.getElementById('dateLabel').textContent = 'All Dates';
                 document.getElementById('marketLabel').textContent = 'All Markets';
                 document.getElementById('searchInput').value = '';
+                
+                // Show loading skeleton immediately
+                showSkeletonLoader();
                 
                 // Force refresh to load new sport data
                 // This will replace allMatches with new data
