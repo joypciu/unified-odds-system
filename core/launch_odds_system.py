@@ -296,6 +296,36 @@ def main():
         print("⚠️  oddsmagnet_basketball_realtime.py not found, skipping OddsMagnet Basketball")
         print()
     
+    # Start OddsMagnet American Football Real-Time Collector
+    print("🏈 Starting OddsMagnet American Football Real-Time Collector...")
+    print("   - Tracking ALL American Football leagues (NFL, NCAA)")
+    print("   - Update interval: 60 seconds")
+    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_americanfootball.json")
+    print()
+    
+    americanfootball_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_americanfootball_realtime.py"
+    if americanfootball_script.exists():
+        try:
+            # Start OddsMagnet American Football collector in background
+            americanfootball_process = subprocess.Popen(
+                [sys.executable, str(americanfootball_script)],
+                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
+            )
+            processes.append(americanfootball_process)
+            print("✅ OddsMagnet American Football collector started (PID: {})".format(americanfootball_process.pid))
+            print()
+            
+            # Give it a moment to initialize
+            time.sleep(3)
+            
+        except Exception as e:
+            print(f"⚠️  Could not start OddsMagnet American Football collector: {e}")
+            print("   Continuing without OddsMagnet American Football...")
+            print()
+    else:
+        print("⚠️  oddsmagnet_americanfootball_realtime.py not found, skipping OddsMagnet American Football")
+        print()
+    
     # Start the web viewer
     print("🌐 Starting Web Viewer UI...")
     print("   - Real-time monitoring dashboard")
