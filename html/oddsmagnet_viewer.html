@@ -574,22 +574,76 @@
 
         /* Odds Cell */
         .odds-cell {
-            display: inline-flex;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 2px;
             font-weight: 600;
             color: var(--text-primary);
             transition: all 0.15s ease;
             cursor: pointer;
-            padding: 4px 6px;
+            padding: 6px 8px;
             border-radius: 4px;
-            min-width: 48px;
+            min-width: 60px;
+            position: relative;
         }
 
         .odds-cell:hover {
             background: rgba(59, 130, 246, 0.15);
             transform: scale(1.05);
+        }
+        
+        .odds-main {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .odds-value {
+            font-size: 15px;
+            font-weight: 700;
+        }
+        
+        .fractional-odds {
+            font-size: 10px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+        
+        .best-badge {
+            color: #fbbf24;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .odds-movement {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+        
+        .odds-movement.up {
+            color: #10b981;
+        }
+        
+        .odds-movement.down {
+            color: #ef4444;
+        }
+        
+        .odds-movement i {
+            font-size: 8px;
+        }
+        
+        .odds-change {
+            font-weight: 600;
         }
 
         .odds-arrow {
@@ -616,8 +670,12 @@
         }
 
         .best-odds {
-            color: var(--green-light);
-            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15) !important;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .best-odds .odds-value {
+            color: #10b981;
         }
 
         /* Bookmaker Header */
@@ -2634,16 +2692,29 @@
 
             const oddKey = `${matchName}-${bookmakerCode}-${selection}`;
             const prevOdd = previousOdds.get(oddKey);
-            let arrowHtml = '';
+            let movementHtml = '';
             let cellExtraClass = '';
 
-            if (prevOdd !== undefined && prevOdd !== odd.decimal_odds) {
-                const isUp = odd.decimal_odds > prevOdd;
-                arrowHtml = `<i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
+            // Check for odds movement from API data first, then compare with previous
+            if (odd.odds_movement && odd.odds_movement !== 'none') {
+                const isUp = odd.odds_movement === 'up';
+                const change = odd.odds_change ? Math.abs(odd.odds_change).toFixed(2) : '';
+                movementHtml = `
+                    <div class="odds-movement ${isUp ? 'up' : 'down'}">
+                        <i class="fas fa-arrow-${isUp ? 'up' : 'down'}"></i>
+                        ${change ? `<span class="odds-change">${change}</span>` : ''}
+                    </div>`;
                 cellExtraClass = isUp ? 'flash-up' : 'flash-down';
-                
-                // Debug log for arrow display
-                console.log(`Odd changed: ${oddKey} - ${prevOdd} → ${odd.decimal_odds} (${isUp ? 'UP' : 'DOWN'})`);
+            } else if (prevOdd !== undefined && prevOdd !== odd.decimal_odds) {
+                // Fallback to comparing with our previous stored value
+                const isUp = odd.decimal_odds > prevOdd;
+                const change = Math.abs(odd.decimal_odds - prevOdd).toFixed(2);
+                movementHtml = `
+                    <div class="odds-movement ${isUp ? 'up' : 'down'}">
+                        <i class="fas fa-arrow-${isUp ? 'up' : 'down'}"></i>
+                        <span class="odds-change">${change}</span>
+                    </div>`;
+                cellExtraClass = isUp ? 'flash-up' : 'flash-down';
             }
 
             previousOdds.set(oddKey, odd.decimal_odds);
@@ -2654,12 +2725,21 @@
             
             // Get clickout URL
             const clickoutUrl = odd.clickout_url || '#';
-            const clickHandler = clickoutUrl !== '#' ? `onclick="window.open('${clickoutUrl}', '_blank')"` : '';
+            const clickHandler = clickoutUrl !== '#' ? `onclick="window.open('${clickoutUrl}', '_blank'); event.stopPropagation();" style="cursor: pointer;"` : '';
+            
+            // Format fractional odds if available
+            const fractionalOdds = odd.fractional_odds || '';
+            const fractionalHtml = fractionalOdds ? `<div class="fractional-odds">${fractionalOdds}</div>` : '';
 
             return `
                 <td>
                     <div class="odds-cell ${cellClass} ${cellExtraClass}" ${clickHandler}>
-                        <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>${arrowHtml}
+                        <div class="odds-main">
+                            <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>
+                            ${isBest ? '<span class="best-badge">★</span>' : ''}
+                        </div>
+                        ${fractionalHtml}
+                        ${movementHtml}
                     </div>
                 </td>
             `;
