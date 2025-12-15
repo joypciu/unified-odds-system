@@ -1353,6 +1353,11 @@
                     <i class="fas fa-football-ball" style="margin-right: 8px;"></i>
                     American Football
                 </div>
+                <div class="dropdown-item" data-sport="cricket">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
+                    Cricket
+                </div>
             </div>
         </div>
     </div>
@@ -1743,6 +1748,10 @@
                     sportBtnLabel.textContent = 'American Football';
                     sportIcon.className = 'fas fa-football-ball';
                     sportLabel.innerHTML = '🏈 American Football (NFL/NCAA)';
+                } else if (newSport === 'cricket') {
+                    sportBtnLabel.textContent = 'Cricket';
+                    sportIcon.className = 'fas fa-baseball-ball';
+                    sportLabel.innerHTML = '🏏 Cricket (IPL/Ashes/T20)';
                 } else {
                     sportBtnLabel.textContent = 'Football';
                     sportIcon.className = 'fas fa-futbol';
@@ -2055,11 +2064,12 @@
                 // Build sport path based on current sport
                 const sportPath = currentSport === 'basketball' ? 'basketball' 
                                 : currentSport === 'americanfootball' ? 'americanfootball'
+                                : currentSport === 'cricket' ? 'cricket'
                                 : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport
-                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball
-                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball
+                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket
                 const apiEndpoint = window.location.port === '9000' 
                     ? `/om/${sportPath}` 
                     : `/oddsmagnet/api/${sportPath}`;
