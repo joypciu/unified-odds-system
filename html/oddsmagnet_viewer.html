@@ -1420,6 +1420,52 @@
         let lastETag = null; // ETag for conditional requests
         let lastDataTimestamp = null; // Track last data timestamp to detect updates
         
+        // Sport-specific market categories (predefined from backend collectors)
+        const SPORT_MARKETS = {
+            football: [
+                'popular markets',
+                'over under betting',
+                'handicap betting',
+                'double chance bet',
+                'corner bet',
+                'both teams to score',
+                '1st half markets',
+                '2nd half markets',
+                'correct score betting',
+                'to score odds'
+            ],
+            basketball: [
+                'popular markets',
+                'over under betting',
+                'handicap betting',
+                '1st half markets',
+                'total markets'
+            ],
+            americanfootball: [
+                'popular markets',
+                'over under betting',
+                'handicap betting',
+                '1st half markets',
+                'total markets',
+                'quarter betting'
+            ],
+            cricket: [
+                'popular markets',
+                'match odds',
+                'innings runs',
+                'top batsman',
+                'player performance'
+            ]
+        };
+        
+        // Sport-specific selection types (what rows to show in odds table)
+        const SPORT_SELECTIONS = {
+            football: ['home', 'draw', 'away'],          // 3-way betting
+            basketball: ['home', 'away'],                 // 2-way betting (no draws)
+            americanfootball: ['home', 'away'],          // 2-way betting (no draws)
+            cricket: ['home', 'draw', 'away']            // 3-way betting (draw possible in Test cricket)
+        };
+        
         // Debounce utility for performance
         function debounce(func, wait) {
             let timeout;
@@ -1660,6 +1706,17 @@
 
         function populateMarketMenu() {
             const marketMenu = document.getElementById('marketMenu');
+            const currentSport = window.currentSport || 'football';
+            
+            // Sport-specific icons
+            const sportIcons = {
+                football: 'fa-futbol',
+                basketball: 'fa-basketball-ball',
+                americanfootball: 'fa-football-ball',
+                cricket: 'fa-baseball-ball'
+            };
+            
+            const sportIcon = sportIcons[currentSport] || 'fa-futbol';
             
             // Add "All Markets" option
             let html = `
@@ -1669,12 +1726,15 @@
                 </div>
             `;
             
-            // Add each market category
+            // Add each market category with sport context
             marketCategories.forEach(market => {
                 const isActive = market === currentMarket;
+                const isPredefined = (SPORT_MARKETS[currentSport] || []).includes(market);
+                const icon = isPredefined ? sportIcon : 'fa-chart-bar';
+                
                 html += `
                     <div class="filter-menu-item ${isActive ? 'active' : ''}" data-value="${market}">
-                        <i class="fas fa-chart-bar" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                        <i class="fas ${icon}" style="margin-right: 8px; color: var(--accent-primary);"></i>
                         ${market}
                     </div>
                 `;
@@ -2007,6 +2067,7 @@
             console.log('  ↳ Building UI dropdowns...');
             populateLeagueDropdown();
             populateMarketTabs();
+            populateMarketMenu(); // Update market modal menu for current sport
             console.log('  ✓ UI components ready');
             
             // Phase 3: Apply filters and render (can be slower with large data)
@@ -2191,7 +2252,15 @@
 
         function extractMarketCategories() {
             const categoriesSet = new Set();
+            
+            // Get current sport
+            const currentSport = window.currentSport || 'football';
+            
+            // Start with predefined sport-specific markets
+            const predefinedMarkets = SPORT_MARKETS[currentSport] || SPORT_MARKETS.football;
+            predefinedMarkets.forEach(market => categoriesSet.add(market));
 
+            // Also extract from actual data (in case there are additional markets)
             for (const match of allMatches) {
                 if (match.markets) {
                     for (const category of Object.keys(match.markets)) {
@@ -2200,7 +2269,20 @@
                 }
             }
 
-            marketCategories = Array.from(categoriesSet).sort();
+            // Sort markets with predefined ones first
+            marketCategories = Array.from(categoriesSet).sort((a, b) => {
+                const aIndex = predefinedMarkets.indexOf(a);
+                const bIndex = predefinedMarkets.indexOf(b);
+                
+                // Both in predefined list - sort by predefined order
+                if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                // Only a is predefined - a comes first
+                if (aIndex !== -1) return -1;
+                // Only b is predefined - b comes first
+                if (bIndex !== -1) return 1;
+                // Neither predefined - alphabetical
+                return a.localeCompare(b);
+            });
 
             // Set default market to first category, or keep current if it exists in new categories
             if (marketCategories.length > 0) {
@@ -2430,6 +2512,12 @@
 
             // Get odds map by selection (home/draw/away) for current market
             const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
+            
+            // Get sport-specific selections (2-way or 3-way betting)
+            const currentSport = window.currentSport || 'football';
+            const sportSelections = SPORT_SELECTIONS[currentSport] || SPORT_SELECTIONS.football;
+            const hasDraws = sportSelections.includes('draw');
+            const rowCount = sportSelections.length;
 
             // Pre-build odds cells for better performance
             const homeCells = [];
@@ -2438,14 +2526,16 @@
             
             for (const bm of bookmakers) {
                 homeCells.push(renderOddsCell(homeOdds.get(bm.code), match.match_name, bm.code, 'home'));
-                drawCells.push(renderOddsCell(drawOdds.get(bm.code), match.match_name, bm.code, 'draw'));
+                if (hasDraws) {
+                    drawCells.push(renderOddsCell(drawOdds.get(bm.code), match.match_name, bm.code, 'draw'));
+                }
                 awayCells.push(renderOddsCell(awayOdds.get(bm.code), match.match_name, bm.code, 'away'));
             }
 
-            // Create 3 rows: one for home, one for draw, one for away
-            return `
+            // Create rows dynamically based on sport (2-way or 3-way)
+            let rows = `
                 <tr style="border-top: 2px solid var(--border-color);">
-                    <td rowspan="3">
+                    <td rowspan="${rowCount}">
                         <div class="match-info">
                             <div class="match-teams">${teams}</div>
                             <div class="match-time">${timeStr}</div>
@@ -2459,7 +2549,11 @@
                         <span class="selection-type home">HOME</span>
                     </td>
                     ${homeCells.join('')}
-                </tr>
+                </tr>`;
+            
+            // Add draw row only if sport supports draws
+            if (hasDraws) {
+                rows += `
                 <tr>
                     <td>
                         <span class="selection-team" style="opacity: 0.3;">—</span>
@@ -2468,7 +2562,11 @@
                         <span class="selection-type draw">DRAW</span>
                     </td>
                     ${drawCells.join('')}
-                </tr>
+                </tr>`;
+            }
+            
+            // Add away row
+            rows += `
                 <tr>
                     <td>
                         <span class="selection-team">${awayTeam}</span>
@@ -2477,8 +2575,9 @@
                         <span class="selection-type away">AWAY</span>
                     </td>
                     ${awayCells.join('')}
-                </tr>
-            `;
+                </tr>`;
+            
+            return rows;
         }
 
         function getMatchOddsBySelection(match) {

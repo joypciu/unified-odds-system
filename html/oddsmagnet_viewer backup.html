@@ -4,9 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Live odds comparison from top bookmakers - Real-time betting odds tracker">
+    <meta name="theme-color" content="#0a0e1a">
     <title>⚡ OddsMagnet Pro - Live Odds Comparison</title>
+    
+    <!-- Preconnect to CDN for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Defer non-critical CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    
     <style>
         :root {
             --bg-primary: #0a0e1a;
@@ -42,16 +53,20 @@
         }
 
         /* Custom Glowing Cursor */
+        /* Custom Glowing Cursor */
         .cursor-glow {
             position: fixed;
+            left: 0;
+            top: 0;
             width: 20px;
             height: 20px;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.4) 40%, transparent 70%);
             pointer-events: none;
             z-index: 9999;
-            transition: transform 0.15s ease-out, opacity 0.15s ease-out;
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3);
+            will-change: transform;
+            contain: layout style paint;
         }
 
         .cursor-glow.clicking {
@@ -423,6 +438,8 @@
             will-change: scroll-position;
             transform: translateZ(0);
             backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+            contain: layout style paint;
         }
 
         .odds-table {
@@ -1192,7 +1209,7 @@
         <div class="header-top">
             <div class="logo">
                 <div class="logo-icon">⚡</div>
-                <div>OddsMagnet Pro <span style="font-size: 11px; opacity: 0.7; font-weight: 400;">⚽ Football Leagues</span></div>
+                <div>OddsMagnet Pro <span style="font-size: 11px; opacity: 0.7; font-weight: 400;" id="sportLabel">⚽ Football Leagues</span></div>
             </div>
             <div class="header-actions">
                 <div class="search-box">
@@ -1209,6 +1226,14 @@
 
         <!-- Filters Bar -->
         <div class="filters-bar">
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="sportBtn">
+                    <i class="fas fa-futbol" id="sportIcon"></i>
+                    <span id="sportBtnLabel">Football</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+
             <div class="filter-dropdown">
                 <button class="filter-btn" id="leagueBtn">
                     <i class="fas fa-trophy"></i>
@@ -1296,6 +1321,43 @@
             </div>
             <div class="filter-modal-body" id="leagueMenu">
                 <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Sport Filter Modal -->
+    <div class="filter-modal" id="sportModal">
+        <div class="filter-modal-content">
+            <div class="filter-modal-header">
+                <div class="filter-modal-title">
+                    <i class="fas fa-futbol" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                    Select Sport
+                </div>
+                <button class="filter-modal-close" id="sportModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-modal-body" id="sportMenu">
+                <div class="dropdown-item selected" data-sport="football">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-futbol" style="margin-right: 8px;"></i>
+                    Football
+                </div>
+                <div class="dropdown-item" data-sport="basketball">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-basketball-ball" style="margin-right: 8px;"></i>
+                    Basketball
+                </div>
+                <div class="dropdown-item" data-sport="americanfootball">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-football-ball" style="margin-right: 8px;"></i>
+                    American Football
+                </div>
+                <div class="dropdown-item" data-sport="cricket">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
+                    Cricket
+                </div>
             </div>
         </div>
     </div>
@@ -1460,11 +1522,13 @@
 
             let mouseX = 0, mouseY = 0;
             let cursorX = 0, cursorY = 0;
+            let rafId;
 
+            // Use passive event listeners for better scroll performance
             document.addEventListener('mousemove', (e) => {
                 mouseX = e.clientX;
                 mouseY = e.clientY;
-            });
+            }, { passive: true });
 
             document.addEventListener('mousedown', () => {
                 cursorGlow.classList.add('clicking');
@@ -1474,18 +1538,27 @@
                 cursorGlow.classList.remove('clicking');
             });
 
-            // Smooth cursor animation
+            // Smooth cursor animation with transform3d for GPU acceleration
             function animateCursor() {
                 const speed = 0.2;
                 cursorX += (mouseX - cursorX) * speed;
                 cursorY += (mouseY - cursorY) * speed;
                 
-                cursorGlow.style.left = cursorX - 10 + 'px';
-                cursorGlow.style.top = cursorY - 10 + 'px';
+                // Use transform3d instead of left/top for better performance
+                cursorGlow.style.transform = `translate3d(${cursorX - 10}px, ${cursorY - 10}px, 0)`;
                 
-                requestAnimationFrame(animateCursor);
+                rafId = requestAnimationFrame(animateCursor);
             }
             animateCursor();
+
+            // Pause animation when page is hidden to save CPU
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(rafId);
+                } else {
+                    animateCursor();
+                }
+            });
         }
 
         // Event Listeners
@@ -1523,6 +1596,9 @@
                     }, 500);
                 });
             });
+
+            // Sport selector
+            setupSportSelector();
 
             // League modal
             setupLeagueModal();
@@ -1605,6 +1681,110 @@
             });
             
             marketMenu.innerHTML = html;
+        }
+
+        function setupSportSelector() {
+            const sportBtn = document.getElementById('sportBtn');
+            const sportBtnLabel = document.getElementById('sportBtnLabel');
+            const sportIcon = document.getElementById('sportIcon');
+            const sportLabel = document.getElementById('sportLabel');
+            const sportModal = document.getElementById('sportModal');
+            const sportModalClose = document.getElementById('sportModalClose');
+            const sportMenu = document.getElementById('sportMenu');
+            
+            // Initialize current sport
+            window.currentSport = 'football';
+            
+            // Open sport modal when button clicked
+            sportBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isLoading) return;
+                
+                sportModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            
+            // Close modal
+            sportModalClose.addEventListener('click', () => {
+                sportModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Close when clicking outside
+            sportModal.addEventListener('click', (e) => {
+                if (e.target === sportModal) {
+                    sportModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            // Handle sport selection
+            sportMenu.addEventListener('click', async (e) => {
+                const item = e.target.closest('.dropdown-item');
+                if (!item || isLoading) return;
+                
+                const newSport = item.dataset.sport;
+                if (newSport === window.currentSport) {
+                    sportModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    return;
+                }
+                
+                console.log(`🔄 Switching sport: ${window.currentSport} → ${newSport}`);
+                
+                // Update selected state in menu
+                sportMenu.querySelectorAll('.dropdown-item').forEach(menuItem => {
+                    menuItem.classList.remove('selected');
+                });
+                item.classList.add('selected');
+                
+                // Update UI immediately for responsive feel
+                if (newSport === 'basketball') {
+                    sportBtnLabel.textContent = 'Basketball';
+                    sportIcon.className = 'fas fa-basketball-ball';
+                    sportLabel.innerHTML = '🏀 Basketball (NBA/NCAA)';
+                } else if (newSport === 'americanfootball') {
+                    sportBtnLabel.textContent = 'American Football';
+                    sportIcon.className = 'fas fa-football-ball';
+                    sportLabel.innerHTML = '🏈 American Football (NFL/NCAA)';
+                } else if (newSport === 'cricket') {
+                    sportBtnLabel.textContent = 'Cricket';
+                    sportIcon.className = 'fas fa-baseball-ball';
+                    sportLabel.innerHTML = '🏏 Cricket (IPL/Ashes/T20)';
+                } else {
+                    sportBtnLabel.textContent = 'Football';
+                    sportIcon.className = 'fas fa-futbol';
+                    sportLabel.innerHTML = '⚽ Football Leagues';
+                }
+                
+                // Update current sport BEFORE loading
+                window.currentSport = newSport;
+                
+                // Reset filters
+                selectedLeague = 'all';
+                selectedDate = 'all';
+                searchQuery = '';
+                currentMarket = '';
+                
+                // Update filter UI
+                document.getElementById('leagueLabel').textContent = 'All Leagues';
+                document.getElementById('dateLabel').textContent = 'All Dates';
+                document.getElementById('marketLabel').textContent = 'All Markets';
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = '';
+                
+                // Close modal
+                sportModal.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                // Show loading status but don't clear table - keep showing previous sport's data
+                updateStatus('Loading...');
+                
+                // Load new sport data (this will replace allMatches when successful)
+                // Don't clear data until new data is loaded to prevent error state flash
+                await loadData(true);
+            });
         }
 
         function setupLeagueModal() {
@@ -1836,9 +2016,12 @@
                 requestAnimationFrame(() => {
                     applyFilters();
                     console.log('  ✓ Initial render complete');
+                    // Update status after rendering completes
+                    updateStatus('Live');
                     resolve();
                 });
             });
+            console.log('  ✓ Data processing complete');
         }
 
         function populateLeagueDropdown() {
@@ -1867,20 +2050,29 @@
             isLoading = true;
             updateStatus('Loading...');
             
-            // SHOW SKELETON IMMEDIATELY for first load or force refresh
-            if (!dataCache || forceRefresh) {
+            // SHOW SKELETON ONLY on very first load (no cache at all)
+            // Don't show skeleton when switching sports or force refreshing
+            if (!dataCache && !forceRefresh && allMatches.length === 0) {
                 showSkeletonLoader();
             }
             
             const startTime = performance.now();
 
             try {
-                // Detect which API endpoint to use based on current URL
-                // Port 9000: /om/football/top10
-                // Port 8000 or 80: /oddsmagnet/api/football/top10
+                // Get current sport (default: football)
+                const currentSport = window.currentSport || 'football';
+                // Build sport path based on current sport
+                const sportPath = currentSport === 'basketball' ? 'basketball' 
+                                : currentSport === 'americanfootball' ? 'americanfootball'
+                                : currentSport === 'cricket' ? 'cricket'
+                                : 'football/top10';
+                
+                // Detect which API endpoint to use based on current URL and sport
+                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket
                 const apiEndpoint = window.location.port === '9000' 
-                    ? '/om/football/top10' 
-                    : '/oddsmagnet/api/football/top10';
+                    ? `/om/${sportPath}` 
+                    : `/oddsmagnet/api/${sportPath}`;
                 
                 // ALWAYS fetch from API to check for updates (using ETag for efficiency)
                 // The server will return 304 if data hasn't changed, making this very fast
@@ -1982,15 +2174,19 @@
                 }
             }
 
-            bookmakers = Array.from(bookmakerMap.values())
+            const newBookmakers = Array.from(bookmakerMap.values())
                 .sort((a, b) => a.code.localeCompare(b.code));
 
-            const totalBookmakers = bookmakers.length;
-            document.getElementById('totalBookmakers').textContent = totalBookmakers;
-            
-            if (totalBookmakers === 0) {
+            // Only update bookmakers if we found some, otherwise keep previous ones
+            if (newBookmakers.length > 0) {
+                bookmakers = newBookmakers;
+            } else if (bookmakers.length === 0) {
+                // First load and no bookmakers found
                 console.warn('\u26a0 No bookmakers found in the data. Check if odds data is present.');
             }
+            
+            const totalBookmakers = bookmakers.length;
+            document.getElementById('totalBookmakers').textContent = totalBookmakers;
         }
 
         function extractMarketCategories() {
@@ -2006,9 +2202,15 @@
 
             marketCategories = Array.from(categoriesSet).sort();
 
-            // Set default market if not set
-            if (!currentMarket && marketCategories.length > 0) {
-                currentMarket = marketCategories[0];
+            // Set default market to first category, or keep current if it exists in new categories
+            if (marketCategories.length > 0) {
+                // If current market doesn't exist in new categories, reset to first
+                if (!currentMarket || !marketCategories.includes(currentMarket)) {
+                    currentMarket = marketCategories[0];
+                    console.log(`  ✓ Market set to: ${currentMarket}`);
+                }
+            } else {
+                currentMarket = '';
             }
 
             document.getElementById('totalMarkets').textContent = marketCategories.length;
@@ -2140,8 +2342,16 @@
                 return;
             }
 
-            // ALWAYS render header if bookmakers are available (ensures refresh works)
-            if (bookmakers.length > 0 && (!tableHead.dataset.rendered || tableHead.dataset.bookmakerCount !== String(bookmakers.length))) {
+            // Check if bookmakers are available
+            if (bookmakers.length === 0) {
+                console.error('  ❌ No bookmakers found in data! Cannot render table.');
+                tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 20px; color: var(--text-secondary);">No bookmaker data available. Data may still be loading...</th></tr>';
+                tableBody.innerHTML = '';
+                return;  // Stop rendering if no bookmakers
+            }
+            
+            // ALWAYS render header if bookmakers changed or not yet rendered
+            if (tableHead.dataset.bookmakerCount !== String(bookmakers.length)) {
                 console.log(`  ↳ Building table header for ${bookmakers.length} bookmakers...`);
                 const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
                 
@@ -2161,8 +2371,6 @@
                 tableHead.dataset.rendered = 'true';
                 tableHead.dataset.bookmakerCount = bookmakers.length;
                 console.log('  ✓ Table header rendered');
-            } else if (bookmakers.length === 0) {
-                console.warn('  ⚠ No bookmakers found in data!');
             }
 
             // OPTIMIZED PROGRESSIVE RENDERING
