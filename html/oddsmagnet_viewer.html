@@ -3029,16 +3029,16 @@
 
             tableContainer.addEventListener('scroll', updateVisibleItems, { passive: true });
 
-            // Override renderTable to use virtual scrolling
-            const originalRenderTable = renderTable;
-            renderTable = function() {
-                if (filteredMatches.length > 50) { // Use virtual scrolling for large datasets
-                    virtualItems = filteredMatches;
-                    updateVisibleItems();
-                } else {
-                    originalRenderTable();
-                }
-            };
+            // DISABLED: Override renderTable to use virtual scrolling - THIS WAS PREVENTING BOOKMAKER NAMES FROM SHOWING
+            // const originalRenderTable = renderTable;
+            // renderTable = function() {
+            //     if (filteredMatches.length > 50) { // Use virtual scrolling for large datasets
+            //         virtualItems = filteredMatches;
+            //         updateVisibleItems();
+            //     } else {
+            //         originalRenderTable();
+            //     }
+            // };
         }
 
         // 2. Optimize CSS for better performance
