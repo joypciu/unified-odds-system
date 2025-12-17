@@ -1574,8 +1574,8 @@
                 .replace(/\s+/g, ' ')          // Normalize multiple spaces to single space
                 .trim();                        // Remove leading/trailing spaces
             
-            // Debug log if cleaning happened
-            if (original !== cleaned && original.toLowerCase().includes('u2')) {
+            // Debug log ALL cleaning attempts
+            if (original !== cleaned) {
                 console.log(`🧹 Cleaned: "${original}" → "${cleaned}"`);
             }
             
@@ -2460,11 +2460,20 @@
                     lastDataTimestamp = currentTimestamp;
                     
                     // Clean team names by removing youth team indicators (U19, U21, etc.)
-                    allMatches = (data.matches || []).map(match => ({
-                        ...match,
-                        team1: cleanTeamName(match.team1),
-                        team2: cleanTeamName(match.team2)
-                    }));
+                    const rawMatches = data.matches || [];
+                    allMatches = rawMatches.map(match => {
+                        const cleaned = {
+                            ...match,
+                            team1: cleanTeamName(match.team1),
+                            team2: cleanTeamName(match.team2)
+                        };
+                        return cleaned;
+                    });
+                    
+                    // Debug: Show first match to verify cleaning
+                    if (allMatches.length > 0) {
+                        console.log(`🔍 Sample match: ${allMatches[0].team1} vs ${allMatches[0].team2}`);
+                    }
                     
                     dataCache = allMatches; // Cache the data
                     cachedSport = currentSport; // Track which sport this cache is for
