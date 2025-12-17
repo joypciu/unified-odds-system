@@ -1921,8 +1921,15 @@
             sportBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (isLoading) return;
                 
+                console.log('🎯 Sport button clicked, isLoading:', isLoading);
+                
+                if (isLoading) {
+                    console.warn('⚠️ Cannot open sport modal - data is currently loading');
+                    return;
+                }
+                
+                console.log('✅ Opening sport modal');
                 sportModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             });
