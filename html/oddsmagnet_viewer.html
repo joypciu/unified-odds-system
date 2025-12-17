@@ -3264,6 +3264,14 @@
 
         function processWebSocketData(data) {
             const timestamp = new Date().toLocaleTimeString();
+            const currentSport = window.currentSport || 'football';
+            
+            // IMPORTANT: Only process updates that match the currently selected sport
+            if (data.sport !== currentSport) {
+                console.log(`⏭️ [${timestamp}] Ignoring ${data.sport} update (current sport: ${currentSport})`);
+                return; // Ignore updates for other sports
+            }
+            
             console.log(`📊 [${timestamp}] Processing WebSocket data for sport:`, data.sport, '| Matches:', data.matches?.length, '| Timestamp:', data.timestamp);
             
             // Clear any stale cache immediately for real-time updates

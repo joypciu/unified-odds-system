@@ -645,58 +645,70 @@ async def oddsmagnet_websocket(websocket: WebSocket):
 # Background task to push updates to WebSocket clients
 async def push_oddsmagnet_updates():
     """Monitor oddsmagnet files and push updates to connected clients"""
-    last_etags = {}
+    last_mtimes = {}
     
     print("🔄 WebSocket monitor started - checking for data updates every 2s")
     
+    # Map sports to their data files
+    sport_files = {
+        'football': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10.json",
+        'basketball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_basketball.json",
+        'cricket': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_cricket.json",
+        'americanfootball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_americanfootball.json"
+    }
+    
     while True:
         try:
-            # Check football (main file) - this is what the API uses
-            sport = 'football'
-            if oddsmagnet_connections[sport]:
-                # Monitor the ACTUAL file that the API reads
-                data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10.json"
+            # Check each sport that has active connections
+            for sport in ['football', 'basketball', 'cricket', 'americanfootball']:
+                if not oddsmagnet_connections[sport]:
+                    continue  # Skip sports with no active connections
                 
-                if data_file.exists():
-                    # Get file modification time
-                    current_mtime = data_file.stat().st_mtime
+                data_file = sport_files.get(sport)
+                if not data_file or not data_file.exists():
+                    continue  # Skip if file doesn't exist
+                
+                # Get file modification time
+                current_mtime = data_file.stat().st_mtime
+                cache_key = f"{sport}:{current_mtime}"
+                
+                # Check if file changed (using mtime for efficiency)
+                if last_mtimes.get(sport) != current_mtime:
+                    # File changed - read and push update
+                    async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        data = json.loads(content)
                     
-                    # Check if file changed (using mtime for efficiency)
-                    if last_etags.get(sport) != current_mtime:
-                        # File changed - read and push update
-                        async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
-                            content = await f.read()
-                            data = json.loads(content)
-                        
-                        last_etags[sport] = current_mtime
-                        
-                        # Push to all connected clients
-                        message = {
-                            'sport': sport,
-                            'matches': data.get('matches', []),
-                            'timestamp': data.get('timestamp'),
-                            'iteration': data.get('iteration'),
-                            'etag': hashlib.md5(content.encode()).hexdigest()
-                        }
-                        
-                        print(f"📡 PUSHING UPDATE: {len(data.get('matches', []))} matches to {len(oddsmagnet_connections[sport])} clients (mtime: {current_mtime})")
-                        
-                        disconnected = []
-                        for ws in oddsmagnet_connections[sport]:
-                            try:
-                                await ws.send_json(message)
-                            except Exception as send_err:
-                                print(f"⚠️ Failed to send to client: {send_err}")
-                                disconnected.append(ws)
-                        
-                        # Clean up disconnected clients
-                        for ws in disconnected:
-                            oddsmagnet_connections[sport].remove(ws)
-                        
-                        if disconnected:
-                            print(f"🧹 Cleaned {len(disconnected)} disconnected clients")
-                        
-                        # Invalidate cache so API serves fresh data
+                    last_mtimes[sport] = current_mtime
+                    
+                    # Push to all connected clients for this sport
+                    message = {
+                        'sport': sport,
+                        'matches': data.get('matches', []),
+                        'timestamp': data.get('timestamp'),
+                        'iteration': data.get('iteration'),
+                        'etag': hashlib.md5(content.encode()).hexdigest()
+                    }
+                    
+                    print(f"📡 PUSHING {sport.upper()} UPDATE: {len(data.get('matches', []))} matches to {len(oddsmagnet_connections[sport])} clients")
+                    
+                    disconnected = []
+                    for ws in oddsmagnet_connections[sport]:
+                        try:
+                            await ws.send_json(message)
+                        except Exception as send_err:
+                            print(f"⚠️ Failed to send to client: {send_err}")
+                            disconnected.append(ws)
+                    
+                    # Clean up disconnected clients
+                    for ws in disconnected:
+                        oddsmagnet_connections[sport].remove(ws)
+                    
+                    if disconnected:
+                        print(f"🧹 Cleaned {len(disconnected)} disconnected clients from {sport}")
+                    
+                    # Invalidate cache for this sport so API serves fresh data
+                    if sport == 'football':
                         oddsmagnet_cache['data'] = None
                         oddsmagnet_cache['file_mtime'] = None
             
