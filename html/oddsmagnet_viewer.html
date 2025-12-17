@@ -1602,7 +1602,7 @@
             // Critical path - load data first
             setupEventListeners();
             setupScrollNavigation();
-            loadData();
+            loadData().catch(err => console.error('Initial load failed:', err));
             
             // Defer non-critical visual effects until after initial render
             if (window.requestIdleCallback) {
@@ -1814,7 +1814,7 @@
                     
                     marketModal.classList.remove('active');
                     document.body.style.overflow = '';
-                    renderTable();
+                    renderTable().catch(err => console.error('Render failed:', err));
                 }
             });
         }
@@ -3070,7 +3070,7 @@
             filterWorker.onmessage = function(e) {
                 filteredMatches = e.data;
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
-                renderTable();
+                renderTable().catch(err => console.error('Render failed:', err));
             };
 
             // Override applyFilters to use Web Worker
@@ -3103,7 +3103,7 @@
 
         // Auto-refresh every 30 seconds
         setInterval(() => {
-            loadData();
+            loadData().catch(err => console.error('Auto-refresh failed:', err));
         }, 30000);
     </script>
 </body>
