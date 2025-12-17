@@ -1559,6 +1559,7 @@
         let dataCache = null; // Cache for fetched data
         let lastETag = null; // ETag for conditional requests
         let lastDataTimestamp = null; // Track last data timestamp to detect updates
+        let cachedSport = null; // Track which sport the cached data is for
         let wsConnection = null; // WebSocket connection
         let useWebSocket = true; // Flag to enable/disable WebSocket
         let expectedSport = 'football'; // Track which sport data we're expecting
@@ -2000,6 +2001,12 @@
                 searchQuery = '';
                 currentMarket = '';
                 
+                // CRITICAL: Clear cache and ETag to prevent loading wrong sport data
+                dataCache = null;
+                cachedSport = null;
+                lastETag = null;
+                lastDataTimestamp = null;
+                
                 // Update filter UI
                 document.getElementById('leagueLabel').textContent = 'All Leagues';
                 document.getElementById('dateLabel').textContent = 'All Dates';
@@ -2325,6 +2332,7 @@
                         if (data && data.matches) {
                             allMatches = data.matches || [];
                             dataCache = allMatches;
+                            cachedSport = 'football'; // Early fetch is always football
                             lastDataTimestamp = data.timestamp;
                             lastETag = data.etag || null;
                             
@@ -2381,12 +2389,19 @@
                     console.log('⏸️  304 Not Modified - server confirmed data unchanged');
                     console.log(`   ETag: ${lastETag}`);
                     
-                    // Use cached data
-                    allMatches = dataCache;
-                    await processDataProgressively();
-                    const loadTime = (performance.now() - startTime).toFixed(0);
-                    console.log(`✓ Loaded from cache (validated) in ${loadTime}ms - ${allMatches.length} matches`);
-                    updateStatus('Live');
+                    // CRITICAL: Verify cached data is for the CURRENT sport
+                    if (cachedSport === currentSport && dataCache) {
+                        // Use cached data (same sport)
+                        allMatches = dataCache;
+                        await processDataProgressively();
+                        const loadTime = (performance.now() - startTime).toFixed(0);
+                        console.log(`✓ Loaded from cache (validated) in ${loadTime}ms - ${allMatches.length} matches`);
+                        updateStatus('Live');
+                    } else {
+                        // Cache is for wrong sport - force fresh fetch
+                        console.warn('⚠️ Cache sport mismatch, forcing fresh fetch');
+                        return loadData(true); // Recursive call with force refresh
+                    }
                 } else if (response.ok) {
                     console.log('⬇ Fetching fresh data from API...');
                     const data = await response.json();
@@ -2415,6 +2430,7 @@
                     
                     allMatches = data.matches || [];
                     dataCache = allMatches; // Cache the data
+                    cachedSport = currentSport; // Track which sport this cache is for
                     lastETag = newETag; // Store new ETag
                     
                     console.log(`✓ Downloaded ${allMatches.length} matches - starting progressive render...`);
@@ -3274,6 +3290,7 @@
             // Update with fresh WebSocket data
             allMatches = data.matches || [];
             dataCache = allMatches;
+            cachedSport = data.sport; // Track which sport this cache is for
             lastDataTimestamp = data.timestamp;
             lastETag = data.etag || null;
             expectedSport = data.sport || window.currentSport; // Update expected sport
