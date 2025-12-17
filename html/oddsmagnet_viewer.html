@@ -1916,25 +1916,36 @@
                 item.classList.add('selected');
                 
                 // Update UI immediately for responsive feel
-                if (newSport === 'basketball') {
-                    sportBtnLabel.textContent = 'Basketball';
-                    sportIcon.className = 'fas fa-basketball-ball';
-                    sportLabel.innerHTML = '🏀 Basketball (NBA/NCAA)';
-                } else if (newSport === 'americanfootball') {
-                    sportBtnLabel.textContent = 'American Football';
-                    sportIcon.className = 'fas fa-football-ball';
-                    sportLabel.innerHTML = '🏈 American Football (NFL/NCAA)';
-                } else if (newSport === 'cricket') {
-                    sportBtnLabel.textContent = 'Cricket';
-                    sportIcon.className = 'fas fa-baseball-ball';
-                    sportLabel.innerHTML = '🏏 Cricket (IPL/Ashes/T20)';
-                } else {
-                    sportBtnLabel.textContent = 'Football';
-                    sportIcon.className = 'fas fa-futbol';
-                    sportLabel.innerHTML = '⚽ Football Leagues';
-                }
+                const sportConfig = {
+                    basketball: {
+                        label: 'Basketball',
+                        icon: 'fas fa-basketball-ball',
+                        headerLabel: '🏀 Basketball (NBA/NCAA)'
+                    },
+                    americanfootball: {
+                        label: 'American Football',
+                        icon: 'fas fa-football-ball',
+                        headerLabel: '🏈 American Football (NFL/NCAA)'
+                    },
+                    cricket: {
+                        label: 'Cricket',
+                        icon: 'fas fa-baseball-ball',
+                        headerLabel: '🏏 Cricket (IPL/Ashes/T20)'
+                    },
+                    football: {
+                        label: 'Football',
+                        icon: 'fas fa-futbol',
+                        headerLabel: '⚽ Football Leagues'
+                    }
+                };
                 
-                // Update current sport BEFORE loading
+                const config = sportConfig[newSport] || sportConfig.football;
+                sportBtnLabel.textContent = config.label;
+                sportIcon.className = config.icon;
+                sportLabel.innerHTML = config.headerLabel;
+                
+                // Update current sport BEFORE any async operations
+                const previousSport = window.currentSport;
                 window.currentSport = newSport;
                 
                 // Reset filters
@@ -1950,16 +1961,31 @@
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.value = '';
                 
-                // Close modal
+                // Close modal immediately
                 sportModal.classList.remove('active');
                 document.body.style.overflow = '';
                 
-                // Show loading status but don't clear table - keep showing previous sport's data
-                updateStatus('Loading...');
-                
-                // Load new sport data (this will replace allMatches when successful)
-                // Don't clear data until new data is loaded to prevent error state flash
-                await loadData(true);
+                // If WebSocket is active, send subscription change
+                if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+                    wsConnection.send(JSON.stringify({
+                        action: 'subscribe',
+                        sport: newSport
+                    }));
+                    updateStatus('Loading...');
+                } else {
+                    // Fallback to HTTP - load asynchronously without blocking UI
+                    updateStatus('Loading...');
+                    loadData(true).catch(err => {
+                        console.error('Sport switch failed:', err);
+                        // Revert on error
+                        window.currentSport = previousSport;
+                        const prevConfig = sportConfig[previousSport];
+                        sportBtnLabel.textContent = prevConfig.label;
+                        sportIcon.className = prevConfig.icon;
+                        sportLabel.innerHTML = prevConfig.headerLabel;
+                        updateStatus('Error');
+                    });
+                }
             });
         }
 
