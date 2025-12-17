@@ -1567,11 +1567,19 @@
         // Clean team names by removing youth team indicators
         function cleanTeamName(teamName) {
             if (!teamName) return '';
+            const original = teamName;
             // Remove U19, U21, U23 etc. (handles various formats)
-            return teamName
+            const cleaned = teamName
                 .replace(/\bu\d{2}\b/gi, '')  // Remove U## pattern (u19, U21, etc.)
                 .replace(/\s+/g, ' ')          // Normalize multiple spaces to single space
                 .trim();                        // Remove leading/trailing spaces
+            
+            // Debug log if cleaning happened
+            if (original !== cleaned && original.toLowerCase().includes('u2')) {
+                console.log(`🧹 Cleaned: "${original}" → "${cleaned}"`);
+            }
+            
+            return cleaned;
         }
         
         // Sport-specific market categories (predefined from backend collectors)
