@@ -2485,11 +2485,11 @@
             console.log('All filters cleared - showing all data');
         }
 
-        const applyFilters = debounce(function() {
+        let applyFilters = debounce(function() {
             const startTime = performance.now();
-            
+
             let matches = allMatches;
-            
+
             // Apply filters with early returns for better performance
             if (selectedLeague !== 'all') {
                 matches = matches.filter(m => m.league === selectedLeague);
@@ -2509,7 +2509,7 @@
                     const league = m.league?.toLowerCase();
                     const homeTeam = m.home_team?.toLowerCase();
                     const awayTeam = m.away_team?.toLowerCase();
-                    
+
                     return matchName?.includes(query) ||
                            league?.includes(query) ||
                            homeTeam?.includes(query) ||
