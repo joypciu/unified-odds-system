@@ -48,6 +48,14 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 # Base directory - should be project root, not core/
 BASE_DIR = Path(__file__).parent.parent
 
+# In-memory cache for OddsMagnet data to avoid slow disk reads
+oddsmagnet_cache = {
+    'data': None,
+    'timestamp': None,
+    'file_mtime': None,
+    'etag_base': None
+}
+
 # Initialize history manager
 history_manager = HistoryManager(str(BASE_DIR))
 
@@ -1271,21 +1279,42 @@ async def get_oddsmagnet_top10(
                 }
             )
         
-        # Read data asynchronously for better performance
-        try:
-            async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
-                content = await f.read()
-                data = json.loads(content)
-        except Exception as read_error:
-            print(f"❌ Error reading {data_file}: {read_error}")
-            return JSONResponse(
-                status_code=500,
-                content={
-                    'error': 'Failed to read data file',
-                    'message': str(read_error),
-                    'matches': []
-                }
-            )
+        # Check file modification time for cache invalidation
+        current_mtime = data_file.stat().st_mtime
+        cache_key = str(data_file)
+        
+        # Use cache if file hasn't changed
+        if (oddsmagnet_cache['data'] is not None and 
+            oddsmagnet_cache['file_mtime'] == current_mtime and
+            cache_key == oddsmagnet_cache.get('cache_key')):
+            
+            data = oddsmagnet_cache['data']
+            print(f"⚡ Using cached data (mtime: {current_mtime})")
+        else:
+            # Read data asynchronously for better performance
+            try:
+                async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
+                    content = await f.read()
+                    data = json.loads(content)
+                
+                # Update cache
+                oddsmagnet_cache['data'] = data
+                oddsmagnet_cache['file_mtime'] = current_mtime
+                oddsmagnet_cache['cache_key'] = cache_key
+                oddsmagnet_cache['timestamp'] = time.time()
+                
+                print(f"📁 Loaded fresh data from {data_file.name} (mtime: {current_mtime})")
+                
+            except Exception as read_error:
+                print(f"❌ Error reading {data_file}: {read_error}")
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        'error': 'Failed to read data file',
+                        'message': str(read_error),
+                        'matches': []
+                    }
+                )
         
         # Generate ETag from actual data content (timestamp + iteration + query params)
         # This ensures ETag changes when data actually changes
