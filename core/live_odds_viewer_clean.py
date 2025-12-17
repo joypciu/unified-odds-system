@@ -35,6 +35,7 @@ async def lifespan(app: FastAPI):
     """Handle application startup and shutdown events"""
     # Startup
     asyncio.create_task(monitor_files())
+    asyncio.create_task(push_oddsmagnet_updates())
     yield
     # Shutdown - cleanup if needed
     pass
@@ -556,6 +557,134 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"WebSocket error: {e}")
         if websocket in active_connections:
             active_connections.remove(websocket)
+
+
+# Oddsmagnet WebSocket connections by sport
+oddsmagnet_connections: Dict[str, List[WebSocket]] = {
+    'football': [],
+    'basketball': [],
+    'cricket': [],
+    'americanfootball': []
+}
+
+
+@app.websocket("/ws/oddsmagnet")
+async def oddsmagnet_websocket(websocket: WebSocket):
+    """WebSocket endpoint for real-time oddsmagnet updates"""
+    await websocket.accept()
+    current_sport = 'football'  # Default sport
+    
+    try:
+        # Add to connections
+        oddsmagnet_connections[current_sport].append(websocket)
+        print(f"🟢 WebSocket connected for {current_sport} (total: {len(oddsmagnet_connections[current_sport])})")
+        
+        # Send initial data based on default sport
+        data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / f"oddsmagnet_{current_sport}_top10.json"
+        if data_file.exists():
+            async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
+                content = await f.read()
+                data = json.loads(content)
+                await websocket.send_json({
+                    'sport': current_sport,
+                    'matches': data.get('matches', []),
+                    'timestamp': data.get('timestamp'),
+                    'etag': hashlib.md5(content.encode()).hexdigest()
+                })
+        
+        # Listen for messages (sport subscription changes)
+        while True:
+            message = await websocket.receive_json()
+            
+            if message.get('action') == 'subscribe':
+                new_sport = message.get('sport', 'football')
+                
+                # Remove from old sport connections
+                if websocket in oddsmagnet_connections[current_sport]:
+                    oddsmagnet_connections[current_sport].remove(websocket)
+                
+                # Add to new sport connections
+                current_sport = new_sport
+                if current_sport not in oddsmagnet_connections:
+                    oddsmagnet_connections[current_sport] = []
+                oddsmagnet_connections[current_sport].append(websocket)
+                
+                print(f"🔄 Client switched to {current_sport}")
+                
+                # Send data for new sport
+                data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / f"oddsmagnet_{current_sport}_top10.json"
+                if data_file.exists():
+                    async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        data = json.loads(content)
+                        await websocket.send_json({
+                            'sport': current_sport,
+                            'matches': data.get('matches', []),
+                            'timestamp': data.get('timestamp'),
+                            'etag': hashlib.md5(content.encode()).hexdigest()
+                        })
+            
+    except WebSocketDisconnect:
+        if websocket in oddsmagnet_connections[current_sport]:
+            oddsmagnet_connections[current_sport].remove(websocket)
+        print(f"🔴 WebSocket disconnected from {current_sport}")
+    except Exception as e:
+        print(f"❌ WebSocket error: {e}")
+        if websocket in oddsmagnet_connections.get(current_sport, []):
+            oddsmagnet_connections[current_sport].remove(websocket)
+
+
+# Background task to push updates to WebSocket clients
+async def push_oddsmagnet_updates():
+    """Monitor oddsmagnet files and push updates to connected clients"""
+    last_etags = {}
+    
+    while True:
+        try:
+            for sport in ['football', 'basketball', 'cricket', 'americanfootball']:
+                if not oddsmagnet_connections[sport]:
+                    continue
+                
+                data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / f"oddsmagnet_{sport}_top10.json"
+                if not data_file.exists():
+                    continue
+                
+                async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
+                    content = await f.read()
+                    etag = hashlib.md5(content.encode()).hexdigest()
+                    
+                    # Check if data changed
+                    if last_etags.get(sport) != etag:
+                        last_etags[sport] = etag
+                        data = json.loads(content)
+                        
+                        # Push to all connected clients for this sport
+                        message = {
+                            'sport': sport,
+                            'matches': data.get('matches', []),
+                            'timestamp': data.get('timestamp'),
+                            'etag': etag
+                        }
+                        
+                        disconnected = []
+                        for ws in oddsmagnet_connections[sport]:
+                            try:
+                                await ws.send_json(message)
+                            except Exception:
+                                disconnected.append(ws)
+                        
+                        # Clean up disconnected clients
+                        for ws in disconnected:
+                            oddsmagnet_connections[sport].remove(ws)
+                        
+                        if disconnected:
+                            print(f"🧹 Cleaned {len(disconnected)} disconnected clients from {sport}")
+            
+            await asyncio.sleep(2)  # Check every 2 seconds
+            
+        except Exception as e:
+            print(f"Error in push_oddsmagnet_updates: {e}")
+            await asyncio.sleep(5)
 
 
 @app.get("/api/matches")
