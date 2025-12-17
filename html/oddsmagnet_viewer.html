@@ -1965,16 +1965,26 @@
                 sportModal.classList.remove('active');
                 document.body.style.overflow = '';
                 
-                // If WebSocket is active, send subscription change
+                // Show loading state
+                updateStatus('Loading...');
+                
+                // If WebSocket is active, send subscription change AND load via HTTP as backup
                 if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+                    console.log('📡 Sending WebSocket sport subscription:', newSport);
                     wsConnection.send(JSON.stringify({
                         action: 'subscribe',
                         sport: newSport
                     }));
-                    updateStatus('Loading...');
+                    // Also load via HTTP as backup in case WebSocket data doesn't arrive
+                    setTimeout(() => {
+                        if (window.currentSport === newSport && allMatches.length === 0) {
+                            console.log('⚠️ WebSocket data delayed, loading via HTTP');
+                            loadData(true).catch(err => console.error('HTTP fallback failed:', err));
+                        }
+                    }, 2000);
                 } else {
-                    // Fallback to HTTP - load asynchronously without blocking UI
-                    updateStatus('Loading...');
+                    // No WebSocket - load via HTTP immediately
+                    console.log('📥 Loading sport data via HTTP:', newSport);
                     loadData(true).catch(err => {
                         console.error('Sport switch failed:', err);
                         // Revert on error
