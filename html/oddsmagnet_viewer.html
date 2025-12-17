@@ -2561,10 +2561,10 @@
             // DEBUG: Log extracted leagues with current sport
             const currentSport = window.currentSport || 'unknown';
             console.log(`🏆 Populating league dropdown for ${currentSport}: ${leagues.length} leagues from ${allMatches.length} matches`);
-            if (leagues.length > 0 && leagues.length < 20) {
-                console.log(`   Leagues: ${leagues.join(', ')}`);
-            }
-
+    if (leagues.length > 0) {
+        // Show first 10 leagues as sample to verify correct sport data
+        const sample = leagues.slice(0, 10);
+        console.log(`   First 10 leagues: ${sample.join(', ')}`);
             // Build HTML efficiently with checkmark icons
             const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>'];
             for (const league of leagues) {
