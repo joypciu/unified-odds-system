@@ -647,38 +647,46 @@ async def push_oddsmagnet_updates():
     """Monitor oddsmagnet files and push updates to connected clients"""
     last_etags = {}
     
+    print("🔄 WebSocket monitor started - checking for data updates every 2s")
+    
     while True:
         try:
-            for sport in ['football', 'basketball', 'cricket', 'americanfootball']:
-                if not oddsmagnet_connections[sport]:
-                    continue
+            # Check football (main file) - this is what the API uses
+            sport = 'football'
+            if oddsmagnet_connections[sport]:
+                # Monitor the ACTUAL file that the API reads
+                data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10.json"
                 
-                data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / f"oddsmagnet_{sport}_top10.json"
-                if not data_file.exists():
-                    continue
-                
-                async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
-                    content = await f.read()
-                    etag = hashlib.md5(content.encode()).hexdigest()
+                if data_file.exists():
+                    # Get file modification time
+                    current_mtime = data_file.stat().st_mtime
                     
-                    # Check if data changed
-                    if last_etags.get(sport) != etag:
-                        last_etags[sport] = etag
-                        data = json.loads(content)
+                    # Check if file changed (using mtime for efficiency)
+                    if last_etags.get(sport) != current_mtime:
+                        # File changed - read and push update
+                        async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
+                            content = await f.read()
+                            data = json.loads(content)
                         
-                        # Push to all connected clients for this sport
+                        last_etags[sport] = current_mtime
+                        
+                        # Push to all connected clients
                         message = {
                             'sport': sport,
                             'matches': data.get('matches', []),
                             'timestamp': data.get('timestamp'),
-                            'etag': etag
+                            'iteration': data.get('iteration'),
+                            'etag': hashlib.md5(content.encode()).hexdigest()
                         }
+                        
+                        print(f"📡 PUSHING UPDATE: {len(data.get('matches', []))} matches to {len(oddsmagnet_connections[sport])} clients (mtime: {current_mtime})")
                         
                         disconnected = []
                         for ws in oddsmagnet_connections[sport]:
                             try:
                                 await ws.send_json(message)
-                            except Exception:
+                            except Exception as send_err:
+                                print(f"⚠️ Failed to send to client: {send_err}")
                                 disconnected.append(ws)
                         
                         # Clean up disconnected clients
@@ -686,12 +694,18 @@ async def push_oddsmagnet_updates():
                             oddsmagnet_connections[sport].remove(ws)
                         
                         if disconnected:
-                            print(f"🧹 Cleaned {len(disconnected)} disconnected clients from {sport}")
+                            print(f"🧹 Cleaned {len(disconnected)} disconnected clients")
+                        
+                        # Invalidate cache so API serves fresh data
+                        oddsmagnet_cache['data'] = None
+                        oddsmagnet_cache['file_mtime'] = None
             
             await asyncio.sleep(2)  # Check every 2 seconds
             
         except Exception as e:
-            print(f"Error in push_oddsmagnet_updates: {e}")
+            print(f"❌ Error in push_oddsmagnet_updates: {e}")
+            import traceback
+            traceback.print_exc()
             await asyncio.sleep(5)
 
 

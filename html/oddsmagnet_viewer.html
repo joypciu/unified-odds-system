@@ -1653,6 +1653,13 @@
             } else {
                 setTimeout(initGlowingCursor, 2000);
             }
+            
+            // Heartbeat: Show monitoring status every 60 seconds
+            setInterval(() => {
+                const timestamp = new Date().toLocaleTimeString();
+                const wsStatus = wsConnection && wsConnection.readyState === WebSocket.OPEN ? '🟢 Connected' : '🔴 Disconnected';
+                console.log(`💓 [${timestamp}] Heartbeat - WebSocket: ${wsStatus} | Matches: ${allMatches.length} | Cache: ${dataCache ? 'Valid' : 'Empty'}`);
+            }, 60000); // Every 60 seconds
         });
 
         // Scroll Navigation
@@ -3228,7 +3235,8 @@
                     try {
                         const data = JSON.parse(event.data);
                         if (data.matches) {
-                            console.log('📡 WebSocket update received:', data.matches.length, 'matches');
+                            const timestamp = new Date().toLocaleTimeString();
+                            console.log(`📡 [${timestamp}] WebSocket update received:`, data.matches.length, 'matches, iteration:', data.iteration);
                             processWebSocketData(data);
                         }
                     } catch (err) {
@@ -3255,7 +3263,8 @@
         }
 
         function processWebSocketData(data) {
-            console.log('📡 Processing WebSocket data for sport:', data.sport);
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`📊 [${timestamp}] Processing WebSocket data for sport:`, data.sport, '| Matches:', data.matches?.length, '| Timestamp:', data.timestamp);
             
             // Clear any stale cache immediately for real-time updates
             dataCache = null;
