@@ -2530,6 +2530,7 @@
 
         // Progressive table rendering - show first batch immediately, rest in background
         async function renderTable() {
+            console.log('🎯 renderTable() CALLED - filteredMatches.length:', filteredMatches.length);
             const tableHead = document.getElementById('tableHead');
             const tableBody = document.getElementById('tableBody');
 
