@@ -3091,6 +3091,7 @@
             `], { type: 'application/javascript' })));
 
             filterWorker.onmessage = async function(e) {
+                console.log('🔵 Web Worker response received:', e.data.length, 'matches');
                 filteredMatches = e.data;
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
                 try {
@@ -3103,7 +3104,9 @@
             // Override applyFilters to use Web Worker
             const originalApplyFilters = applyFilters;
             applyFilters = debounce(function() {
+                console.log('🔄 applyFilters called - allMatches.length:', allMatches.length);
                 if (allMatches.length > 100) { // Use Web Worker for large datasets
+                    console.log('🟢 Using Web Worker path (>100 matches)');
                     filterWorker.postMessage({
                         matches: allMatches,
                         selectedLeague,
@@ -3111,6 +3114,7 @@
                         searchQuery
                     });
                 } else {
+                    console.log('🟡 Using original applyFilters path (<= 100 matches)');
                     originalApplyFilters();
                 }
             }, 150);
