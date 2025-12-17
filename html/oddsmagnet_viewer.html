@@ -1947,14 +1947,8 @@
                 e.preventDefault();
                 e.stopPropagation();
                 
-                console.log('🎯 Sport button clicked, isLoading:', isLoading);
+                if (isLoading) return;
                 
-                if (isLoading) {
-                    console.warn('⚠️ Cannot open sport modal - data is currently loading');
-                    return;
-                }
-                
-                console.log('✅ Opening sport modal');
                 sportModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             });
@@ -2594,15 +2588,6 @@
             
             const leagues = Array.from(leagueSet).sort();
             const menu = document.getElementById('leagueMenu');
-            
-            // DEBUG: Log extracted leagues with current sport
-            const currentSport = window.currentSport || 'unknown';
-            console.log(`🏆 Populating league dropdown for ${currentSport}: ${leagues.length} leagues from ${allMatches.length} matches`);
-            if (leagues.length > 0) {
-                // Show first 10 leagues as sample to verify correct sport data
-                const sample = leagues.slice(0, 10);
-                console.log(`   First 10 leagues: ${sample.join(', ')}`);
-            }
             
             // Build HTML efficiently with checkmark icons
             const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>'];
