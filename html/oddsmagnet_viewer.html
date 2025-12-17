@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Live odds comparison from top bookmakers - Real-time betting odds tracker">
     <meta name="theme-color" content="#0a0e1a">
-    <title>⚡ OddsMagnet Pro - Live Odds Comparison</title>
-    <!-- v2.1.0 - Sport-specific dynamic UI -->
+    <title>Live Odds Comparison By U. Joy</title>
+    <!-- Sport-specific dynamic UI -->
     
     <!-- Preconnect to CDN and API for faster loading -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -2973,6 +2973,133 @@
                 timeout = setTimeout(later, wait);
             };
         }
+
+        // Performance optimizations
+        // 1. Virtual scrolling for large datasets
+        function implementVirtualScrolling() {
+            const tableContainer = document.querySelector('.table-container');
+            const tableBody = document.getElementById('tableBody');
+            let virtualItems = [];
+            let visibleItems = [];
+            const itemHeight = 60; // Approximate height of each row
+            const containerHeight = tableContainer.clientHeight;
+            const visibleCount = Math.ceil(containerHeight / itemHeight) + 5; // Extra buffer
+
+            function updateVisibleItems() {
+                const scrollTop = tableContainer.scrollTop;
+                const startIndex = Math.floor(scrollTop / itemHeight);
+                const endIndex = Math.min(startIndex + visibleCount, virtualItems.length);
+
+                visibleItems = virtualItems.slice(startIndex, endIndex);
+                renderVisibleItems(startIndex);
+            }
+
+            function renderVisibleItems(startIndex) {
+                const offsetY = startIndex * itemHeight;
+                tableBody.style.transform = `translateY(${offsetY}px)`;
+                tableBody.innerHTML = visibleItems.map(item => renderMatchRow(item)).join('');
+            }
+
+            tableContainer.addEventListener('scroll', updateVisibleItems, { passive: true });
+
+            // Override renderTable to use virtual scrolling
+            const originalRenderTable = renderTable;
+            renderTable = function() {
+                if (filteredMatches.length > 50) { // Use virtual scrolling for large datasets
+                    virtualItems = filteredMatches;
+                    updateVisibleItems();
+                } else {
+                    originalRenderTable();
+                }
+            };
+        }
+
+        // 2. Optimize CSS for better performance
+        function optimizeCSS() {
+            // Add will-change properties to animated elements
+            const animatedElements = document.querySelectorAll('.odds-cell, .market-tab, .filter-btn');
+            animatedElements.forEach(el => {
+                el.style.willChange = 'transform, opacity';
+            });
+
+            // Use transform3d for GPU acceleration
+            const transformElements = document.querySelectorAll('.odds-cell:hover');
+            transformElements.forEach(el => {
+                el.style.transform = 'translate3d(0, 0, 0) scale(1.05)';
+            });
+        }
+
+        // 3. Implement Web Workers for heavy computations
+        function implementWebWorkers() {
+            // Create a worker for filtering operations
+            const filterWorker = new Worker(URL.createObjectURL(new Blob([`
+                self.onmessage = function(e) {
+                    const { matches, selectedLeague, selectedDate, searchQuery } = e.data;
+                    let filtered = matches;
+
+                    if (selectedLeague !== 'all') {
+                        filtered = filtered.filter(m => m.league === selectedLeague);
+                    }
+
+                    if (selectedDate !== 'all') {
+                        filtered = filtered.filter(m => {
+                            if (!m.match_date) return false;
+                            return new Date(m.match_date).toDateString() === selectedDate;
+                        });
+                    }
+
+                    if (searchQuery) {
+                        const query = searchQuery.toLowerCase();
+                        filtered = filtered.filter(m => {
+                            const matchName = m.match_name?.toLowerCase();
+                            const league = m.league?.toLowerCase();
+                            const homeTeam = m.home_team?.toLowerCase();
+                            const awayTeam = m.away_team?.toLowerCase();
+
+                            return matchName?.includes(query) ||
+                                   league?.includes(query) ||
+                                   homeTeam?.includes(query) ||
+                                   awayTeam?.includes(query);
+                        });
+                    }
+
+                    self.postMessage(filtered);
+                };
+            `], { type: 'application/javascript' })));
+
+            filterWorker.onmessage = function(e) {
+                filteredMatches = e.data;
+                document.getElementById('totalMatches').textContent = filteredMatches.length;
+                renderTable();
+            };
+
+            // Override applyFilters to use Web Worker
+            const originalApplyFilters = applyFilters;
+            applyFilters = debounce(function() {
+                if (allMatches.length > 100) { // Use Web Worker for large datasets
+                    filterWorker.postMessage({
+                        matches: allMatches,
+                        selectedLeague,
+                        selectedDate,
+                        searchQuery
+                    });
+                } else {
+                    originalApplyFilters();
+                }
+            }, 150);
+        }
+
+        // Initialize performance optimizations
+        document.addEventListener('DOMContentLoaded', () => {
+            // Existing initialization code...
+
+            // Add performance optimizations after initial load
+            setTimeout(() => {
+                implementVirtualScrolling();
+                optimizeCSS();
+                implementWebWorkers();
+            }, 1000);
+        });
 
         // Auto-refresh every 30 seconds
         setInterval(() => {

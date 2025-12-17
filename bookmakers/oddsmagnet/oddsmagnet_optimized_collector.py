@@ -38,8 +38,9 @@ class OddsMagnetOptimizedCollector:
         """
         self.scraper = OddsMagnetOptimizedScraper(max_workers, requests_per_second)
         self.max_workers = max_workers
+        self.cache = {}
     
-    def get_all_matches_summary(self, sport: str = 'football', 
+    def get_all_matches_summary(self, sport: str = 'football',
                                use_cache: bool = True) -> List[Dict]:
         """
         Get summary of all available matches (optimized with caching)
@@ -184,11 +185,11 @@ class OddsMagnetOptimizedCollector:
             return None
     
     def collect_matches_with_odds(self,
-                                 matches: List[Dict],
-                                 market_filter: Optional[List[str]] = None,
-                                 max_markets_per_category: Optional[int] = None,
-                                 save_interval: int = 10,
-                                 output_file: str = 'oddsmagnet_collection.json') -> Dict:
+                                  matches: List[Dict],
+                                  market_filter: Optional[List[str]] = None,
+                                  max_markets_per_category: Optional[int] = None,
+                                  save_interval: int = 10,
+                                  output_file: str = 'oddsmagnet_collection.json') -> Dict:
         """
         Collect odds for a list of matches with parallel processing and progress tracking
         
