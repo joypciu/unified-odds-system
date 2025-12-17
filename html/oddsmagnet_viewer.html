@@ -2542,13 +2542,19 @@
             // Check if bookmakers are available
             if (bookmakers.length === 0) {
                 console.error('  ❌ No bookmakers found in data! Cannot render table.');
-                tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 20px; color: var(--text-secondary);">No bookmaker data available. Data may still be loading...</th></tr>';
+                tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 20px; color: var(--text-secondary);">No bookmaker data available. Please refresh the page.</th></tr>';
+                tableHead.dataset.skeleton = 'false';
+                tableHead.dataset.rendered = 'false';
+                tableHead.dataset.bookmakerCount = '0';
                 tableBody.innerHTML = '';
                 return;  // Stop rendering if no bookmakers
             }
             
-            // ALWAYS render header if bookmakers changed or not yet rendered
-            if (tableHead.dataset.bookmakerCount !== String(bookmakers.length)) {
+            // ALWAYS render header if bookmakers changed or not yet rendered or skeleton is showing
+            const isSkeleton = tableHead.dataset.skeleton === 'true';
+            const bookmakerCountChanged = tableHead.dataset.bookmakerCount !== String(bookmakers.length);
+            
+            if (isSkeleton || bookmakerCountChanged) {
                 console.log(`  ↳ Building table header for ${bookmakers.length} bookmakers...`);
                 const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
                 
@@ -2556,16 +2562,17 @@
                     headerCells.push(`
                         <th>
                             <div class="bookmaker-header">
-                                <div class="bookmaker-name">${bm.name}</div>
+                                <div class="bookmaker-name" style="font-size: 13px; font-weight: 600;">${bm.name}</div>
                             </div>
                         </th>
                     `);
                 }
                 
                 tableHead.innerHTML = `<tr>${headerCells.join('')}</tr>`;
+                tableHead.dataset.skeleton = 'false';
                 tableHead.dataset.rendered = 'true';
                 tableHead.dataset.bookmakerCount = bookmakers.length;
-                console.log('  ✓ Table header rendered');
+                console.log('  ✓ Table header rendered with bookmaker names');
             }
 
             // OPTIMIZED PROGRESSIVE RENDERING
@@ -2910,8 +2917,9 @@
             const tableHead = document.getElementById('tableHead');
             const tableBody = document.getElementById('tableBody');
             
-            // Show minimal header
-            tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 12px;">Loading data...</th></tr>';
+            // Show minimal header - make sure it's cleared later
+            tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 12px;">Loading odds data...</th></tr>';
+            tableHead.dataset.skeleton = 'true';
             
             // Show skeleton rows
             const skeletonRows = [];
