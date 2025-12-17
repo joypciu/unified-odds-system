@@ -1271,9 +1271,21 @@ async def get_oddsmagnet_top10(
                 }
             )
         
-        # Read data first to generate content-based ETag
-        with open(data_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        # Read data asynchronously for better performance
+        try:
+            async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
+                content = await f.read()
+                data = json.loads(content)
+        except Exception as read_error:
+            print(f"❌ Error reading {data_file}: {read_error}")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    'error': 'Failed to read data file',
+                    'message': str(read_error),
+                    'matches': []
+                }
+            )
         
         # Generate ETag from actual data content (timestamp + iteration + query params)
         # This ensures ETag changes when data actually changes

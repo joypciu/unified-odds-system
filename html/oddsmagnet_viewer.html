@@ -21,29 +21,36 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>">
     
-    <!-- INSTANT DATA LOADING - Start fetching BEFORE DOM ready for fastest possible load -->
+    <!-- INSTANT DATA LOADING - Start fetching BEFORE DOM ready -->
     <script>
-        // Start data fetch immediately - don't wait for DOM or DOMContentLoaded
-        // This runs as soon as browser parses this script tag
+        // Start data fetch immediately with timeout fallback
         window.earlyDataFetch = (function() {
-            const currentSport = 'football'; // Default sport
+            const currentSport = 'football';
             const sportPath = 'football/top10';
             const apiEndpoint = window.location.port === '9000' 
                 ? `/om/${sportPath}` 
                 : `/oddsmagnet/api/${sportPath}`;
             
-            console.log('⚡ EARLY FETCH: Starting data load before DOM ready...');
+            console.log('⚡ EARLY FETCH: Starting data load...');
             const startTime = performance.now();
             
+            // Race between fetch and 5-second timeout
             const fetchPromise = fetch(apiEndpoint, { 
                 cache: 'no-store',
                 priority: 'high'
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
                 const fetchTime = (performance.now() - startTime).toFixed(0);
-                console.log(`⚡ EARLY FETCH: Data ready in ${fetchTime}ms (before DOM ready!)`);
+                console.log(`⚡ EARLY FETCH: Data ready in ${fetchTime}ms`);
                 return data;
+            })
+            .catch(err => {
+                console.warn('⚠️ Early fetch failed:', err.message);
+                return null; // Return null on error, will trigger normal fetch
             });
             
             return fetchPromise;
@@ -2305,7 +2312,8 @@
             
             // SHOW SKELETON ONLY on very first load (no cache at all)
             // Don't show skeleton when switching sports or force refreshing
-            if (!dataCache && !forceRefresh && allMatches.length === 0) {
+            // ALWAYS show skeleton immediately for user feedback
+            if (!dataCache || allMatches.length === 0) {
                 showSkeletonLoader();
             }
             
@@ -2314,28 +2322,36 @@
             try {
                 // Check if we have early fetch promise (from <head>)
                 if (window.earlyDataFetch && !dataCache && !forceRefresh) {
-                    console.log('⚡ FAST PATH: Using early fetched data...');
+                    console.log('⚡ FAST PATH: Waiting for early fetched data...');
                     
                     try {
-                        const data = await window.earlyDataFetch;
+                        const data = await Promise.race([
+                            window.earlyDataFetch,
+                            new Promise((_, reject) => 
+                                setTimeout(() => reject(new Error('Early fetch timeout')), 8000)
+                            )
+                        ]);
+                        
                         window.earlyDataFetch = null; // Use only once
                         
-                        allMatches = data.matches || [];
-                        dataCache = allMatches;
-                        lastDataTimestamp = data.timestamp;
-                        lastETag = data.etag || null;
-                        
-                        console.log(`⚡ FAST PATH: ${allMatches.length} matches loaded via early fetch`);
-                        
-                        updateStatus('Rendering...');
-                        await processDataProgressively();
-                        
-                        const loadTime = (performance.now() - startTime).toFixed(0);
-                        console.log(`✓ FAST PATH Complete! Rendered in ${loadTime}ms`);
-                        updateStatus('Live');
-                        return; // Early exit
+                        if (data && data.matches) {
+                            allMatches = data.matches || [];
+                            dataCache = allMatches;
+                            lastDataTimestamp = data.timestamp;
+                            lastETag = data.etag || null;
+                            
+                            console.log(`⚡ FAST PATH: ${allMatches.length} matches loaded via early fetch`);
+                            
+                            updateStatus('Rendering...');
+                            await processDataProgressively();
+                            
+                            const loadTime = (performance.now() - startTime).toFixed(0);
+                            console.log(`✓ FAST PATH Complete! Rendered in ${loadTime}ms`);
+                            updateStatus('Live');
+                            return; // Early exit
+                        }
                     } catch (earlyFetchError) {
-                        console.warn('⚠️ Early fetch failed, falling back to normal fetch:', earlyFetchError);
+                        console.warn('⚠️ Early fetch timeout/failed, using normal fetch:', earlyFetchError.message);
                         window.earlyDataFetch = null;
                     }
                 }
@@ -3093,17 +3109,10 @@
 
         // 2. Optimize CSS for better performance
         function optimizeCSS() {
-            // Add will-change properties to animated elements
-            const animatedElements = document.querySelectorAll('.odds-cell, .market-tab, .filter-btn');
-            animatedElements.forEach(el => {
-                el.style.willChange = 'transform, opacity';
-            });
-
-            // Use transform3d for GPU acceleration
-            const transformElements = document.querySelectorAll('.odds-cell:hover');
-            transformElements.forEach(el => {
-                el.style.transform = 'translate3d(0, 0, 0) scale(1.05)';
-            });
+            // DISABLED: will-change causes "memory consumption too high" errors
+            // Browser handles animations efficiently without explicit hints
+            // Only use will-change on specific user interactions, not bulk elements
+            return;
         }
 
         // 3. Implement Web Workers for heavy computations
