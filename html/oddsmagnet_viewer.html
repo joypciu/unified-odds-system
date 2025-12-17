@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- VERSION: 2025-12-17-01:35 - Web Worker disabled, direct rendering enabled -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2521,11 +2520,8 @@
 
             // Batch DOM updates with async rendering support
             requestAnimationFrame(async () => {
-                console.log('📍 Inside requestAnimationFrame - about to call renderTable()');
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
-                console.log('📍 Calling renderTable() now...');
                 await renderTable();
-                console.log('📍 renderTable() returned');
                 const filterTime = (performance.now() - startTime).toFixed(0);
                 console.log(`Filtered and rendered in ${filterTime}ms`);
             });
@@ -2533,7 +2529,6 @@
 
         // Progressive table rendering - show first batch immediately, rest in background
         async function renderTable() {
-            console.log('🎯 renderTable() CALLED - filteredMatches.length:', filteredMatches.length);
             const tableHead = document.getElementById('tableHead');
             const tableBody = document.getElementById('tableBody');
 
@@ -2543,23 +2538,8 @@
                 return;
             }
 
-            // AGGRESSIVE DEBUGGING AND RENDERING
-            const currentHTML = tableHead.innerHTML;
-            const isSkeleton = tableHead.dataset.skeleton === 'true' || currentHTML.includes('Loading live odds');
-            
-            console.log('🔍 RENDER DEBUG:');
-            console.log(`  • Bookmakers count: ${bookmakers.length}`);
-            console.log(`  • Current header HTML: ${currentHTML.substring(0, 100)}...`);
-            console.log(`  • Skeleton flag: ${tableHead.dataset.skeleton}`);
-            console.log(`  • Is skeleton: ${isSkeleton}`);
-            console.log(`  • Rendered flag: ${tableHead.dataset.rendered}`);
-            console.log(`  • Bookmaker count stored: ${tableHead.dataset.bookmakerCount}`);
-            
             // Check if bookmakers are available
             if (bookmakers.length === 0) {
-                console.error('  ❌ No bookmakers found in data!');
-                console.log(`  📊 Total matches: ${allMatches.length}, Filtered: ${filteredMatches.length}`);
-                
                 // Show informative message and clear skeleton flag
                 tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 20px; color: var(--text-secondary);">⚠️ No bookmaker data available. Try refreshing.</th></tr>';
                 tableHead.dataset.skeleton = 'false';
@@ -2569,17 +2549,15 @@
                 return;
             }
             
-            // ALWAYS RENDER if we have bookmakers - no conditions
-            console.log(`  🔨 FORCE RENDERING header for ${bookmakers.length} bookmakers...`);
-            console.log(`  📝 Bookmaker names: ${bookmakers.map(b => b.name).join(', ')}`);
-            
             const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
             
             for (const bm of bookmakers) {
+                const logoUrl = bm.logo || `https://logo.clearbit.com/${bm.name.toLowerCase().replace(/\s+/g, '')}.com`;
                 headerCells.push(`
                     <th>
                         <div class="bookmaker-header">
-                            <div class="bookmaker-name" style="font-size: 14px; font-weight: 700; color: white;">${bm.name}</div>
+                            <img src="${logoUrl}" alt="${bm.name}" class="bookmaker-logo" loading="eager" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="bookmaker-name" style="display: none;">${bm.name}</div>
                         </div>
                     </th>
                 `);
@@ -2590,9 +2568,6 @@
             tableHead.dataset.skeleton = 'false';
             tableHead.dataset.rendered = 'true';
             tableHead.dataset.bookmakerCount = bookmakers.length;
-            
-            console.log(`  ✅ Header HTML updated!`);
-            console.log(`  📄 New HTML: ${tableHead.innerHTML.substring(0, 150)}...`);
 
             // OPTIMIZED PROGRESSIVE RENDERING
             const FIRST_BATCH = 5;   // Show first 5 matches immediately for faster FCP
@@ -3028,17 +3003,6 @@
             }
 
             tableContainer.addEventListener('scroll', updateVisibleItems, { passive: true });
-
-            // DISABLED: Override renderTable to use virtual scrolling - THIS WAS PREVENTING BOOKMAKER NAMES FROM SHOWING
-            // const originalRenderTable = renderTable;
-            // renderTable = function() {
-            //     if (filteredMatches.length > 50) { // Use virtual scrolling for large datasets
-            //         virtualItems = filteredMatches;
-            //         updateVisibleItems();
-            //     } else {
-            //         originalRenderTable();
-            //     }
-            // };
         }
 
         // 2. Optimize CSS for better performance
@@ -3095,37 +3059,29 @@
             `], { type: 'application/javascript' })));
 
             filterWorker.onmessage = async function(e) {
-                console.log('🔵 Web Worker response received:', e.data.length, 'matches');
                 filteredMatches = e.data;
-                console.log('🔵 filteredMatches updated, length:', filteredMatches.length);
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
-                console.log('🔵 About to call renderTable()...');
                 try {
-                    const result = await renderTable();
-                    console.log('✅ renderTable() completed successfully, result:', result);
+                    await renderTable();
                 } catch (err) {
-                    console.error('❌ renderTable() threw error:', err);
-                    console.error('Stack trace:', err.stack);
+                    console.error('Render failed:', err);
                 }
             };
 
-            // DISABLED: Override applyFilters to use Web Worker - causing issues with renderTable not executing
-            // const originalApplyFilters = applyFilters;
-            // applyFilters = debounce(function() {
-            //     console.log('🔄 applyFilters called - allMatches.length:', allMatches.length);
-            //     if (allMatches.length > 100) { // Use Web Worker for large datasets
-            //         console.log('🟢 Using Web Worker path (>100 matches)');
-            //         filterWorker.postMessage({
-            //             matches: allMatches,
-            //             selectedLeague,
-            //             selectedDate,
-            //             searchQuery
-            //         });
-            //     } else {
-            //         console.log('🟡 Using original applyFilters path (<= 100 matches)');
-            //         originalApplyFilters();
-            //     }
-            // }, 150);
+            // Override applyFilters to use Web Worker for better performance
+            const originalApplyFilters = applyFilters;
+            applyFilters = debounce(function() {
+                if (allMatches.length > 100) { // Use Web Worker for large datasets
+                    filterWorker.postMessage({
+                        matches: allMatches,
+                        selectedLeague,
+                        selectedDate,
+                        searchQuery
+                    });
+                } else {
+                    originalApplyFilters();
+                }
+            }, 150);
         }
 
         // Initialize performance optimizations
