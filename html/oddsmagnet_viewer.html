@@ -2552,12 +2552,10 @@
             const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
             
             for (const bm of bookmakers) {
-                const logoUrl = bm.logo || `https://logo.clearbit.com/${bm.name.toLowerCase().replace(/\s+/g, '')}.com`;
                 headerCells.push(`
                     <th>
                         <div class="bookmaker-header">
-                            <img src="${logoUrl}" alt="${bm.name}" class="bookmaker-logo" loading="eager" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                            <div class="bookmaker-name" style="display: none;">${bm.name}</div>
+                            <div class="bookmaker-name">${bm.name}</div>
                         </div>
                     </th>
                 `);
@@ -2977,32 +2975,10 @@
         }
 
         // Performance optimizations
-        // 1. Virtual scrolling for large datasets
+        // 1. Virtual scrolling disabled - was causing data to disappear on scroll
         function implementVirtualScrolling() {
-            const tableContainer = document.querySelector('.table-container');
-            const tableBody = document.getElementById('tableBody');
-            let virtualItems = [];
-            let visibleItems = [];
-            const itemHeight = 60; // Approximate height of each row
-            const containerHeight = tableContainer.clientHeight;
-            const visibleCount = Math.ceil(containerHeight / itemHeight) + 5; // Extra buffer
-
-            function updateVisibleItems() {
-                const scrollTop = tableContainer.scrollTop;
-                const startIndex = Math.floor(scrollTop / itemHeight);
-                const endIndex = Math.min(startIndex + visibleCount, virtualItems.length);
-
-                visibleItems = virtualItems.slice(startIndex, endIndex);
-                renderVisibleItems(startIndex);
-            }
-
-            function renderVisibleItems(startIndex) {
-                const offsetY = startIndex * itemHeight;
-                tableBody.style.transform = `translateY(${offsetY}px)`;
-                tableBody.innerHTML = visibleItems.map(item => renderMatchRow(item)).join('');
-            }
-
-            tableContainer.addEventListener('scroll', updateVisibleItems, { passive: true });
+            // Disabled to prevent data disappearing
+            return;
         }
 
         // 2. Optimize CSS for better performance
