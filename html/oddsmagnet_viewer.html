@@ -731,7 +731,6 @@
             vertical-align: middle;
             font-weight: bold;
             opacity: 1;
-            will-change: transform;
         }
 
         .odds-arrow.up {
@@ -2349,7 +2348,7 @@
                         const data = await Promise.race([
                             window.earlyDataFetch,
                             new Promise((_, reject) => 
-                                setTimeout(() => reject(new Error('Early fetch timeout')), 8000)
+                                setTimeout(() => reject(new Error('Early fetch timeout')), 25000)
                             )
                         ]);
                         
