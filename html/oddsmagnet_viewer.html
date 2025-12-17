@@ -2470,9 +2470,12 @@
                         return cleaned;
                     });
                     
-                    // Debug: Show first match to verify cleaning
+                    // Debug: Show first 3 matches to verify cleaning
                     if (allMatches.length > 0) {
-                        console.log(`🔍 Sample match: ${allMatches[0].team1} vs ${allMatches[0].team2}`);
+                        console.log(`🔍 First 3 matches after cleaning:`);
+                        allMatches.slice(0, 3).forEach((match, idx) => {
+                            console.log(`   ${idx + 1}. "${match.team1}" vs "${match.team2}" | League: ${match.league}`);
+                        });
                     }
                     
                     dataCache = allMatches; // Cache the data
