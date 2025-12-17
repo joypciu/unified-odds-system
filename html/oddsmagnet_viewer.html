@@ -3171,21 +3171,21 @@
                     // Attempt reconnect after 5 seconds
                     setTimeout(() => {
                         if (useWebSocket) initWebSocket();
-            console.log('📡 Processing WebSocket data for sport:', data.sport);
-            allMatches = data.matches || [];
-            dataCache = data;
-            lastDataTimestamp = data.timestamp;
-            lastETag = data.etag;
-            expectedSport = data.sport || window.currentSport; // Update expected sportSocket not available, using HTTP polling');
+                    }, 5000);
+                };
+            } catch (err) {
+                console.warn('WebSocket not available, using HTTP polling');
                 useWebSocket = false;
             }
         }
 
         function processWebSocketData(data) {
+            console.log('📡 Processing WebSocket data for sport:', data.sport);
             allMatches = data.matches || [];
             dataCache = data;
             lastDataTimestamp = data.timestamp;
             lastETag = data.etag;
+            expectedSport = data.sport || window.currentSport; // Update expected sport
             
             processDataProgressively().catch(err => {
                 console.error('Error processing WebSocket data:', err);
