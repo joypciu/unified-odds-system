@@ -6,18 +6,49 @@
     <meta name="description" content="Live odds comparison from top bookmakers - Real-time betting odds tracker">
     <meta name="theme-color" content="#0a0e1a">
     <title>Live Odds Comparison By U. Joy</title>
-    <!-- Sport-specific dynamic UI -->
     
-    <!-- Preconnect to CDN and API for faster loading -->
+    <!-- Preconnect to CDN and API for fastest possible connection -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="http://142.44.160.36:8000">
     <link rel="dns-prefetch" href="http://142.44.160.36:8000">
     
-    <!-- Preload critical Font Awesome font file -->
+    <!-- Preload critical Font Awesome font file for instant icons -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     
+    <!-- Prefetch likely API endpoint for instant navigation -->
+    <link rel="prefetch" href="/oddsmagnet/api/football/top10">
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>">
+    
+    <!-- INSTANT DATA LOADING - Start fetching BEFORE DOM ready for fastest possible load -->
+    <script>
+        // Start data fetch immediately - don't wait for DOM or DOMContentLoaded
+        // This runs as soon as browser parses this script tag
+        window.earlyDataFetch = (function() {
+            const currentSport = 'football'; // Default sport
+            const sportPath = 'football/top10';
+            const apiEndpoint = window.location.port === '9000' 
+                ? `/om/${sportPath}` 
+                : `/oddsmagnet/api/${sportPath}`;
+            
+            console.log('⚡ EARLY FETCH: Starting data load before DOM ready...');
+            const startTime = performance.now();
+            
+            const fetchPromise = fetch(apiEndpoint, { 
+                cache: 'no-store',
+                priority: 'high'
+            })
+            .then(r => r.json())
+            .then(data => {
+                const fetchTime = (performance.now() - startTime).toFixed(0);
+                console.log(`⚡ EARLY FETCH: Data ready in ${fetchTime}ms (before DOM ready!)`);
+                return data;
+            });
+            
+            return fetchPromise;
+        })();
+    </script>
     
     <!-- Inline critical Font Awesome icons (only used ones) -->
     <style>
@@ -1598,22 +1629,22 @@
             'xb': 'https://ui-avatars.com/api/?name=1X&background=0652DD&color=fff&size=80'
         };
 
-        // Initialize
+        // Initialize - Start ASAP, don't wait for full DOM
         document.addEventListener('DOMContentLoaded', () => {
-            // Critical path - load data first
+            // Critical path - setup UI and load data
             setupEventListeners();
             setupScrollNavigation();
+            
+            // Load data immediately (will use early fetch if available)
             loadData().catch(err => console.error('Initial load failed:', err));
             
-            // Defer non-critical visual effects until after initial render
+            // Defer non-critical visual effects
             if (window.requestIdleCallback) {
                 requestIdleCallback(() => {
                     initGlowingCursor();
-                }, { timeout: 1000 });
+                }, { timeout: 2000 });
             } else {
-                setTimeout(() => {
-                    initGlowingCursor();
-                }, 1000);
+                setTimeout(initGlowingCursor, 2000);
             }
         });
 
@@ -2219,27 +2250,26 @@
         async function processDataProgressively() {
             console.log('📊 Processing data progressively...');
             
-            // Phase 1: Extract bookmakers and categories (fast)
+            // Batch ALL data extraction and DOM updates for maximum performance
+            // Phase 1: Extract bookmakers and categories (CPU work, no DOM)
             console.log('  ↳ Extracting bookmakers and market categories...');
             extractBookmakers();
             extractMarketCategories();
             console.log(`  ✓ Found ${bookmakers.length} bookmakers, ${marketCategories.length} markets`);
             
-            // Phase 2: Build dropdowns (fast)
-            console.log('  ↳ Building UI dropdowns...');
-            populateLeagueDropdown();
-            populateMarketTabs();
-            populateMarketMenu(); // Update market modal menu for current sport
-            console.log('  ✓ UI components ready');
-            
-            // Phase 3: Apply filters and render (can be slower with large data)
-            console.log('  ↳ Rendering table...');
-            // Use requestAnimationFrame for smooth rendering
+            // Phase 2 & 3: Build UI and render in single animation frame (batch DOM updates)
+            console.log('  ↳ Building UI and rendering table...');
             await new Promise(resolve => {
                 requestAnimationFrame(() => {
+                    // Build dropdowns
+                    populateLeagueDropdown();
+                    populateMarketTabs();
+                    populateMarketMenu();
+                    
+                    // Render table
                     applyFilters();
-                    console.log('  ✓ Initial render complete');
-                    // Update status after rendering completes
+                    
+                    console.log('  ✓ UI and render complete');
                     updateStatus('Live');
                     resolve();
                 });
@@ -2282,6 +2312,35 @@
             const startTime = performance.now();
 
             try {
+                // Check if we have early fetch promise (from <head>)
+                if (window.earlyDataFetch && !dataCache && !forceRefresh) {
+                    console.log('⚡ FAST PATH: Using early fetched data...');
+                    
+                    try {
+                        const data = await window.earlyDataFetch;
+                        window.earlyDataFetch = null; // Use only once
+                        
+                        allMatches = data.matches || [];
+                        dataCache = allMatches;
+                        lastDataTimestamp = data.timestamp;
+                        lastETag = data.etag || null;
+                        
+                        console.log(`⚡ FAST PATH: ${allMatches.length} matches loaded via early fetch`);
+                        
+                        updateStatus('Rendering...');
+                        await processDataProgressively();
+                        
+                        const loadTime = (performance.now() - startTime).toFixed(0);
+                        console.log(`✓ FAST PATH Complete! Rendered in ${loadTime}ms`);
+                        updateStatus('Live');
+                        return; // Early exit
+                    } catch (earlyFetchError) {
+                        console.warn('⚠️ Early fetch failed, falling back to normal fetch:', earlyFetchError);
+                        window.earlyDataFetch = null;
+                    }
+                }
+                
+                // Normal fetch path (sport switching or early fetch failed)
                 // Get current sport (default: football)
                 const currentSport = window.currentSport || 'football';
                 // Build sport path based on current sport
@@ -2576,7 +2635,7 @@
                 const filterTime = (performance.now() - startTime).toFixed(0);
                 console.log(`Filtered and rendered in ${filterTime}ms`);
             });
-        }, 150);
+        }, 100); // Reduced from 150ms to 100ms for faster response
 
         // Progressive table rendering - show first batch immediately, rest in background
         async function renderTable() {
@@ -3108,28 +3167,32 @@
                 } else {
                     originalApplyFilters();
                 }
-            }, 150);
+            }, 100); // Reduced from 150ms to 100ms for faster filtering
         }
 
-        // Initialize performance optimizations
+        // Initialize performance optimizations - Start immediately, don't block
         document.addEventListener('DOMContentLoaded', () => {
-            // Register Service Worker for caching (static assets only, not API data)
+            // Register Service Worker immediately but asynchronously (non-blocking)
             if ('serviceWorker' in navigator) {
+                // Don't await - let it register in background
                 navigator.serviceWorker.register('/html/sw.js')
                     .then(reg => console.log('✅ Service Worker registered'))
                     .catch(err => console.log('❌ Service Worker registration failed:', err));
             }
 
-            // Initialize WebSocket connection immediately
-            initWebSocket();
+            // Initialize WebSocket immediately (non-blocking)
+            // Will connect in background while UI renders
+            setTimeout(() => initWebSocket(), 0);
 
-            // Add performance optimizations - don't delay, do immediately
-            implementWebWorkers(); // Web Workers can start right away
+            // Web Workers - start immediately for filtering
+            implementWebWorkers();
             
-            // CSS optimizations can wait slightly
-            setTimeout(() => {
-                optimizeCSS();
-            }, 500);
+            // CSS optimizations - defer slightly to not block initial render
+            if (window.requestIdleCallback) {
+                requestIdleCallback(optimizeCSS, { timeout: 500 });
+            } else {
+                setTimeout(optimizeCSS, 500);
+            }
         });
 
         // WebSocket initialization with fallback to HTTP polling
