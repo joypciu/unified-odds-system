@@ -3106,23 +3106,23 @@
                 }
             };
 
-            // Override applyFilters to use Web Worker
-            const originalApplyFilters = applyFilters;
-            applyFilters = debounce(function() {
-                console.log('🔄 applyFilters called - allMatches.length:', allMatches.length);
-                if (allMatches.length > 100) { // Use Web Worker for large datasets
-                    console.log('🟢 Using Web Worker path (>100 matches)');
-                    filterWorker.postMessage({
-                        matches: allMatches,
-                        selectedLeague,
-                        selectedDate,
-                        searchQuery
-                    });
-                } else {
-                    console.log('🟡 Using original applyFilters path (<= 100 matches)');
-                    originalApplyFilters();
-                }
-            }, 150);
+            // DISABLED: Override applyFilters to use Web Worker - causing issues with renderTable not executing
+            // const originalApplyFilters = applyFilters;
+            // applyFilters = debounce(function() {
+            //     console.log('🔄 applyFilters called - allMatches.length:', allMatches.length);
+            //     if (allMatches.length > 100) { // Use Web Worker for large datasets
+            //         console.log('🟢 Using Web Worker path (>100 matches)');
+            //         filterWorker.postMessage({
+            //             matches: allMatches,
+            //             selectedLeague,
+            //             selectedDate,
+            //             searchQuery
+            //         });
+            //     } else {
+            //         console.log('🟡 Using original applyFilters path (<= 100 matches)');
+            //         originalApplyFilters();
+            //     }
+            // }, 150);
         }
 
         // Initialize performance optimizations
