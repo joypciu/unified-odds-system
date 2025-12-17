@@ -26,36 +26,27 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
     
-    // Only cache API requests
-    if (url.pathname.includes('/api/')) {
+    // DO NOT cache API requests - we need real-time data!
+    // WebSocket provides real-time updates, HTTP uses ETag validation
+    // Caching API responses blocks real-time updates and shows stale data
+    
+    if (url.pathname.includes('/api/') || url.pathname.includes('/om/')) {
+        // Just pass through - no caching for real-time data
+        // ETag validation handles efficiency
+        return; // Let browser handle it normally
+    }
+    
+    // For static assets (HTML, CSS, JS, images), cache aggressively
+    if (url.pathname.match(/\.(html|css|js|png|jpg|svg|woff2)$/)) {
         event.respondWith(
             caches.open(CACHE_NAME).then((cache) => {
                 return cache.match(event.request).then((cachedResponse) => {
-                    // Check if cached response is still fresh
                     if (cachedResponse) {
-                        const cachedTime = new Date(cachedResponse.headers.get('sw-cached-time'));
-                        const now = new Date();
-                        
-                        if (now - cachedTime < CACHE_DURATION) {
-                            console.log('Serving from cache:', url.pathname);
-                            return cachedResponse;
-                        }
+                        return cachedResponse;
                     }
                     
-                    // Fetch fresh data
                     return fetch(event.request).then((response) => {
-                        // Clone response and add timestamp
-                        const responseToCache = response.clone();
-                        const headers = new Headers(responseToCache.headers);
-                        headers.append('sw-cached-time', new Date().toISOString());
-                        
-                        const newResponse = new Response(responseToCache.body, {
-                            status: responseToCache.status,
-                            statusText: responseToCache.statusText,
-                            headers: headers
-                        });
-                        
-                        cache.put(event.request, newResponse);
+                        cache.put(event.request, response.clone());
                         return response;
                     });
                 });

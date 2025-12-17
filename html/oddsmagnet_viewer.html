@@ -40,10 +40,9 @@
             -moz-osx-font-smoothing: grayscale;
         }
         .fa-futbol:before { content: "\f1e3"; }
-        .fa-basketball:before { content: "\f434"; }
-        .fa-football:before { content: "\f44e"; }
-        .fa-baseball:before { content: "\f433"; }
-        .fa-cricket:before { content: "\f449"; }
+        .fa-basketball-ball:before { content: "\f434"; }
+        .fa-football-ball:before { content: "\f44e"; }
+        .fa-baseball-ball:before { content: "\f433"; }
         .fa-filter:before { content: "\f0b0"; }
         .fa-search:before { content: "\f002"; }
         .fa-sync:before { content: "\f021"; }
@@ -2305,7 +2304,10 @@
                     headers['If-None-Match'] = lastETag;
                 }
                 
-                const response = await fetch(apiEndpoint, { 
+                // Add cache-busting timestamp to prevent ANY caching
+                const cacheBuster = forceRefresh ? `?t=${Date.now()}` : '';
+                
+                const response = await fetch(apiEndpoint + cacheBuster, { 
                     headers,
                     cache: 'no-store'  // Disable browser HTTP cache, rely on ETag only
                 });
@@ -3111,22 +3113,23 @@
 
         // Initialize performance optimizations
         document.addEventListener('DOMContentLoaded', () => {
-            // Register Service Worker for caching
+            // Register Service Worker for caching (static assets only, not API data)
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/html/sw.js')
                     .then(reg => console.log('✅ Service Worker registered'))
                     .catch(err => console.log('❌ Service Worker registration failed:', err));
             }
 
-            // Initialize WebSocket connection
+            // Initialize WebSocket connection immediately
             initWebSocket();
 
-            // Add performance optimizations after initial load
+            // Add performance optimizations - don't delay, do immediately
+            implementWebWorkers(); // Web Workers can start right away
+            
+            // CSS optimizations can wait slightly
             setTimeout(() => {
-                implementVirtualScrolling();
                 optimizeCSS();
-                implementWebWorkers();
-            }, 1000);
+            }, 500);
         });
 
         // WebSocket initialization with fallback to HTTP polling
@@ -3181,10 +3184,16 @@
 
         function processWebSocketData(data) {
             console.log('📡 Processing WebSocket data for sport:', data.sport);
+            
+            // Clear any stale cache immediately for real-time updates
+            dataCache = null;
+            lastETag = null;
+            
+            // Update with fresh WebSocket data
             allMatches = data.matches || [];
-            dataCache = data;
+            dataCache = allMatches;
             lastDataTimestamp = data.timestamp;
-            lastETag = data.etag;
+            lastETag = data.etag || null;
             expectedSport = data.sport || window.currentSport; // Update expected sport
             
             processDataProgressively().catch(err => {
