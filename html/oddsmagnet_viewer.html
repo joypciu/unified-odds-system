@@ -2521,8 +2521,11 @@
 
             // Batch DOM updates with async rendering support
             requestAnimationFrame(async () => {
+                console.log('📍 Inside requestAnimationFrame - about to call renderTable()');
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
+                console.log('📍 Calling renderTable() now...');
                 await renderTable();
+                console.log('📍 renderTable() returned');
                 const filterTime = (performance.now() - startTime).toFixed(0);
                 console.log(`Filtered and rendered in ${filterTime}ms`);
             });
