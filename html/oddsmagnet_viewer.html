@@ -2337,7 +2337,13 @@
                         window.earlyDataFetch = null; // Use only once
                         
                         if (data && data.matches) {
-                            allMatches = data.matches || [];
+                            // Clean team names by removing youth team indicators (U19, U21)
+                            allMatches = data.matches.map(match => ({
+                                ...match,
+                                team1: (match.team1 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim(),
+                                team2: (match.team2 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim()
+                            }));
+                            
                             dataCache = allMatches;
                             cachedSport = 'football'; // Early fetch is always football
                             lastDataTimestamp = data.timestamp;
@@ -2435,7 +2441,13 @@
                     }
                     lastDataTimestamp = currentTimestamp;
                     
-                    allMatches = data.matches || [];
+                    // Clean team names by removing youth team indicators (U19, U21)
+                    allMatches = (data.matches || []).map(match => ({
+                        ...match,
+                        team1: (match.team1 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim(),
+                        team2: (match.team2 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim()
+                    }));
+                    
                     dataCache = allMatches; // Cache the data
                     cachedSport = currentSport; // Track which sport this cache is for
                     lastETag = newETag; // Store new ETag
@@ -3303,8 +3315,12 @@
             dataCache = null;
             lastETag = null;
             
-            // Update with fresh WebSocket data
-            allMatches = data.matches || [];
+            // Clean team names by removing youth team indicators (U19, U21)
+            allMatches = (data.matches || []).map(match => ({
+                ...match,
+                team1: (match.team1 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim(),
+                team2: (match.team2 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim()
+            }));
             dataCache = allMatches;
             cachedSport = data.sport; // Track which sport this cache is for
             lastDataTimestamp = data.timestamp;
