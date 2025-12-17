@@ -3094,11 +3094,15 @@
             filterWorker.onmessage = async function(e) {
                 console.log('🔵 Web Worker response received:', e.data.length, 'matches');
                 filteredMatches = e.data;
+                console.log('🔵 filteredMatches updated, length:', filteredMatches.length);
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
+                console.log('🔵 About to call renderTable()...');
                 try {
-                    await renderTable();
+                    const result = await renderTable();
+                    console.log('✅ renderTable() completed successfully, result:', result);
                 } catch (err) {
-                    console.error('Render failed:', err);
+                    console.error('❌ renderTable() threw error:', err);
+                    console.error('Stack trace:', err.stack);
                 }
             };
 
