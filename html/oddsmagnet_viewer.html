@@ -3090,12 +3090,13 @@
                 };
             `], { type: 'application/javascript' })));
 
-            filterWorker.onmessage = function(e) {
+            filterWorker.onmessage = async function(e) {
                 filteredMatches = e.data;
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
-                const result = renderTable();
-                if (result && typeof result.catch === 'function') {
-                    result.catch(err => console.error('Render failed:', err));
+                try {
+                    await renderTable();
+                } catch (err) {
+                    console.error('Render failed:', err);
                 }
             };
 
