@@ -2557,6 +2557,13 @@
             
             const leagues = Array.from(leagueSet).sort();
             const menu = document.getElementById('leagueMenu');
+            
+            // DEBUG: Log extracted leagues with current sport
+            const currentSport = window.currentSport || 'unknown';
+            console.log(`🏆 Populating league dropdown for ${currentSport}: ${leagues.length} leagues from ${allMatches.length} matches`);
+            if (leagues.length > 0 && leagues.length < 20) {
+                console.log(`   Leagues: ${leagues.join(', ')}`);
+            }
 
             // Build HTML efficiently with checkmark icons
             const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>'];
