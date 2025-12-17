@@ -1524,6 +1524,7 @@
         let lastDataTimestamp = null; // Track last data timestamp to detect updates
         let wsConnection = null; // WebSocket connection
         let useWebSocket = true; // Flag to enable/disable WebSocket
+        let expectedSport = 'football'; // Track which sport data we're expecting
         
         // Sport-specific market categories (predefined from backend collectors)
         const SPORT_MARKETS = {
@@ -1947,6 +1948,7 @@
                 // Update current sport BEFORE any async operations
                 const previousSport = window.currentSport;
                 window.currentSport = newSport;
+                expectedSport = newSport; // Track expected sport for data validation
                 
                 // Reset filters
                 selectedLeague = 'all';
@@ -1968,17 +1970,25 @@
                 // Show loading state
                 updateStatus('Loading...');
                 
-                // If WebSocket is active, send subscription change AND load via HTTP as backup
+                // Clear current data to show loading state
+                allMatches = [];
+                filteredMatches = [];
+                const tableBody = document.getElementById('tableBody');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 40px; color: var(--text-secondary);">Loading ' + newSport + ' data...</td></tr>';
+                }
+                
+                // If WebSocket is active, send subscription change AND set HTTP fallback timer
                 if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
                     console.log('📡 Sending WebSocket sport subscription:', newSport);
                     wsConnection.send(JSON.stringify({
                         action: 'subscribe',
                         sport: newSport
                     }));
-                    // Also load via HTTP as backup in case WebSocket data doesn't arrive
+                    // Set timeout to load via HTTP if WebSocket doesn't deliver within 2 seconds
                     setTimeout(() => {
-                        if (window.currentSport === newSport && allMatches.length === 0) {
-                            console.log('⚠️ WebSocket data delayed, loading via HTTP');
+                        if (expectedSport === newSport && allMatches.length === 0) {
+                            console.log('⚠️ WebSocket data not received, loading via HTTP');
                             loadData(true).catch(err => console.error('HTTP fallback failed:', err));
                         }
                     }, 2000);
@@ -1989,6 +1999,7 @@
                         console.error('Sport switch failed:', err);
                         // Revert on error
                         window.currentSport = previousSport;
+                        expectedSport = previousSport;
                         const prevConfig = sportConfig[previousSport];
                         sportBtnLabel.textContent = prevConfig.label;
                         sportIcon.className = prevConfig.icon;
@@ -3160,10 +3171,12 @@
                     // Attempt reconnect after 5 seconds
                     setTimeout(() => {
                         if (useWebSocket) initWebSocket();
-                    }, 5000);
-                };
-            } catch (err) {
-                console.warn('WebSocket not available, using HTTP polling');
+            console.log('📡 Processing WebSocket data for sport:', data.sport);
+            allMatches = data.matches || [];
+            dataCache = data;
+            lastDataTimestamp = data.timestamp;
+            lastETag = data.etag;
+            expectedSport = data.sport || window.currentSport; // Update expected sportSocket not available, using HTTP polling');
                 useWebSocket = false;
             }
         }
