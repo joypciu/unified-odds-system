@@ -1522,6 +1522,8 @@
         let dataCache = null; // Cache for fetched data
         let lastETag = null; // ETag for conditional requests
         let lastDataTimestamp = null; // Track last data timestamp to detect updates
+        let wsConnection = null; // WebSocket connection
+        let useWebSocket = true; // Flag to enable/disable WebSocket
         
         // Sport-specific market categories (predefined from backend collectors)
         const SPORT_MARKETS = {
@@ -3062,7 +3064,15 @@
 
         // Initialize performance optimizations
         document.addEventListener('DOMContentLoaded', () => {
-            // Existing initialization code...
+            // Register Service Worker for caching
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/html/sw.js')
+                    .then(reg => console.log('✅ Service Worker registered'))
+                    .catch(err => console.log('❌ Service Worker registration failed:', err));
+            }
+
+            // Initialize WebSocket connection
+            initWebSocket();
 
             // Add performance optimizations after initial load
             setTimeout(() => {
@@ -3072,9 +3082,72 @@
             }, 1000);
         });
 
-        // Auto-refresh every 30 seconds
+        // WebSocket initialization with fallback to HTTP polling
+        function initWebSocket() {
+            if (!useWebSocket) return;
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.hostname}:${window.location.port || 80}/ws/oddsmagnet`;
+            
+            try {
+                wsConnection = new WebSocket(wsUrl);
+                
+                wsConnection.onopen = () => {
+                    console.log('🟢 WebSocket connected - real-time updates enabled');
+                    // Subscribe to current sport
+                    const currentSport = window.currentSport || 'football';
+                    wsConnection.send(JSON.stringify({ 
+                        action: 'subscribe', 
+                        sport: currentSport 
+                    }));
+                };
+                
+                wsConnection.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.matches) {
+                            console.log('📡 WebSocket update received:', data.matches.length, 'matches');
+                            processWebSocketData(data);
+                        }
+                    } catch (err) {
+                        console.error('WebSocket message parse error:', err);
+                    }
+                };
+                
+                wsConnection.onerror = (error) => {
+                    console.warn('⚠️ WebSocket error, falling back to HTTP polling');
+                    useWebSocket = false;
+                };
+                
+                wsConnection.onclose = () => {
+                    console.log('🔴 WebSocket disconnected');
+                    // Attempt reconnect after 5 seconds
+                    setTimeout(() => {
+                        if (useWebSocket) initWebSocket();
+                    }, 5000);
+                };
+            } catch (err) {
+                console.warn('WebSocket not available, using HTTP polling');
+                useWebSocket = false;
+            }
+        }
+
+        function processWebSocketData(data) {
+            allMatches = data.matches || [];
+            dataCache = data;
+            lastDataTimestamp = data.timestamp;
+            lastETag = data.etag;
+            
+            processDataProgressively().catch(err => {
+                console.error('Error processing WebSocket data:', err);
+            });
+        }
+
+        // Auto-refresh every 30 seconds (only if WebSocket is not active)
         setInterval(() => {
-            loadData().catch(err => console.error('Auto-refresh failed:', err));
+            if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+                loadData().catch(err => console.error('Auto-refresh failed:', err));
+            }
         }, 30000);
     </script>
 </body>
