@@ -2291,25 +2291,6 @@
             console.log('  ✓ Data processing complete');
         }
 
-        function populateLeagueDropdown() {
-            const leagueSet = new Set();
-            for (const match of allMatches) {
-                if (match.league) leagueSet.add(match.league);
-            }
-            
-            const leagues = Array.from(leagueSet).sort();
-            const menu = document.getElementById('leagueMenu');
-
-            // Build HTML more efficiently
-            const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>'];
-            for (const league of leagues) {
-                items.push(`<div class="dropdown-item" data-value="${league}"><i class="fas fa-check"></i>${league}</div>`);
-            }
-            
-            menu.innerHTML = items.join('');
-            document.getElementById('totalLeagues').textContent = leagues.length;
-        }
-
         // Load Data with progressive rendering - show data immediately as it arrives
         async function loadData(forceRefresh = false) {
             if (isLoading) return; // Prevent concurrent loads
@@ -2546,16 +2527,22 @@
         }
 
         function populateLeagueDropdown() {
-            const leagues = [...new Set(allMatches.map(m => m.league))].sort();
+            const leagueSet = new Set();
+            for (const match of allMatches) {
+                if (match.league) leagueSet.add(match.league);
+            }
+            
+            const leagues = Array.from(leagueSet).sort();
             const menu = document.getElementById('leagueMenu');
 
-            menu.innerHTML = `
-                <div class="dropdown-item selected" data-value="all">All Leagues</div>
-                ${leagues.map(league =>
-                `<div class="dropdown-item" data-value="${league}">${league}</div>`
-            ).join('')}
-            `;
-
+            // Build HTML efficiently with checkmark icons
+            const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>'];
+            for (const league of leagues) {
+                items.push(`<div class="dropdown-item" data-value="${league}"><i class="fas fa-check"></i>${league}</div>`);
+            }
+            
+            menu.innerHTML = items.join('');
+            
             // Add click handlers for league items
             menu.querySelectorAll('.dropdown-item').forEach(item => {
                 item.addEventListener('click', (e) => {
@@ -2564,10 +2551,16 @@
                     selectedLeague = value;
                     document.getElementById('leagueLabel').textContent = value === 'all' ? 'All Leagues' : value;
                     menu.classList.remove('active');
+                    
+                    // Update selected state
+                    menu.querySelectorAll('.dropdown-item').forEach(menuItem => {
+                        menuItem.classList.toggle('selected', menuItem.dataset.value === value);
+                    });
+                    
                     applyFilters();
                 });
             });
-
+            
             document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
