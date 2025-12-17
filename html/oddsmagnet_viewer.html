@@ -1564,22 +1564,29 @@
         let useWebSocket = true; // Flag to enable/disable WebSocket
         let expectedSport = 'football'; // Track which sport data we're expecting
         
-        // Clean team names by removing youth team indicators
+        // Clean team names by removing youth team indicators (like backend match_name_cleaner.py)
         function cleanTeamName(teamName) {
-            if (!teamName) return '';
-            const original = teamName;
-            // Remove U19, U21, U23 etc. (handles various formats)
-            const cleaned = teamName
-                .replace(/\bu\d{2}\b/gi, '')  // Remove U## pattern (u19, U21, etc.)
-                .replace(/\s+/g, ' ')          // Normalize multiple spaces to single space
-                .trim();                        // Remove leading/trailing spaces
+            if (!teamName || typeof teamName !== 'string') return '';
             
-            // Debug log ALL cleaning attempts
-            if (original !== cleaned) {
-                console.log(`🧹 Cleaned: "${original}" → "${cleaned}"`);
+            let cleaned = teamName.trim();
+            
+            // Apply patterns similar to backend TEAM_SUFFIXES_TO_REMOVE
+            // Remove U19, U21, U23, etc. in various formats
+            const patterns = [
+                /\s+\(U19\)/gi,     // (U19)
+                /\s+\(U21\)/gi,     // (U21)
+                /\s+\(U23\)/gi,     // (U23)
+                /\s+U19$/gi,        // U19 at end
+                /\s+U21$/gi,        // U21 at end
+                /\s+U23$/gi,        // U23 at end
+            ];
+            
+            // Apply all removal patterns
+            for (const pattern of patterns) {
+                cleaned = cleaned.replace(pattern, '');
             }
             
-            return cleaned;
+            return cleaned.trim();
         }
         
         // Sport-specific market categories (predefined from backend collectors)
@@ -2358,8 +2365,8 @@
                             // Clean team names by removing youth team indicators (U19, U21, etc.)
                             allMatches = data.matches.map(match => ({
                                 ...match,
-                                team1: cleanTeamName(match.team1),
-                                team2: cleanTeamName(match.team2)
+                                home_team: cleanTeamName(match.home_team),
+                                away_team: cleanTeamName(match.away_team)
                             }));
                             
                             dataCache = allMatches;
@@ -2460,30 +2467,11 @@
                     lastDataTimestamp = currentTimestamp;
                     
                     // Clean team names by removing youth team indicators (U19, U21, etc.)
-                    const rawMatches = data.matches || [];
-                    
-                    // Debug: Show actual match object structure
-                    if (rawMatches.length > 0) {
-                        console.log(`🔍 Match object keys:`, Object.keys(rawMatches[0]));
-                        console.log(`🔍 Full first match:`, rawMatches[0]);
-                    }
-                    
-                    allMatches = rawMatches.map(match => {
-                        const cleaned = {
-                            ...match,
-                            team1: cleanTeamName(match.team1),
-                            team2: cleanTeamName(match.team2)
-                        };
-                        return cleaned;
-                    });
-                    
-                    // Debug: Show team names AFTER cleaning
-                    if (allMatches.length > 0) {
-                        console.log(`🔍 AFTER cleaning - First 3 matches:`);
-                        allMatches.slice(0, 3).forEach((match, idx) => {
-                            console.log(`   ${idx + 1}. "${match.team1}" vs "${match.team2}" | League: ${match.league}`);
-                        });
-                    }
+                    allMatches = (data.matches || []).map(match => ({
+                        ...match,
+                        home_team: cleanTeamName(match.home_team),
+                        away_team: cleanTeamName(match.away_team)
+                    }));
                     
                     dataCache = allMatches; // Cache the data
                     cachedSport = currentSport; // Track which sport this cache is for
@@ -3355,8 +3343,8 @@
             // Clean team names by removing youth team indicators (U19, U21, etc.)
             allMatches = (data.matches || []).map(match => ({
                 ...match,
-                team1: cleanTeamName(match.team1),
-                team2: cleanTeamName(match.team2)
+                home_team: cleanTeamName(match.home_team),
+                away_team: cleanTeamName(match.away_team)
             }));
             dataCache = allMatches;
             cachedSport = data.sport; // Track which sport this cache is for
