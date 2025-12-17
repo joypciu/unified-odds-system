@@ -2462,12 +2462,10 @@
                     // Clean team names by removing youth team indicators (U19, U21, etc.)
                     const rawMatches = data.matches || [];
                     
-                    // Debug: Show original team names BEFORE cleaning
+                    // Debug: Show actual match object structure
                     if (rawMatches.length > 0) {
-                        console.log(`🔍 BEFORE cleaning - First 3 matches:`);
-                        rawMatches.slice(0, 3).forEach((match, idx) => {
-                            console.log(`   ${idx + 1}. "${match.team1}" vs "${match.team2}" | League: ${match.league}`);
-                        });
+                        console.log(`🔍 Match object keys:`, Object.keys(rawMatches[0]));
+                        console.log(`🔍 Full first match:`, rawMatches[0]);
                     }
                     
                     allMatches = rawMatches.map(match => {
