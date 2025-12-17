@@ -2340,8 +2340,8 @@
                             // Clean team names by removing youth team indicators (U19, U21)
                             allMatches = data.matches.map(match => ({
                                 ...match,
-                                team1: (match.team1 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim(),
-                                team2: (match.team2 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim()
+                                team1: (match.team1 || '').replace(/\s+(u19|u21)\b/gi, '').replace(/\b(u19|u21)\s+/gi, '').trim(),
+                                team2: (match.team2 || '').replace(/\s+(u19|u21)\b/gi, '').replace(/\b(u19|u21)\s+/gi, '').trim()
                             }));
                             
                             dataCache = allMatches;
@@ -2444,8 +2444,8 @@
                     // Clean team names by removing youth team indicators (U19, U21)
                     allMatches = (data.matches || []).map(match => ({
                         ...match,
-                        team1: (match.team1 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim(),
-                        team2: (match.team2 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim()
+                        team1: (match.team1 || '').replace(/\s+(u19|u21)\b/gi, '').replace(/\b(u19|u21)\s+/gi, '').trim(),
+                        team2: (match.team2 || '').replace(/\s+(u19|u21)\b/gi, '').replace(/\b(u19|u21)\s+/gi, '').trim()
                     }));
                     
                     dataCache = allMatches; // Cache the data
@@ -3318,8 +3318,8 @@
             // Clean team names by removing youth team indicators (U19, U21)
             allMatches = (data.matches || []).map(match => ({
                 ...match,
-                team1: (match.team1 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim(),
-                team2: (match.team2 || '').replace(/\s*u19\s*/gi, ' ').replace(/\s*u21\s*/gi, ' ').trim()
+                team1: (match.team1 || '').replace(/\s+(u19|u21)\b/gi, '').replace(/\b(u19|u21)\s+/gi, '').trim(),
+                team2: (match.team2 || '').replace(/\s+(u19|u21)\b/gi, '').replace(/\b(u19|u21)\s+/gi, '').trim()
             }));
             dataCache = allMatches;
             cachedSport = data.sport; // Track which sport this cache is for
