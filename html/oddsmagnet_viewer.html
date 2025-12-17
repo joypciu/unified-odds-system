@@ -3070,7 +3070,10 @@
             filterWorker.onmessage = function(e) {
                 filteredMatches = e.data;
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
-                renderTable().catch(err => console.error('Render failed:', err));
+                const result = renderTable();
+                if (result && typeof result.catch === 'function') {
+                    result.catch(err => console.error('Render failed:', err));
+                }
             };
 
             // Override applyFilters to use Web Worker
