@@ -1502,6 +1502,11 @@
                     <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
                     Baseball
                 </div>
+                <div class="dropdown-item" data-sport="tabletennis">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-table-tennis" style="margin-right: 8px;"></i>
+                    Table Tennis
+                </div>
             </div>
         </div>
     </div>
@@ -2027,6 +2032,11 @@
                         icon: 'fas fa-baseball-ball',
                         headerLabel: '⚾ Baseball (MLB/NPB/KBO)'
                     },
+                    tabletennis: {
+                        label: 'Table Tennis',
+                        icon: 'fas fa-table-tennis',
+                        headerLabel: '🏓 Table Tennis (Setka Cup/Czech Pro League)'
+                    },
                     football: {
                         label: 'Football',
                         icon: 'fas fa-futbol',
@@ -2415,11 +2425,12 @@
                                 : currentSport === 'americanfootball' ? 'americanfootball'
                                 : currentSport === 'cricket' ? 'cricket'
                                 : currentSport === 'baseball' ? 'baseball'
+                                : currentSport === 'tabletennis' ? 'tabletennis'
                                 : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport
-                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket or /om/baseball
-                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket or /oddsmagnet/api/baseball
+                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket or /om/baseball or /om/tabletennis
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket or /oddsmagnet/api/baseball or /oddsmagnet/api/tabletennis
                 const apiEndpoint = window.location.port === '9000' 
                     ? `/om/${sportPath}` 
                     : `/oddsmagnet/api/${sportPath}`;
