@@ -2089,60 +2089,40 @@
             return cleaned.trim();
         }
         
-        // Sport-specific market categories (predefined from backend collectors)
-        const SPORT_MARKETS = {
-            football: [
-                'popular markets',
-                'over under betting',
-                'handicap betting',
-                'double chance bet',
-                'corner bet',
-                'both teams to score',
-                '1st half markets',
-                '2nd half markets',
-                'correct score betting',
-                'to score odds'
-            ],
-            basketball: [
-                'popular markets',
-                'over under betting',
-                'handicap betting',
-                '1st half markets',
-                'total markets'
-            ],
-            americanfootball: [
-                'popular markets',
-                'over under betting',
-                'handicap betting',
-                '1st half markets',
-                'total markets',
-                'quarter betting'
-            ],
-            cricket: [
-                'popular markets',
-                'match odds',
-                'innings runs',
-                'top batsman',
-                'player performance'
-            ],
-            baseball: [
-                'popular markets',
-                'over under betting',
-                'handicap betting',
-                'innings markets',
-                'total markets',
-                '1st innings markets',
-                'player props',
-                'team totals',
-                'alternative lines'
-            ]
-        };
+        // Format market name for better display
+        function formatMarketName(marketName) {
+            if (!marketName) return '';
+            
+            // Title case and cleanup
+            return marketName
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ')
+                .replace(/\bBtts\b/gi, 'BTTS')
+                .replace(/\bDnb\b/gi, 'DNB')
+                .replace(/\bO\/U\b/gi, 'Over/Under')
+                .replace(/\b1st\b/gi, '1st')
+                .replace(/\b2nd\b/gi, '2nd')
+                .replace(/\bvs\b/gi, 'vs');
+        }
+        
+        // Sport-specific market categories - REMOVED PREDEFINED LISTS
+        // Markets are now fully dynamic - extracted from actual API data
+        // This ensures we only show markets that actually have data
+        const SPORT_MARKETS = {};
         
         // Sport-specific selection types (what rows to show in odds table)
         const SPORT_SELECTIONS = {
             football: ['home', 'draw', 'away'],          // 3-way betting
             basketball: ['home', 'away'],                 // 2-way betting (no draws)
             americanfootball: ['home', 'away'],          // 2-way betting (no draws)
+            cricket: ['home', 'draw', 'away'],           // 3-way betting (draw possible in Test cricket)
+            baseball: ['home', 'away'],                   // 2-way betting (no draws in baseball)
+            tabletennis: ['home', 'away'],                // 2-way betting (no draws in table tennis)
+            tennis: ['home', 'away'],                     // 2-way betting (no draws in tennis)
+            boxing: ['home', 'away'],                     // 2-way betting (fighter1 vs fighter2)
+            volleyball: ['home', 'away']                  // 2-way betting (no draws in volleyball)
+        };
             cricket: ['home', 'draw', 'away'],           // 3-way betting (draw possible in Test cricket)
             baseball: ['home', 'away'],                   // 2-way betting (no draws in baseball)
             tabletennis: ['home', 'away'],                // 2-way betting (no draws in table tennis)
@@ -2468,7 +2448,7 @@
                 if (menuItem) {
                     const value = menuItem.dataset.value;
                     currentMarket = value === 'all' ? '' : value;
-                    document.getElementById('marketLabel').textContent = value === 'all' ? 'All Markets' : value;
+                    document.getElementById('marketLabel').textContent = value === 'all' ? 'All Markets' : formatMarketName(value);
                     
                     // Update market tabs visual state
                     document.querySelectorAll('.market-tab').forEach(tab => {
@@ -2508,17 +2488,35 @@
                 </div>
             `;
             
-            // Add each dynamically discovered market category
+            // Count how many matches have each market
+            const marketCounts = new Map();
+            for (const match of allMatches) {
+                if (match.markets) {
+                    for (const category of Object.keys(match.markets)) {
+                        marketCounts.set(category, (marketCounts.get(category) || 0) + 1);
+                    }
+                }
+            }
+            
+            // Add each dynamically discovered market category with match count
             marketCategories.forEach(market => {
                 const isActive = market === currentMarket;
-                // All markets from API - use chart icon to indicate dynamic discovery
-                const icon = 'fa-chart-bar';
+                const matchCount = marketCounts.get(market) || 0;
+                const totalMatches = allMatches.length;
+                const coverage = totalMatches > 0 ? Math.round((matchCount / totalMatches) * 100) : 0;
+                
+                // Icon based on coverage
+                let icon = 'fa-chart-bar';
+                if (market.toLowerCase().includes('popular')) icon = 'fa-star';
+                else if (market.toLowerCase().includes('handicap')) icon = 'fa-balance-scale';
+                else if (market.toLowerCase().includes('over') || market.toLowerCase().includes('under')) icon = 'fa-chart-line';
+                else if (market.toLowerCase().includes('half')) icon = 'fa-clock';
                 
                 html += `
                     <div class="filter-menu-item ${isActive ? 'active' : ''}" data-value="${market}">
                         <i class="fas ${icon}" style="margin-right: 8px; color: var(--accent-primary);"></i>
-                        ${market}
-                        <span style="margin-left: auto; font-size: 11px; color: var(--text-tertiary); opacity: 0.6;">from API</span>
+                        <span style="flex: 1;">${formatMarketName(market)}</span>
+                        <span style="margin-left: 12px; font-size: 10px; color: var(--text-tertiary); opacity: 0.7;">${matchCount} matches (${coverage}%)</span>
                     </div>
                 `;
             });
@@ -3344,44 +3342,65 @@
         }
 
         function extractMarketCategories() {
-            const categoriesSet = new Set();
+            const categoriesMap = new Map(); // Use Map to track market counts
             
             // Get current sport
             const currentSport = window.currentSport || 'football';
 
-            // PRIORITY 1: Extract from actual data (dynamic discovery from API)
+            // Extract markets from actual match data and validate they contain odds
             for (const match of allMatches) {
                 if (match.markets) {
-                    for (const category of Object.keys(match.markets)) {
-                        categoriesSet.add(category);
+                    for (const [category, marketsList] of Object.entries(match.markets)) {
+                        // Validate market has actual data
+                        let hasValidData = false;
+                        
+                        if (Array.isArray(marketsList) && marketsList.length > 0) {
+                            // Check if any market in this category has odds
+                            for (const market of marketsList) {
+                                if (market.odds && Array.isArray(market.odds) && market.odds.length > 0) {
+                                    hasValidData = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Only add market if it has valid data
+                        if (hasValidData) {
+                            const count = categoriesMap.get(category) || 0;
+                            categoriesMap.set(category, count + 1);
+                        }
                     }
                 }
             }
             
-            // PRIORITY 2: If no data yet, use predefined fallback
-            if (categoriesSet.size === 0) {
-                const predefinedMarkets = SPORT_MARKETS[currentSport] || SPORT_MARKETS.football;
-                predefinedMarkets.forEach(market => categoriesSet.add(market));
-            }
-
-            // Sort markets alphabetically (or keep API order if preferred)
-            marketCategories = Array.from(categoriesSet).sort((a, b) => {
-                // Prioritize "popular markets" to always be first
-                if (a.toLowerCase().includes('popular')) return -1;
-                if (b.toLowerCase().includes('popular')) return 1;
-                // Alphabetical for the rest
-                return a.localeCompare(b);
-            });
+            // Sort markets by availability (how many matches have this market) and then alphabetically
+            marketCategories = Array.from(categoriesMap.entries())
+                .sort((a, b) => {
+                    // Prioritize "popular markets" to always be first
+                    const [catA, countA] = a;
+                    const [catB, countB] = b;
+                    
+                    if (catA.toLowerCase().includes('popular')) return -1;
+                    if (catB.toLowerCase().includes('popular')) return 1;
+                    
+                    // Sort by availability (most common markets first)
+                    if (countB !== countA) return countB - countA;
+                    
+                    // Alphabetical for same count
+                    return catA.localeCompare(catB);
+                })
+                .map(([category, count]) => category);
 
             // Set default market to first category, or keep current if it exists in new categories
             if (marketCategories.length > 0) {
                 // If current market doesn't exist in new categories, reset to first
                 if (!currentMarket || !marketCategories.includes(currentMarket)) {
                     currentMarket = marketCategories[0];
-                    console.log(`  ✓ Market set to: ${currentMarket} (discovered from data)`);
+                    console.log(`  ✓ Market set to: ${currentMarket} (${categoriesMap.get(currentMarket)} matches have this market)`);
                 }
             } else {
                 currentMarket = '';
+                console.log('  ⚠️ No markets found with valid data');
             }
 
             document.getElementById('totalMarkets').textContent = marketCategories.length;
@@ -3430,7 +3449,8 @@
 
             marketTabs.innerHTML = marketCategories.map((category, idx) => {
                 const isActive = (idx === 0 && !currentMarket) || category === currentMarket;
-                return `<button class="market-tab ${isActive ? 'active' : ''}" data-market="${category}">${category}</button>`;
+                const formattedName = formatMarketName(category);
+                return `<button class="market-tab ${isActive ? 'active' : ''}" data-market="${category}">${formattedName}</button>`;
             }).join('');
 
             // Add event listeners
@@ -3867,27 +3887,46 @@
             const markets = match.markets[currentMarket];
             if (!Array.isArray(markets)) return { homeOdds, drawOdds, awayOdds };
 
-            // Find the main market (win market) - optimized search
-            let mainMarket = null;
-            for (const m of markets) {
-                const marketName = m.market_name?.toLowerCase();
-                if (marketName && (marketName.includes('win') || marketName.includes('match winner') || marketName.includes('moneyline'))) {
-                    mainMarket = m;
-                    break;
-                }
-            }
-            mainMarket = mainMarket || markets[0];
+            // Get the first market with odds
+            let mainMarket = markets.find(m => m.odds && Array.isArray(m.odds) && m.odds.length > 0);
+            if (!mainMarket) return { homeOdds, drawOdds, awayOdds };
 
-            if (mainMarket && mainMarket.odds) {
-                const homeTeam = match.home_team?.toLowerCase();
-                const awayTeam = match.away_team?.toLowerCase();
+            const marketName = mainMarket.market_name?.toLowerCase() || '';
+            const homeTeam = match.home_team?.toLowerCase();
+            const awayTeam = match.away_team?.toLowerCase();
+            
+            // Detect market type and handle selections appropriately
+            const isOverUnder = marketName.includes('over') || marketName.includes('under') || marketName.includes('total');
+            const isHandicap = marketName.includes('handicap') || marketName.includes('spread');
+            
+            for (const odd of mainMarket.odds) {
+                if (!odd.bookmaker_code || !odd.decimal_odds) continue;
                 
-                for (const odd of mainMarket.odds) {
-                    if (!odd.bookmaker_code || !odd.decimal_odds) continue;
-                    
-                    const selection = odd.selection?.toLowerCase();
-                    
-                    // Categorize by selection
+                const selection = odd.selection?.toLowerCase();
+                
+                if (isOverUnder) {
+                    // For Over/Under markets: map over to home, under to away
+                    if (selection.includes('over')) {
+                        homeOdds.set(odd.bookmaker_code, odd);
+                    } else if (selection.includes('under')) {
+                        awayOdds.set(odd.bookmaker_code, odd);
+                    }
+                } else if (isHandicap) {
+                    // For Handicap markets: try to match team names, or use first/second odds
+                    if (homeTeam && selection.includes(homeTeam)) {
+                        homeOdds.set(odd.bookmaker_code, odd);
+                    } else if (awayTeam && selection.includes(awayTeam)) {
+                        awayOdds.set(odd.bookmaker_code, odd);
+                    } else {
+                        // Fallback: assign based on order (first is home, second is away)
+                        if (!homeOdds.has(odd.bookmaker_code)) {
+                            homeOdds.set(odd.bookmaker_code, odd);
+                        } else {
+                            awayOdds.set(odd.bookmaker_code, odd);
+                        }
+                    }
+                } else {
+                    // Standard markets (win, moneyline, etc.): match by team names and draw
                     if (selection === 'draw') {
                         drawOdds.set(odd.bookmaker_code, odd);
                     } else if (homeTeam && (selection === homeTeam || selection?.includes(homeTeam))) {
