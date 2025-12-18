@@ -1700,6 +1700,24 @@
         </div>
     </div>
 
+    <!-- Bookmarks Modal -->
+    <div class="filter-modal" id="bookmarksModal">
+        <div class="filter-modal-content">
+            <div class="filter-modal-header">
+                <div class="filter-modal-title">
+                    <i class="fas fa-bookmark" style="margin-right: 8px; color: #fbbf24;"></i>
+                    My Bookmarked Matches
+                </div>
+                <button class="filter-modal-close" id="bookmarksModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-modal-body" id="bookmarksMenu">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
     <!-- Back to Top Button -->
     <button class="back-to-top" id="backToTop" title="Back to Top (Home key)">
         <i class="fas fa-arrow-up"></i>
@@ -1726,7 +1744,7 @@
         let expectedSport = 'football';
         
         // NEW: Advanced features with O(1) complexity
-        const bookmarkedMatches = new Set(); // O(1) add/remove/has
+        const bookmarkedMatches = new Map(); // Store {matchId: {sport, matchName, date}} for cross-sport bookmarks
         const matchCache = new Map(); // O(1) match lookups by ID
         let sortState = { field: null, direction: 'none' }; // none, asc, desc
         let showOnlyBookmarks = false;
@@ -1741,7 +1759,14 @@
                 const stored = localStorage.getItem('oddsmagnet_bookmarks');
                 if (stored) {
                     const bookmarks = JSON.parse(stored);
-                    bookmarks.forEach(id => bookmarkedMatches.add(id));
+                    // Handle both old format (array) and new format (object)
+                    if (Array.isArray(bookmarks)) {
+                        // Old format - convert to new format
+                        bookmarks.forEach(id => bookmarkedMatches.set(id, {sport: 'unknown', matchName: '', date: ''}));
+                    } else {
+                        // New format - object with matchId as key
+                        Object.entries(bookmarks).forEach(([id, data]) => bookmarkedMatches.set(id, data));
+                    }
                     updateBookmarkCount();
                 }
             } catch (e) {
@@ -1752,18 +1777,31 @@
         // Save bookmarks to localStorage - O(n) where n = bookmark count
         function saveBookmarks() {
             try {
-                localStorage.setItem('oddsmagnet_bookmarks', JSON.stringify([...bookmarkedMatches]));
+                // Convert Map to object for JSON storage
+                const bookmarksObj = {};
+                bookmarkedMatches.forEach((data, id) => {
+                    bookmarksObj[id] = data;
+                });
+                localStorage.setItem('oddsmagnet_bookmarks', JSON.stringify(bookmarksObj));
             } catch (e) {
                 console.warn('Failed to save bookmarks:', e);
             }
         }
         
         // Toggle bookmark - O(1)
-        function toggleBookmark(matchId) {
+        function toggleBookmark(matchId, match = null) {
             if (bookmarkedMatches.has(matchId)) {
                 bookmarkedMatches.delete(matchId);
             } else {
-                bookmarkedMatches.add(matchId);
+                // Store sport and match info with bookmark
+                const currentSport = window.currentSport || 'football';
+                const matchData = {
+                    sport: currentSport,
+                    matchName: match?.match_name || '',
+                    date: match?.match_date || '',
+                    league: match?.league || ''
+                };
+                bookmarkedMatches.set(matchId, matchData);
             }
             saveBookmarks();
             updateBookmarkCount();
@@ -2289,22 +2327,31 @@
                 sortMatches('odds');
             });
             
-            // NEW: Show bookmarks toggle - clicking enables filter to show only bookmarked matches
+            // NEW: Show bookmarks - display modal with all bookmarked matches from all sports
             document.getElementById('showBookmarksBtn').addEventListener('click', () => {
-                // If bookmarks exist, enable filter (don't toggle off if already on)
                 if (bookmarkedMatches.size > 0) {
-                    showOnlyBookmarks = true;
-                    const btn = document.getElementById('showBookmarksBtn');
-                    btn.classList.add('active');
-                    
-                    // Log state change for debugging
-                    console.log(`🔖 Bookmark filter ENABLED - Showing ${bookmarkedMatches.size} bookmarked matches`);
-                    
-                    applyFilters();
+                    showBookmarksModal();
                 } else {
                     // No bookmarks, show message
                     console.log('⚠️ No bookmarked matches to show');
                     alert('No bookmarked matches yet. Click the star icon on any match to bookmark it.');
+                }
+            });
+            
+            // Close bookmarks modal
+            const bookmarksModal = document.getElementById('bookmarksModal');
+            const bookmarksModalClose = document.getElementById('bookmarksModalClose');
+            
+            bookmarksModalClose.addEventListener('click', () => {
+                bookmarksModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Close when clicking outside modal
+            bookmarksModal.addEventListener('click', (e) => {
+                if (e.target === bookmarksModal) {
+                    bookmarksModal.classList.remove('active');
+                    document.body.style.overflow = '';
                 }
             });
             
@@ -2319,7 +2366,9 @@
                     const matchRow = bookmarkBtn.closest('[data-match-id]');
                     if (matchRow) {
                         const matchId = matchRow.dataset.matchId;
-                        toggleBookmark(matchId);
+                        // Find the match object from filteredMatches
+                        const match = filteredMatches.find(m => getMatchId(m) === matchId);
+                        toggleBookmark(matchId, match);
                     }
                 }
             });
@@ -2444,6 +2493,125 @@
             });
             
             marketMenu.innerHTML = html;
+        }
+
+        // Show bookmarks modal function
+        function showBookmarksModal() {
+            const bookmarksModal = document.getElementById('bookmarksModal');
+            const bookmarksMenu = document.getElementById('bookmarksMenu');
+            
+            // Group bookmarks by sport
+            const bookmarksBySport = {};
+            bookmarkedMatches.forEach((data, matchId) => {
+                const sport = data.sport || 'unknown';
+                if (!bookmarksBySport[sport]) {
+                    bookmarksBySport[sport] = [];
+                }
+                bookmarksBySport[sport].push({matchId, ...data});
+            });
+            
+            // Build modal content
+            let html = '';
+            const sportNames = {
+                'football': '⚽ Football',
+                'basketball': '🏀 Basketball',
+                'cricket': '🏏 Cricket',
+                'americanfootball': '🏈 American Football',
+                'baseball': '⚾ Baseball',
+                'tabletennis': '🏓 Table Tennis',
+                'tennis': '🎾 Tennis',
+                'boxing': '🥊 Boxing',
+                'volleyball': '🏐 Volleyball',
+                'unknown': '❓ Unknown'
+            };
+            
+            Object.keys(bookmarksBySport).sort().forEach(sport => {
+                const matches = bookmarksBySport[sport];
+                html += `<div style="padding: 12px 20px; background: var(--bg-tertiary); color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color);">${sportNames[sport] || sport} (${matches.length})</div>`;
+                
+                matches.forEach(match => {
+                    const date = match.date ? new Date(match.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : 'TBD';
+                    html += `
+                        <div class="dropdown-item bookmark-item" data-sport="${sport}" data-match-id="${match.matchId}" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px;">${match.matchName || 'Unknown Match'}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${match.league || ''} • ${date}</div>
+                            </div>
+                            <button class="remove-bookmark-btn" data-match-id="${match.matchId}" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px 8px; font-size: 14px;" title="Remove bookmark">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            });
+            
+            if (html === '') {
+                html = '<div class="dropdown-item" style="text-align: center; color: var(--text-muted); padding: 40px 20px;">No bookmarked matches</div>';
+            }
+            
+            bookmarksMenu.innerHTML = html;
+            
+            // Show modal
+            bookmarksModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Add click handler for bookmark items
+            bookmarksMenu.querySelectorAll('.bookmark-item').forEach(item => {
+                item.addEventListener('click', async (e) => {
+                    if (!e.target.closest('.remove-bookmark-btn')) {
+                        const sport = item.dataset.sport;
+                        const matchId = item.dataset.matchId;
+                        
+                        // Close modal
+                        bookmarksModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                        
+                        // Switch to the sport if different
+                        if (sport !== window.currentSport) {
+                            console.log(`🔄 Switching to ${sport} to show bookmarked match`);
+                            // Trigger sport change (simulate clicking the sport in dropdown)
+                            const sportItem = document.querySelector(`#sportMenu .dropdown-item[data-sport="${sport}"]`);
+                            if (sportItem) {
+                                sportItem.click();
+                                // Wait for sport to load
+                                setTimeout(() => {
+                                    // Scroll to the match
+                                    const matchRow = document.querySelector(`[data-match-id="${matchId}"]`);
+                                    if (matchRow) {
+                                        matchRow.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                        // Highlight briefly
+                                        matchRow.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                                        setTimeout(() => {
+                                            matchRow.style.backgroundColor = '';
+                                        }, 2000);
+                                    }
+                                }, 1500);
+                            }
+                        } else {
+                            // Same sport, just scroll to match
+                            const matchRow = document.querySelector(`[data-match-id="${matchId}"]`);
+                            if (matchRow) {
+                                matchRow.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                matchRow.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                                setTimeout(() => {
+                                    matchRow.style.backgroundColor = '';
+                                }, 2000);
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // Add click handler for remove buttons
+            bookmarksMenu.querySelectorAll('.remove-bookmark-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const matchId = btn.dataset.matchId;
+                    toggleBookmark(matchId);
+                    // Refresh modal
+                    showBookmarksModal();
+                });
+            });
         }
 
         function setupSportSelector() {
