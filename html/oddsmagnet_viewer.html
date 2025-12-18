@@ -1841,7 +1841,18 @@
             });
             
             // Sort using pre-computed keys - O(n log n)
+            // PRIORITY: Bookmarked matches always appear at the top
             filteredMatches.sort((a, b) => {
+                const matchIdA = getMatchId(a);
+                const matchIdB = getMatchId(b);
+                const isBookmarkedA = bookmarkedMatches.has(matchIdA);
+                const isBookmarkedB = bookmarkedMatches.has(matchIdB);
+                
+                // Bookmarked matches always come first
+                if (isBookmarkedA && !isBookmarkedB) return -1;
+                if (!isBookmarkedA && isBookmarkedB) return 1;
+                
+                // If both bookmarked or both not bookmarked, sort by the selected field
                 const keyA = sortKeys.get(a);
                 const keyB = sortKeys.get(b);
                 
@@ -2278,16 +2289,23 @@
                 sortMatches('odds');
             });
             
-            // NEW: Show bookmarks toggle
+            // NEW: Show bookmarks toggle - clicking enables filter to show only bookmarked matches
             document.getElementById('showBookmarksBtn').addEventListener('click', () => {
-                showOnlyBookmarks = !showOnlyBookmarks;
-                const btn = document.getElementById('showBookmarksBtn');
-                btn.classList.toggle('active', showOnlyBookmarks);
-                
-                // Log state change for debugging
-                console.log(`🔖 Bookmark filter ${showOnlyBookmarks ? 'ENABLED' : 'DISABLED'} - Total bookmarks: ${bookmarkedMatches.size}`);
-                
-                applyFilters();
+                // If bookmarks exist, enable filter (don't toggle off if already on)
+                if (bookmarkedMatches.size > 0) {
+                    showOnlyBookmarks = true;
+                    const btn = document.getElementById('showBookmarksBtn');
+                    btn.classList.add('active');
+                    
+                    // Log state change for debugging
+                    console.log(`🔖 Bookmark filter ENABLED - Showing ${bookmarkedMatches.size} bookmarked matches`);
+                    
+                    applyFilters();
+                } else {
+                    // No bookmarks, show message
+                    console.log('⚠️ No bookmarked matches to show');
+                    alert('No bookmarked matches yet. Click the star icon on any match to bookmark it.');
+                }
             });
             
             // NEW: Event delegation for bookmark buttons and tooltips
@@ -3176,6 +3194,13 @@
             searchQuery = '';
             currentMarket = marketCategories.length > 0 ? marketCategories[0] : '';
             
+            // ALSO clear bookmark filter
+            showOnlyBookmarks = false;
+            const bookmarkBtn = document.getElementById('showBookmarksBtn');
+            if (bookmarkBtn) {
+                bookmarkBtn.classList.remove('active');
+            }
+            
             // Update UI labels
             document.getElementById('leagueLabel').textContent = 'All Leagues';
             document.getElementById('dateLabel').textContent = 'All Dates';
@@ -3244,6 +3269,23 @@
             }
 
             filteredMatches = matches;
+            
+            // PRIORITY: Always show bookmarked matches at the top, even when no sorting is active
+            if (bookmarkedMatches.size > 0 && !showOnlyBookmarks) {
+                filteredMatches.sort((a, b) => {
+                    const matchIdA = getMatchId(a);
+                    const matchIdB = getMatchId(b);
+                    const isBookmarkedA = bookmarkedMatches.has(matchIdA);
+                    const isBookmarkedB = bookmarkedMatches.has(matchIdB);
+                    
+                    // Bookmarked matches always come first
+                    if (isBookmarkedA && !isBookmarkedB) return -1;
+                    if (!isBookmarkedA && isBookmarkedB) return 1;
+                    
+                    // Keep original order for non-bookmarked matches
+                    return 0;
+                });
+            }
 
             // Batch DOM updates with async rendering support
             requestAnimationFrame(async () => {
