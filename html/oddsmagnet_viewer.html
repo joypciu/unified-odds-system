@@ -1768,16 +1768,16 @@
             saveBookmarks();
             updateBookmarkCount();
             
-            // Update UI for this match only - O(1)
-            const matchRow = document.querySelector(`[data-match-id="${matchId}"]`);
-            if (matchRow) {
+            // Update UI for all rows with this match ID (there can be multiple rows per match) - O(k) where k = rows per match
+            const matchRows = document.querySelectorAll(`[data-match-id="${matchId}"]`);
+            matchRows.forEach(matchRow => {
                 const btn = matchRow.querySelector('.bookmark-btn');
                 if (btn) {
                     btn.classList.toggle('bookmarked', bookmarkedMatches.has(matchId));
                     btn.innerHTML = bookmarkedMatches.has(matchId) ? '<i class="fas fa-bookmark"></i>' : '<i class="far fa-bookmark"></i>';
                 }
                 matchRow.classList.toggle('bookmarked-row', bookmarkedMatches.has(matchId));
-            }
+            });
         }
         
         // Update bookmark count display - O(1)
@@ -1786,6 +1786,17 @@
             const countEl = document.getElementById('bookmarkCount');
             if (countEl) {
                 countEl.textContent = count;
+                // Update button title to show more info
+                const btn = document.getElementById('showBookmarksBtn');
+                if (btn) {
+                    if (count === 0) {
+                        btn.title = 'No bookmarked matches';
+                        btn.style.opacity = '0.5';
+                    } else {
+                        btn.title = `Show ${count} bookmarked match${count !== 1 ? 'es' : ''}`;
+                        btn.style.opacity = '1';
+                    }
+                }
             }
         }
         
@@ -2272,6 +2283,10 @@
                 showOnlyBookmarks = !showOnlyBookmarks;
                 const btn = document.getElementById('showBookmarksBtn');
                 btn.classList.toggle('active', showOnlyBookmarks);
+                
+                // Log state change for debugging
+                console.log(`🔖 Bookmark filter ${showOnlyBookmarks ? 'ENABLED' : 'DISABLED'} - Total bookmarks: ${bookmarkedMatches.size}`);
+                
                 applyFilters();
             });
             
@@ -2534,6 +2549,13 @@
                 selectedDate = 'all';
                 searchQuery = '';
                 currentMarket = '';
+                
+                // CRITICAL: Reset bookmark filter to show all matches in new sport
+                showOnlyBookmarks = false;
+                const bookmarkBtn = document.getElementById('showBookmarksBtn');
+                if (bookmarkBtn) {
+                    bookmarkBtn.classList.remove('active');
+                }
                 
                 // CRITICAL: Clear cache and ETag to prevent loading wrong sport data
                 dataCache = null;
@@ -3207,10 +3229,18 @@
             
             // NEW: Filter by bookmarks - O(n) where n = filtered match count
             if (showOnlyBookmarks && bookmarkedMatches.size > 0) {
+                console.log(`🔖 Filtering by bookmarks: ${bookmarkedMatches.size} total bookmarks`);
+                const beforeFilter = matches.length;
                 matches = matches.filter(m => {
                     const matchId = getMatchId(m);
                     return bookmarkedMatches.has(matchId); // O(1) lookup
                 });
+                console.log(`🔖 Bookmark filter: ${beforeFilter} matches → ${matches.length} bookmarked matches`);
+                
+                // If no bookmarked matches found in current sport, show a message
+                if (matches.length === 0) {
+                    console.log('⚠️ No bookmarked matches found in current sport');
+                }
             }
 
             filteredMatches = matches;
@@ -3219,6 +3249,8 @@
             requestAnimationFrame(async () => {
                 document.getElementById('totalMatches').textContent = filteredMatches.length;
                 await renderTable();
+                // Update bookmark count and UI state after rendering
+                updateBookmarkCount();
                 const filterTime = (performance.now() - startTime).toFixed(0);
                 console.log(`Filtered and rendered in ${filterTime}ms`);
             });
@@ -3231,7 +3263,14 @@
 
             if (filteredMatches.length === 0) {
                 tableHead.innerHTML = '';
-                showEmptyState('no-results');
+                // Show appropriate empty state message
+                if (showOnlyBookmarks && bookmarkedMatches.size > 0) {
+                    // User is filtering by bookmarks but no matches in current sport
+                    showEmptyState('no-bookmarks');
+                } else {
+                    // No matches found (generic)
+                    showEmptyState('no-results');
+                }
                 return;
             }
 
@@ -3669,11 +3708,23 @@
         
         function showEmptyState(type) {
             const tableBody = document.getElementById('tableBody');
-            const icon = type === 'error' ? 'fa-exclamation-triangle' : 'fa-search';
-            const title = type === 'error' ? 'Error Loading Data' : 'No Matches Found';
-            const description = type === 'error' ?
-                'There was an error loading the data. Please try again.' :
-                'Try adjusting your filters or search query.';
+            let icon, title, description;
+            
+            if (type === 'error') {
+                icon = 'fa-exclamation-triangle';
+                title = 'Error Loading Data';
+                description = 'There was an error loading the data. Please try again.';
+            } else if (type === 'no-bookmarks') {
+                icon = 'fa-bookmark';
+                title = 'No Bookmarked Matches';
+                description = showOnlyBookmarks ? 
+                    'No bookmarked matches found in the current sport. Try switching sports or disable the bookmark filter.' :
+                    'Click the star icon on matches to bookmark them.';
+            } else {
+                icon = 'fa-search';
+                title = 'No Matches Found';
+                description = 'Try adjusting your filters or search query.';
+            }
 
             tableBody.innerHTML = `
                 <tr>
