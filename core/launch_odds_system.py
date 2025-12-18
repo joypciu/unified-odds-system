@@ -422,6 +422,39 @@ def main():
         print("⚠️  oddsmagnet_tabletennis_realtime.py not found, skipping OddsMagnet Table Tennis")
         print()
     
+    # ============================================================================
+    # ODDSMAGNET TENNIS COLLECTOR
+    # ============================================================================
+    print("=" * 80)
+    print("🎾 Starting OddsMagnet Tennis Real-Time Collector...")
+    print("   - Tracking ALL Tennis tournaments (Grand Slams, ATP, WTA, ITF, etc.)")
+    print("   - Update interval: 30 seconds")
+    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_tennis.json")
+    print()
+    
+    tennis_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_tennis_realtime.py"
+    if tennis_script.exists():
+        try:
+            # Start OddsMagnet Tennis collector in background
+            tennis_process = subprocess.Popen(
+                [sys.executable, str(tennis_script)],
+                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
+            )
+            processes.append(tennis_process)
+            print("✅ OddsMagnet Tennis collector started (PID: {})".format(tennis_process.pid))
+            print()
+            
+            # Give it a moment to initialize
+            time.sleep(3)
+            
+        except Exception as e:
+            print(f"⚠️  Could not start OddsMagnet Tennis collector: {e}")
+            print("   Continuing without OddsMagnet Tennis...")
+            print()
+    else:
+        print("⚠️  oddsmagnet_tennis_realtime.py not found, skipping OddsMagnet Tennis")
+        print()
+    
     # Start the web viewer
     print("🌐 Starting Web Viewer UI...")
     print("   - Real-time monitoring dashboard")
