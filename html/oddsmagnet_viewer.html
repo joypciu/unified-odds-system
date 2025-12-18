@@ -876,6 +876,34 @@
             font-size: 11px;
         }
 
+        /* Remove Bookmark Button */
+        .remove-bookmark-btn {
+            background: #dc2626 !important;
+            border: 1px solid #b91c1c !important;
+            color: white !important;
+            cursor: pointer !important;
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+            border-radius: 4px !important;
+            flex-shrink: 0 !important;
+            min-width: 40px !important;
+            height: 36px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.2s !important;
+        }
+        
+        .remove-bookmark-btn:hover {
+            background: #b91c1c !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4) !important;
+        }
+        
+        .remove-bookmark-btn:active {
+            transform: scale(0.95) !important;
+        }
+
         /* Bookmaker Header */
         .bookmaker-name {
             font-size: 11px;
@@ -2561,8 +2589,8 @@
                     }
                     
                     html += `
-                        <div class="dropdown-item bookmark-item" data-sport="${sport}" data-match-id="${match.matchId}" data-available="${match.isAvailable}" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; opacity: ${match.isAvailable === false ? '0.6' : '1'};">
-                            <div style="flex: 1; min-width: 0;">
+                        <div class="dropdown-item bookmark-item" data-sport="${sport}" data-match-id="${match.matchId}" data-available="${match.isAvailable}" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; opacity: ${match.isAvailable === false ? '0.6' : '1'}; padding: 12px 20px;">
+                            <div style="flex: 1; min-width: 0;" class="bookmark-item-content">
                                 <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px; display: flex; align-items: center; gap: 6px;">
                                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${match.matchName || 'Unknown Match'}</span>
                                     ${statusIcon ? `<span style="font-size: 10px; ${statusColor}" title="${statusText}">${statusIcon}</span>` : ''}
@@ -2570,8 +2598,8 @@
                                 <div style="font-size: 11px; color: var(--text-muted);">${match.league || ''} • ${date}</div>
                                 ${match.isAvailable === false ? '<div style="font-size: 10px; color: var(--red-light); margin-top: 2px;">Match not found in current data</div>' : ''}
                             </div>
-                            <button class="remove-bookmark-btn" data-match-id="${match.matchId}" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 8px 12px; font-size: 16px; transition: all 0.2s; flex-shrink: 0;" title="Delete bookmark" onmouseover="this.style.color='#dc2626'; this.style.transform='scale(1.1)';" onmouseout="this.style.color='#ef4444'; this.style.transform='scale(1)';">
-                                <i class="fas fa-trash-alt"></i>
+                            <button class="remove-bookmark-btn" data-match-id="${match.matchId}" style="background: #dc2626; border: 1px solid #b91c1c; color: white; cursor: pointer !important; padding: 8px 12px; font-size: 14px; border-radius: 4px; flex-shrink: 0; min-width: 40px; height: 36px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Delete bookmark">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     `;
@@ -2588,69 +2616,87 @@
             bookmarksModal.classList.add('active');
             document.body.style.overflow = 'hidden';
             
-            // Add click handler for bookmark items
-            bookmarksMenu.querySelectorAll('.bookmark-item').forEach(item => {
-                item.addEventListener('click', async (e) => {
-                    if (!e.target.closest('.remove-bookmark-btn')) {
-                        const sport = item.dataset.sport;
-                        const matchId = item.dataset.matchId;
-                        const isAvailable = item.dataset.available;
-                        
-                        // Check if match is unavailable
-                        if (isAvailable === 'false') {
-                            alert('This match is not available in the current data. It may have ended or been removed.');
-                            return;
-                        }
-                        
-                        // Close modal
-                        bookmarksModal.classList.remove('active');
-                        document.body.style.overflow = '';
-                        
-                        // Helper function to scroll to match with retries
-                        function scrollToMatch(maxRetries = 10) {
-                            let retries = 0;
-                            const attemptScroll = () => {
-                                const matchRow = document.querySelector(`[data-match-id="${matchId}"]`);
-                                if (matchRow) {
-                                    console.log(`✓ Found match, scrolling to it...`);
+            // Add click handler for bookmark items - only on content area
+            bookmarksMenu.querySelectorAll('.bookmark-item-content').forEach(content => {
+                content.parentElement.style.cursor = 'pointer';
+                content.addEventListener('click', async (e) => {
+                    const item = content.closest('.bookmark-item');
+                    const sport = item.dataset.sport;
+                    const matchId = item.dataset.matchId;
+                    const isAvailable = item.dataset.available;
+                    
+                    // Check if match is unavailable
+                    if (isAvailable === 'false') {
+                        alert('This match is not available in the current data. It may have ended or been removed.');
+                        return;
+                    }
+                    
+                    // Close modal
+                    bookmarksModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    
+                    console.log(`🔖 Navigating to bookmark: ${matchId} in sport: ${sport}`);
+                    
+                    // Helper function to scroll to match with retries
+                    function scrollToMatch(maxRetries = 20, delay = 300) {
+                        let retries = 0;
+                        const attemptScroll = () => {
+                            const matchRows = document.querySelectorAll(`[data-match-id="${matchId}"]`);
+                            if (matchRows.length > 0) {
+                                console.log(`✓ Found match (${matchRows.length} rows), scrolling to it...`);
+                                // Get the first row (it's the one with match info)
+                                const firstRow = matchRows[0];
+                                setTimeout(() => {
+                                    // Scroll the table container
+                                    const tableContainer = document.querySelector('.table-container');
+                                    if (tableContainer) {
+                                        firstRow.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                    }
+                                    // Highlight all rows of this match
+                                    matchRows.forEach(row => {
+                                        row.style.backgroundColor = 'rgba(59, 130, 246, 0.4)';
+                                        row.style.transition = 'background-color 0.3s';
+                                    });
                                     setTimeout(() => {
-                                        matchRow.scrollIntoView({behavior: 'smooth', block: 'center'});
-                                        // Highlight the match
-                                        matchRow.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                                        matchRow.style.transition = 'background-color 0.3s';
-                                        setTimeout(() => {
-                                            matchRow.style.backgroundColor = '';
-                                        }, 2500);
-                                    }, 200);
-                                } else if (retries < maxRetries) {
-                                    retries++;
-                                    console.log(`⏳ Match not found yet, retrying (${retries}/${maxRetries})...`);
-                                    setTimeout(attemptScroll, 500);
-                                } else {
-                                    console.warn('⚠️ Could not find match after', maxRetries, 'attempts');
-                                    alert('Match loaded but could not scroll to it. Try using the search or filters.');
-                                }
-                            };
-                            attemptScroll();
-                        }
-                        
-                        // Switch to the sport if different
-                        if (sport !== window.currentSport) {
-                            console.log(`🔄 Switching to ${sport} to show bookmarked match...`);
-                            // Trigger sport change (simulate clicking the sport in dropdown)
-                            const sportItem = document.querySelector(`#sportMenu .dropdown-item[data-sport="${sport}"]`);
-                            if (sportItem) {
-                                sportItem.click();
-                                // Wait for sport data to load, then scroll
-                                scrollToMatch(15); // More retries for sport switch
+                                        matchRows.forEach(row => {
+                                            row.style.backgroundColor = '';
+                                        });
+                                    }, 3000);
+                                }, 100);
+                            } else if (retries < maxRetries) {
+                                retries++;
+                                console.log(`⏳ Match not rendered yet, retrying (${retries}/${maxRetries})...`);
+                                setTimeout(attemptScroll, delay);
                             } else {
-                                alert(`Could not switch to ${sport}. Please select it manually.`);
+                                console.warn('⚠️ Could not find match after', maxRetries, 'attempts');
+                                alert('Match loaded but could not be found in the table. It may have ended or filters are hiding it.');
                             }
+                        };
+                        attemptScroll();
+                    }
+                    
+                    // Switch to the sport if different
+                    if (sport !== window.currentSport) {
+                        console.log(`🔄 Switching to ${sport} to show bookmarked match...`);
+                        
+                        // Set a flag to trigger scroll after data loads
+                        window.pendingBookmarkScroll = {matchId, sport};
+                        
+                        // Trigger sport change
+                        const sportItem = document.querySelector(`#sportMenu .dropdown-item[data-sport="${sport}"]`);
+                        if (sportItem) {
+                            sportItem.click();
+                            // Start trying to scroll after a short delay
+                            setTimeout(() => {
+                                scrollToMatch(25, 400); // More retries with longer delay for sport switch
+                            }, 500);
                         } else {
-                            // Same sport, just scroll to match
-                            console.log(`📍 Scrolling to match in current sport...`);
-                            scrollToMatch(5);
+                            alert(`Could not switch to ${sport}. Please select it manually.`);
                         }
+                    } else {
+                        // Same sport, just scroll to match immediately
+                        console.log(`📍 Scrolling to match in current sport...`);
+                        scrollToMatch(10, 200);
                     }
                 });
             });
