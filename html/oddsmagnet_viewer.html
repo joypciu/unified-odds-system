@@ -2500,14 +2500,27 @@
             const bookmarksModal = document.getElementById('bookmarksModal');
             const bookmarksMenu = document.getElementById('bookmarksMenu');
             
-            // Group bookmarks by sport
+            // Group bookmarks by sport and validate against current data
             const bookmarksBySport = {};
+            const currentSport = window.currentSport || 'football';
+            
             bookmarkedMatches.forEach((data, matchId) => {
                 const sport = data.sport || 'unknown';
                 if (!bookmarksBySport[sport]) {
                     bookmarksBySport[sport] = [];
                 }
-                bookmarksBySport[sport].push({matchId, ...data});
+                
+                // Check if bookmark is available in current data (only for current sport)
+                let isAvailable = true;
+                if (sport === currentSport && allMatches.length > 0) {
+                    isAvailable = allMatches.some(m => getMatchId(m) === matchId);
+                }
+                
+                bookmarksBySport[sport].push({
+                    matchId, 
+                    ...data,
+                    isAvailable: sport === currentSport ? isAvailable : null // null = not loaded yet
+                });
             });
             
             // Build modal content
@@ -2531,14 +2544,34 @@
                 
                 matches.forEach(match => {
                     const date = match.date ? new Date(match.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : 'TBD';
+                    
+                    // Determine status indicator
+                    let statusIcon = '';
+                    let statusColor = '';
+                    let statusText = '';
+                    
+                    if (match.isAvailable === false) {
+                        statusIcon = '⚠️';
+                        statusColor = 'color: var(--red-light);';
+                        statusText = 'Not Available';
+                    } else if (match.isAvailable === true) {
+                        statusIcon = '✓';
+                        statusColor = 'color: var(--green-light);';
+                        statusText = 'Available';
+                    }
+                    
                     html += `
-                        <div class="dropdown-item bookmark-item" data-sport="${sport}" data-match-id="${match.matchId}" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px;">${match.matchName || 'Unknown Match'}</div>
+                        <div class="dropdown-item bookmark-item" data-sport="${sport}" data-match-id="${match.matchId}" data-available="${match.isAvailable}" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; opacity: ${match.isAvailable === false ? '0.6' : '1'};">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px; display: flex; align-items: center; gap: 6px;">
+                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${match.matchName || 'Unknown Match'}</span>
+                                    ${statusIcon ? `<span style="font-size: 10px; ${statusColor}" title="${statusText}">${statusIcon}</span>` : ''}
+                                </div>
                                 <div style="font-size: 11px; color: var(--text-muted);">${match.league || ''} • ${date}</div>
+                                ${match.isAvailable === false ? '<div style="font-size: 10px; color: var(--red-light); margin-top: 2px;">Match not found in current data</div>' : ''}
                             </div>
-                            <button class="remove-bookmark-btn" data-match-id="${match.matchId}" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px 8px; font-size: 14px;" title="Remove bookmark">
-                                <i class="fas fa-trash"></i>
+                            <button class="remove-bookmark-btn" data-match-id="${match.matchId}" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 8px 12px; font-size: 16px; transition: all 0.2s; flex-shrink: 0;" title="Delete bookmark" onmouseover="this.style.color='#dc2626'; this.style.transform='scale(1.1)';" onmouseout="this.style.color='#ef4444'; this.style.transform='scale(1)';">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     `;
@@ -2561,42 +2594,62 @@
                     if (!e.target.closest('.remove-bookmark-btn')) {
                         const sport = item.dataset.sport;
                         const matchId = item.dataset.matchId;
+                        const isAvailable = item.dataset.available;
+                        
+                        // Check if match is unavailable
+                        if (isAvailable === 'false') {
+                            alert('This match is not available in the current data. It may have ended or been removed.');
+                            return;
+                        }
                         
                         // Close modal
                         bookmarksModal.classList.remove('active');
                         document.body.style.overflow = '';
                         
+                        // Helper function to scroll to match with retries
+                        function scrollToMatch(maxRetries = 10) {
+                            let retries = 0;
+                            const attemptScroll = () => {
+                                const matchRow = document.querySelector(`[data-match-id="${matchId}"]`);
+                                if (matchRow) {
+                                    console.log(`✓ Found match, scrolling to it...`);
+                                    setTimeout(() => {
+                                        matchRow.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                        // Highlight the match
+                                        matchRow.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
+                                        matchRow.style.transition = 'background-color 0.3s';
+                                        setTimeout(() => {
+                                            matchRow.style.backgroundColor = '';
+                                        }, 2500);
+                                    }, 200);
+                                } else if (retries < maxRetries) {
+                                    retries++;
+                                    console.log(`⏳ Match not found yet, retrying (${retries}/${maxRetries})...`);
+                                    setTimeout(attemptScroll, 500);
+                                } else {
+                                    console.warn('⚠️ Could not find match after', maxRetries, 'attempts');
+                                    alert('Match loaded but could not scroll to it. Try using the search or filters.');
+                                }
+                            };
+                            attemptScroll();
+                        }
+                        
                         // Switch to the sport if different
                         if (sport !== window.currentSport) {
-                            console.log(`🔄 Switching to ${sport} to show bookmarked match`);
+                            console.log(`🔄 Switching to ${sport} to show bookmarked match...`);
                             // Trigger sport change (simulate clicking the sport in dropdown)
                             const sportItem = document.querySelector(`#sportMenu .dropdown-item[data-sport="${sport}"]`);
                             if (sportItem) {
                                 sportItem.click();
-                                // Wait for sport to load
-                                setTimeout(() => {
-                                    // Scroll to the match
-                                    const matchRow = document.querySelector(`[data-match-id="${matchId}"]`);
-                                    if (matchRow) {
-                                        matchRow.scrollIntoView({behavior: 'smooth', block: 'center'});
-                                        // Highlight briefly
-                                        matchRow.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
-                                        setTimeout(() => {
-                                            matchRow.style.backgroundColor = '';
-                                        }, 2000);
-                                    }
-                                }, 1500);
+                                // Wait for sport data to load, then scroll
+                                scrollToMatch(15); // More retries for sport switch
+                            } else {
+                                alert(`Could not switch to ${sport}. Please select it manually.`);
                             }
                         } else {
                             // Same sport, just scroll to match
-                            const matchRow = document.querySelector(`[data-match-id="${matchId}"]`);
-                            if (matchRow) {
-                                matchRow.scrollIntoView({behavior: 'smooth', block: 'center'});
-                                matchRow.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
-                                setTimeout(() => {
-                                    matchRow.style.backgroundColor = '';
-                                }, 2000);
-                            }
+                            console.log(`📍 Scrolling to match in current sport...`);
+                            scrollToMatch(5);
                         }
                     }
                 });
