@@ -1,22 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Live odds comparison from top bookmakers - Real-time betting odds tracker">
     <meta name="theme-color" content="#0a0e1a">
-    <title>⚡ OddsMagnet Pro - Live Odds Comparison</title>
+    <title>Live Odds Comparison By U. Joy</title>
     
-    <!-- Preconnect to CDN for faster loading -->
+    <!-- Preconnect to CDN and API for fastest possible connection -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="http://142.44.160.36:8000">
+    <link rel="dns-prefetch" href="http://142.44.160.36:8000">
+    
+    <!-- Preload critical Font Awesome font file for instant icons -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Prefetch likely API endpoint for instant navigation -->
+    <link rel="prefetch" href="/oddsmagnet/api/football/top10">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>">
     
-    <!-- Defer non-critical CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <!-- INSTANT DATA LOADING - Start fetching BEFORE DOM ready -->
+    <script>
+        // Start data fetch immediately with timeout fallback
+        window.earlyDataFetch = (function() {
+            const currentSport = 'football';
+            const sportPath = 'football/top10';
+            const apiEndpoint = window.location.port === '9000' 
+                ? `/om/${sportPath}` 
+                : `/oddsmagnet/api/${sportPath}`;
+            
+            console.log('⚡ EARLY FETCH: Starting data load...');
+            const startTime = performance.now();
+            
+            // Race between fetch and 5-second timeout
+            const fetchPromise = fetch(apiEndpoint, { 
+                cache: 'no-store',
+                priority: 'high'
+            })
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then(data => {
+                const fetchTime = (performance.now() - startTime).toFixed(0);
+                console.log(`⚡ EARLY FETCH: Data ready in ${fetchTime}ms`);
+                return data;
+            })
+            .catch(err => {
+                console.warn('⚠️ Early fetch failed:', err.message);
+                return null; // Return null on error, will trigger normal fetch
+            });
+            
+            return fetchPromise;
+        })();
+    </script>
+    
+    <!-- Inline critical Font Awesome icons (only used ones) -->
+    <style>
+        /* Font Awesome subset - only icons we use */
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 900;
+            font-display: swap;
+            src: url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2) format('woff2');
+        }
+        .fas, .fa-solid {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-style: normal;
+            font-variant: normal;
+            text-rendering: auto;
+            line-height: 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .fa-futbol:before { content: "\f1e3"; }
+        .fa-basketball-ball:before { content: "\f434"; }
+        .fa-football-ball:before { content: "\f44e"; }
+        .fa-baseball-ball:before { content: "\f433"; }
+        .fa-table-tennis:before { content: "\f45d"; }
+        .fa-fist-raised:before { content: "\f6de"; }
+        .fa-volleyball-ball:before { content: "\f45f"; }
+        .fa-filter:before { content: "\f0b0"; }
+        .fa-search:before { content: "\f002"; }
+        .fa-sync:before { content: "\f021"; }
+        .fa-times:before { content: "\f00d"; }
+        .fa-chevron-down:before { content: "\f078"; }
+        .fa-star:before { content: "\f005"; }
+        .fa-arrow-up:before { content: "\f062"; }
+        .fa-arrow-down:before { content: "\f063"; }
+        .fa-check:before { content: "\f00c"; }
+    </style>
     
     <style>
         :root {
@@ -425,6 +502,7 @@
 
         .fade-in {
             animation: fadeIn 0.2s ease-out;
+            will-change: opacity;
         }
 
         /* Table */
@@ -478,13 +556,14 @@
 
         .odds-table tbody tr {
             border-bottom: 1px solid var(--border-color);
-            transition: all 0.2s ease;
+            /* Performance optimization: only render visible rows */
+            content-visibility: auto;
+            contain-intrinsic-size: auto 60px;
+            contain: layout style paint;
         }
 
         .odds-table tbody tr:hover {
             background: rgba(59, 130, 246, 0.12);
-            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
-            transform: translateX(2px);
         }
 
         .odds-table td {
@@ -502,12 +581,10 @@
             background: var(--bg-primary);
             z-index: 5;
             box-shadow: 2px 0 4px rgba(0,0,0,0.2);
-            transition: background 0.2s ease;
         }
 
         .odds-table tbody tr:hover td:first-child {
             background: rgba(59, 130, 246, 0.12);
-            box-shadow: 2px 0 8px rgba(59, 130, 246, 0.3);
         }
 
         /* Match Cell */
@@ -516,6 +593,7 @@
             flex-direction: column;
             gap: 3px;
             min-width: 160px;
+            pointer-events: none;
         }
 
         .match-teams {
@@ -573,22 +651,74 @@
 
         /* Odds Cell */
         .odds-cell {
-            display: inline-flex;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 2px;
             font-weight: 600;
             color: var(--text-primary);
-            transition: all 0.15s ease;
             cursor: pointer;
-            padding: 4px 6px;
+            padding: 6px 8px;
             border-radius: 4px;
-            min-width: 48px;
+            min-width: 60px;
+            position: relative;
         }
 
         .odds-cell:hover {
             background: rgba(59, 130, 246, 0.15);
-            transform: scale(1.05);
+        }
+        
+        .odds-main {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .odds-value {
+            font-size: 15px;
+            font-weight: 700;
+        }
+        
+        .fractional-odds {
+            font-size: 10px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+        
+        .best-badge {
+            color: #fbbf24;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .odds-movement {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+        
+        .odds-movement.up {
+            color: #10b981;
+        }
+        
+        .odds-movement.down {
+            color: #ef4444;
+        }
+        
+        .odds-movement i {
+            font-size: 8px;
+        }
+        
+        .odds-change {
+            font-weight: 600;
         }
 
         .odds-arrow {
@@ -615,8 +745,12 @@
         }
 
         .best-odds {
-            color: var(--green-light);
-            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15) !important;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .best-odds .odds-value {
+            color: #10b981;
         }
 
         /* Bookmaker Header */
@@ -1010,10 +1144,12 @@
 
         .flash-up {
             animation: flashGreen 0.6s ease-out;
+            will-change: background-color;
         }
 
         .flash-down {
             animation: flashRed 0.6s ease-out;
+            will-change: background-color;
         }
 
         /* Date Calendar Picker - Modal Based */
@@ -1047,6 +1183,7 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
             min-width: 320px;
             animation: slideDown 0.2s ease-out;
+            will-change: transform, opacity;
         }
 
         .calendar-header {
@@ -1209,7 +1346,7 @@
         <div class="header-top">
             <div class="logo">
                 <div class="logo-icon">⚡</div>
-                <div>OddsMagnet Pro <span style="font-size: 11px; opacity: 0.7; font-weight: 400;" id="sportLabel">⚽ Football Leagues</span></div>
+                <div style="cursor: pointer;" onclick="window.location.reload();" title="Click to reload page">Live Odds Comparison By U. Joy <span style="font-size: 11px; opacity: 0.7; font-weight: 400;" id="sportLabel">⚽ Football Leagues</span></div>
             </div>
             <div class="header-actions">
                 <div class="search-box">
@@ -1358,6 +1495,31 @@
                     <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
                     Cricket
                 </div>
+                <div class="dropdown-item" data-sport="baseball">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
+                    Baseball
+                </div>
+                <div class="dropdown-item" data-sport="tabletennis">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-table-tennis" style="margin-right: 8px;"></i>
+                    Table Tennis
+                </div>
+                <div class="dropdown-item" data-sport="tennis">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-table-tennis" style="margin-right: 8px;"></i>
+                    Tennis
+                </div>
+                <div class="dropdown-item" data-sport="boxing">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-fist-raised" style="margin-right: 8px;"></i>
+                    Boxing
+                </div>
+                <div class="dropdown-item" data-sport="volleyball">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-volleyball-ball" style="margin-right: 8px;"></i>
+                    Volleyball
+                </div>
             </div>
         </div>
     </div>
@@ -1419,6 +1581,97 @@
         let dataCache = null; // Cache for fetched data
         let lastETag = null; // ETag for conditional requests
         let lastDataTimestamp = null; // Track last data timestamp to detect updates
+        let cachedSport = null; // Track which sport the cached data is for
+        let wsConnection = null; // WebSocket connection
+        let useWebSocket = true; // Flag to enable/disable WebSocket
+        let expectedSport = 'football'; // Track which sport data we're expecting
+        
+        // Clean team names by removing youth team indicators (like backend match_name_cleaner.py)
+        function cleanTeamName(teamName) {
+            if (!teamName || typeof teamName !== 'string') return '';
+            
+            let cleaned = teamName.trim();
+            
+            // Apply patterns similar to backend TEAM_SUFFIXES_TO_REMOVE
+            // Remove U19, U21, U23, etc. in various formats
+            const patterns = [
+                /\s+\(U19\)/gi,     // (U19)
+                /\s+\(U21\)/gi,     // (U21)
+                /\s+\(U23\)/gi,     // (U23)
+                /\s+U19$/gi,        // U19 at end
+                /\s+U21$/gi,        // U21 at end
+                /\s+U23$/gi,        // U23 at end
+            ];
+            
+            // Apply all removal patterns
+            for (const pattern of patterns) {
+                cleaned = cleaned.replace(pattern, '');
+            }
+            
+            return cleaned.trim();
+        }
+        
+        // Sport-specific market categories (predefined from backend collectors)
+        const SPORT_MARKETS = {
+            football: [
+                'popular markets',
+                'over under betting',
+                'handicap betting',
+                'double chance bet',
+                'corner bet',
+                'both teams to score',
+                '1st half markets',
+                '2nd half markets',
+                'correct score betting',
+                'to score odds'
+            ],
+            basketball: [
+                'popular markets',
+                'over under betting',
+                'handicap betting',
+                '1st half markets',
+                'total markets'
+            ],
+            americanfootball: [
+                'popular markets',
+                'over under betting',
+                'handicap betting',
+                '1st half markets',
+                'total markets',
+                'quarter betting'
+            ],
+            cricket: [
+                'popular markets',
+                'match odds',
+                'innings runs',
+                'top batsman',
+                'player performance'
+            ],
+            baseball: [
+                'popular markets',
+                'over under betting',
+                'handicap betting',
+                'innings markets',
+                'total markets',
+                '1st innings markets',
+                'player props',
+                'team totals',
+                'alternative lines'
+            ]
+        };
+        
+        // Sport-specific selection types (what rows to show in odds table)
+        const SPORT_SELECTIONS = {
+            football: ['home', 'draw', 'away'],          // 3-way betting
+            basketball: ['home', 'away'],                 // 2-way betting (no draws)
+            americanfootball: ['home', 'away'],          // 2-way betting (no draws)
+            cricket: ['home', 'draw', 'away'],           // 3-way betting (draw possible in Test cricket)
+            baseball: ['home', 'away'],                   // 2-way betting (no draws in baseball)
+            tabletennis: ['home', 'away'],                // 2-way betting (no draws in table tennis)
+            tennis: ['home', 'away'],                     // 2-way betting (no draws in tennis)
+            boxing: ['home', 'away'],                     // 2-way betting (fighter1 vs fighter2)
+            volleyball: ['home', 'away']                  // 2-way betting (no draws in volleyball)
+        };
         
         // Debounce utility for performance
         function debounce(func, wait) {
@@ -1447,12 +1700,30 @@
             'xb': 'https://ui-avatars.com/api/?name=1X&background=0652DD&color=fff&size=80'
         };
 
-        // Initialize        // Initialize
+        // Initialize - Start ASAP, don't wait for full DOM
         document.addEventListener('DOMContentLoaded', () => {
-            initGlowingCursor();
+            // Critical path - setup UI and load data
             setupEventListeners();
             setupScrollNavigation();
-            loadData();
+            
+            // Load data immediately (will use early fetch if available)
+            loadData().catch(err => console.error('Initial load failed:', err));
+            
+            // Defer non-critical visual effects
+            if (window.requestIdleCallback) {
+                requestIdleCallback(() => {
+                    initGlowingCursor();
+                }, { timeout: 2000 });
+            } else {
+                setTimeout(initGlowingCursor, 2000);
+            }
+            
+            // Heartbeat: Show monitoring status every 60 seconds
+            setInterval(() => {
+                const timestamp = new Date().toLocaleTimeString();
+                const wsStatus = wsConnection && wsConnection.readyState === WebSocket.OPEN ? '🟢 Connected' : '🔴 Disconnected';
+                console.log(`💓 [${timestamp}] Heartbeat - WebSocket: ${wsStatus} | Matches: ${allMatches.length} | Cache: ${dataCache ? 'Valid' : 'Empty'}`);
+            }, 60000); // Every 60 seconds
         });
 
         // Scroll Navigation
@@ -1460,14 +1731,14 @@
             const backToTopBtn = document.getElementById('backToTop');
             const tableContainer = document.querySelector('.table-container');
 
-            // Show/hide back to top button based on scroll position
+            // Show/hide back to top button based on scroll position (passive for better performance)
             tableContainer.addEventListener('scroll', () => {
                 if (tableContainer.scrollTop > 300) {
                     backToTopBtn.classList.add('visible');
                 } else {
                     backToTopBtn.classList.remove('visible');
                 }
-            });
+            }, { passive: true });
 
             // Back to top button click
             backToTopBtn.addEventListener('click', () => {
@@ -1653,13 +1924,25 @@
                     
                     marketModal.classList.remove('active');
                     document.body.style.overflow = '';
-                    renderTable();
+                    renderTable().catch(err => console.error('Render failed:', err));
                 }
             });
         }
 
         function populateMarketMenu() {
             const marketMenu = document.getElementById('marketMenu');
+            const currentSport = window.currentSport || 'football';
+            
+            // Sport-specific icons
+            const sportIcons = {
+                football: 'fa-futbol',
+                basketball: 'fa-basketball-ball',
+                americanfootball: 'fa-football-ball',
+                cricket: 'fa-baseball-ball',
+                baseball: 'fa-baseball-ball'
+            };
+            
+            const sportIcon = sportIcons[currentSport] || 'fa-futbol';
             
             // Add "All Markets" option
             let html = `
@@ -1669,13 +1952,17 @@
                 </div>
             `;
             
-            // Add each market category
+            // Add each dynamically discovered market category
             marketCategories.forEach(market => {
                 const isActive = market === currentMarket;
+                // All markets from API - use chart icon to indicate dynamic discovery
+                const icon = 'fa-chart-bar';
+                
                 html += `
                     <div class="filter-menu-item ${isActive ? 'active' : ''}" data-value="${market}">
-                        <i class="fas fa-chart-bar" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                        <i class="fas ${icon}" style="margin-right: 8px; color: var(--accent-primary);"></i>
                         ${market}
+                        <span style="margin-left: auto; font-size: 11px; color: var(--text-tertiary); opacity: 0.6;">from API</span>
                     </div>
                 `;
             });
@@ -1699,6 +1986,7 @@
             sportBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                
                 if (isLoading) return;
                 
                 sportModal.classList.add('active');
@@ -1740,32 +2028,75 @@
                 item.classList.add('selected');
                 
                 // Update UI immediately for responsive feel
-                if (newSport === 'basketball') {
-                    sportBtnLabel.textContent = 'Basketball';
-                    sportIcon.className = 'fas fa-basketball-ball';
-                    sportLabel.innerHTML = '🏀 Basketball (NBA/NCAA)';
-                } else if (newSport === 'americanfootball') {
-                    sportBtnLabel.textContent = 'American Football';
-                    sportIcon.className = 'fas fa-football-ball';
-                    sportLabel.innerHTML = '🏈 American Football (NFL/NCAA)';
-                } else if (newSport === 'cricket') {
-                    sportBtnLabel.textContent = 'Cricket';
-                    sportIcon.className = 'fas fa-baseball-ball';
-                    sportLabel.innerHTML = '🏏 Cricket (IPL/Ashes/T20)';
-                } else {
-                    sportBtnLabel.textContent = 'Football';
-                    sportIcon.className = 'fas fa-futbol';
-                    sportLabel.innerHTML = '⚽ Football Leagues';
-                }
+                const sportConfig = {
+                    basketball: {
+                        label: 'Basketball',
+                        icon: 'fas fa-basketball-ball',
+                        headerLabel: '🏀 Basketball (NBA/NCAA)'
+                    },
+                    americanfootball: {
+                        label: 'American Football',
+                        icon: 'fas fa-football-ball',
+                        headerLabel: '🏈 American Football (NFL/NCAA)'
+                    },
+                    cricket: {
+                        label: 'Cricket',
+                        icon: 'fas fa-baseball-ball',
+                        headerLabel: '🏏 Cricket (IPL/Ashes/T20)'
+                    },
+                    baseball: {
+                        label: 'Baseball',
+                        icon: 'fas fa-baseball-ball',
+                        headerLabel: '⚾ Baseball (MLB/NPB/KBO)'
+                    },
+                    tabletennis: {
+                        label: 'Table Tennis',
+                        icon: 'fas fa-table-tennis',
+                        headerLabel: '🏓 Table Tennis (Setka Cup/Czech Pro League)'
+                    },
+                    tennis: {
+                        label: 'Tennis',
+                        icon: 'fas fa-table-tennis',
+                        headerLabel: '🎾 Tennis (Grand Slams/ATP/WTA)'
+                    },
+                    boxing: {
+                        label: 'Boxing',
+                        icon: 'fas fa-fist-raised',
+                        headerLabel: '🥊 Boxing (Boxing/MMA/UFC)'
+                    },
+                    volleyball: {
+                        label: 'Volleyball',
+                        icon: 'fas fa-volleyball-ball',
+                        headerLabel: '🏐 Volleyball (International Leagues)'
+                    },
+                    football: {
+                        label: 'Football',
+                        icon: 'fas fa-futbol',
+                        headerLabel: '⚽ Football Leagues'
+                    }
+                };
                 
-                // Update current sport BEFORE loading
+                const config = sportConfig[newSport] || sportConfig.football;
+                sportBtnLabel.textContent = config.label;
+                sportIcon.className = config.icon;
+                sportLabel.innerHTML = config.headerLabel;
+                
+                // Update current sport BEFORE any async operations
+                const previousSport = window.currentSport;
                 window.currentSport = newSport;
+                expectedSport = newSport; // Track expected sport for data validation
                 
                 // Reset filters
                 selectedLeague = 'all';
                 selectedDate = 'all';
                 searchQuery = '';
                 currentMarket = '';
+                
+                // CRITICAL: Clear cache and ETag to prevent loading wrong sport data
+                dataCache = null;
+                cachedSport = null;
+                lastETag = null;
+                lastDataTimestamp = null;
                 
                 // Update filter UI
                 document.getElementById('leagueLabel').textContent = 'All Leagues';
@@ -1774,16 +2105,50 @@
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.value = '';
                 
-                // Close modal
+                // Close modal immediately
                 sportModal.classList.remove('active');
                 document.body.style.overflow = '';
                 
-                // Show loading status but don't clear table - keep showing previous sport's data
+                // Show loading state
                 updateStatus('Loading...');
                 
-                // Load new sport data (this will replace allMatches when successful)
-                // Don't clear data until new data is loaded to prevent error state flash
-                await loadData(true);
+                // Clear current data to show loading state
+                allMatches = [];
+                filteredMatches = [];
+                const tableBody = document.getElementById('tableBody');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 40px; color: var(--text-secondary);">Loading ' + newSport + ' data...</td></tr>';
+                }
+                
+                // If WebSocket is active, send subscription change AND set HTTP fallback timer
+                if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+                    console.log('📡 Sending WebSocket sport subscription:', newSport);
+                    wsConnection.send(JSON.stringify({
+                        action: 'subscribe',
+                        sport: newSport
+                    }));
+                    // Set timeout to load via HTTP if WebSocket doesn't deliver within 2 seconds
+                    setTimeout(() => {
+                        if (expectedSport === newSport && allMatches.length === 0) {
+                            console.log('⚠️ WebSocket data not received, loading via HTTP');
+                            loadData(true).catch(err => console.error('HTTP fallback failed:', err));
+                        }
+                    }, 2000);
+                } else {
+                    // No WebSocket - load via HTTP immediately
+                    console.log('📥 Loading sport data via HTTP:', newSport);
+                    loadData(true).catch(err => {
+                        console.error('Sport switch failed:', err);
+                        // Revert on error
+                        window.currentSport = previousSport;
+                        expectedSport = previousSport;
+                        const prevConfig = sportConfig[previousSport];
+                        sportBtnLabel.textContent = prevConfig.label;
+                        sportIcon.className = prevConfig.icon;
+                        sportLabel.innerHTML = prevConfig.headerLabel;
+                        updateStatus('Error');
+                    });
+                }
             });
         }
 
@@ -1997,50 +2362,31 @@
         async function processDataProgressively() {
             console.log('📊 Processing data progressively...');
             
-            // Phase 1: Extract bookmakers and categories (fast)
+            // Batch ALL data extraction and DOM updates for maximum performance
+            // Phase 1: Extract bookmakers and categories (CPU work, no DOM)
             console.log('  ↳ Extracting bookmakers and market categories...');
             extractBookmakers();
             extractMarketCategories();
             console.log(`  ✓ Found ${bookmakers.length} bookmakers, ${marketCategories.length} markets`);
             
-            // Phase 2: Build dropdowns (fast)
-            console.log('  ↳ Building UI dropdowns...');
-            populateLeagueDropdown();
-            populateMarketTabs();
-            console.log('  ✓ UI components ready');
-            
-            // Phase 3: Apply filters and render (can be slower with large data)
-            console.log('  ↳ Rendering table...');
-            // Use requestAnimationFrame for smooth rendering
+            // Phase 2 & 3: Build UI and render in single animation frame (batch DOM updates)
+            console.log('  ↳ Building UI and rendering table...');
             await new Promise(resolve => {
                 requestAnimationFrame(() => {
+                    // Build dropdowns
+                    populateLeagueDropdown();
+                    populateMarketTabs();
+                    populateMarketMenu();
+                    
+                    // Render table
                     applyFilters();
-                    console.log('  ✓ Initial render complete');
-                    // Update status after rendering completes
+                    
+                    console.log('  ✓ UI and render complete');
                     updateStatus('Live');
                     resolve();
                 });
             });
             console.log('  ✓ Data processing complete');
-        }
-
-        function populateLeagueDropdown() {
-            const leagueSet = new Set();
-            for (const match of allMatches) {
-                if (match.league) leagueSet.add(match.league);
-            }
-            
-            const leagues = Array.from(leagueSet).sort();
-            const menu = document.getElementById('leagueMenu');
-
-            // Build HTML more efficiently
-            const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>'];
-            for (const league of leagues) {
-                items.push(`<div class="dropdown-item" data-value="${league}"><i class="fas fa-check"></i>${league}</div>`);
-            }
-            
-            menu.innerHTML = items.join('');
-            document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
         // Load Data with progressive rendering - show data immediately as it arrives
@@ -2052,24 +2398,74 @@
             
             // SHOW SKELETON ONLY on very first load (no cache at all)
             // Don't show skeleton when switching sports or force refreshing
-            if (!dataCache && !forceRefresh && allMatches.length === 0) {
+            // ALWAYS show skeleton immediately for user feedback
+            if (!dataCache || allMatches.length === 0) {
                 showSkeletonLoader();
             }
             
             const startTime = performance.now();
 
             try {
+                // Check if we have early fetch promise (from <head>)
+                if (window.earlyDataFetch && !dataCache && !forceRefresh) {
+                    console.log('⚡ FAST PATH: Waiting for early fetched data...');
+                    
+                    try {
+                        const data = await Promise.race([
+                            window.earlyDataFetch,
+                            new Promise((_, reject) => 
+                                setTimeout(() => reject(new Error('Early fetch timeout')), 25000)
+                            )
+                        ]);
+                        
+                        window.earlyDataFetch = null; // Use only once
+                        
+                        if (data && data.matches) {
+                            // Clean team names by removing youth team indicators (U19, U21, etc.)
+                            allMatches = data.matches.map(match => ({
+                                ...match,
+                                home_team: cleanTeamName(match.home_team),
+                                away_team: cleanTeamName(match.away_team)
+                            }));
+                            
+                            dataCache = allMatches;
+                            cachedSport = 'football'; // Early fetch is always football
+                            lastDataTimestamp = data.timestamp;
+                            lastETag = data.etag || null;
+                            
+                            console.log(`⚡ FAST PATH: ${allMatches.length} matches loaded via early fetch`);
+                            
+                            updateStatus('Rendering...');
+                            await processDataProgressively();
+                            
+                            const loadTime = (performance.now() - startTime).toFixed(0);
+                            console.log(`✓ FAST PATH Complete! Rendered in ${loadTime}ms`);
+                            updateStatus('Live');
+                            return; // Early exit
+                        }
+                    } catch (earlyFetchError) {
+                        console.warn('⚠️ Early fetch timeout/failed, using normal fetch:', earlyFetchError.message);
+                        window.earlyDataFetch = null;
+                    }
+                }
+                
+                // Normal fetch path (sport switching or early fetch failed)
                 // Get current sport (default: football)
                 const currentSport = window.currentSport || 'football';
                 // Build sport path based on current sport
                 const sportPath = currentSport === 'basketball' ? 'basketball' 
                                 : currentSport === 'americanfootball' ? 'americanfootball'
                                 : currentSport === 'cricket' ? 'cricket'
+                                : currentSport === 'baseball' ? 'baseball'
+                                : currentSport === 'tabletennis' ? 'tabletennis'
+                                : currentSport === 'tennis' ? 'tennis'
+                                : currentSport === 'boxing' ? 'boxing'
+                                : currentSport === 'volleyball' ? 'volleyball'
                                 : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport
-                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket
-                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket
+                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket or /om/baseball or /om/tabletennis
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket or /oddsmagnet/api/baseball or /oddsmagnet/api/tabletennis
                 const apiEndpoint = window.location.port === '9000' 
                     ? `/om/${sportPath}` 
                     : `/oddsmagnet/api/${sportPath}`;
@@ -2081,7 +2477,10 @@
                     headers['If-None-Match'] = lastETag;
                 }
                 
-                const response = await fetch(apiEndpoint, { 
+                // Add cache-busting timestamp to prevent ANY caching
+                const cacheBuster = forceRefresh ? `?t=${Date.now()}` : '';
+                
+                const response = await fetch(apiEndpoint + cacheBuster, { 
                     headers,
                     cache: 'no-store'  // Disable browser HTTP cache, rely on ETag only
                 });
@@ -2092,12 +2491,19 @@
                     console.log('⏸️  304 Not Modified - server confirmed data unchanged');
                     console.log(`   ETag: ${lastETag}`);
                     
-                    // Use cached data
-                    allMatches = dataCache;
-                    await processDataProgressively();
-                    const loadTime = (performance.now() - startTime).toFixed(0);
-                    console.log(`✓ Loaded from cache (validated) in ${loadTime}ms - ${allMatches.length} matches`);
-                    updateStatus('Live');
+                    // CRITICAL: Verify cached data is for the CURRENT sport
+                    if (cachedSport === currentSport && dataCache) {
+                        // Use cached data (same sport)
+                        allMatches = dataCache;
+                        await processDataProgressively();
+                        const loadTime = (performance.now() - startTime).toFixed(0);
+                        console.log(`✓ Loaded from cache (validated) in ${loadTime}ms - ${allMatches.length} matches`);
+                        updateStatus('Live');
+                    } else {
+                        // Cache is for wrong sport - force fresh fetch
+                        console.warn('⚠️ Cache sport mismatch, forcing fresh fetch');
+                        return loadData(true); // Recursive call with force refresh
+                    }
                 } else if (response.ok) {
                     console.log('⬇ Fetching fresh data from API...');
                     const data = await response.json();
@@ -2124,8 +2530,15 @@
                     }
                     lastDataTimestamp = currentTimestamp;
                     
-                    allMatches = data.matches || [];
+                    // Clean team names by removing youth team indicators (U19, U21, etc.)
+                    allMatches = (data.matches || []).map(match => ({
+                        ...match,
+                        home_team: cleanTeamName(match.home_team),
+                        away_team: cleanTeamName(match.away_team)
+                    }));
+                    
                     dataCache = allMatches; // Cache the data
+                    cachedSport = currentSport; // Track which sport this cache is for
                     lastETag = newETag; // Store new ETag
                     
                     console.log(`✓ Downloaded ${allMatches.length} matches - starting progressive render...`);
@@ -2191,7 +2604,11 @@
 
         function extractMarketCategories() {
             const categoriesSet = new Set();
+            
+            // Get current sport
+            const currentSport = window.currentSport || 'football';
 
+            // PRIORITY 1: Extract from actual data (dynamic discovery from API)
             for (const match of allMatches) {
                 if (match.markets) {
                     for (const category of Object.keys(match.markets)) {
@@ -2199,15 +2616,28 @@
                     }
                 }
             }
+            
+            // PRIORITY 2: If no data yet, use predefined fallback
+            if (categoriesSet.size === 0) {
+                const predefinedMarkets = SPORT_MARKETS[currentSport] || SPORT_MARKETS.football;
+                predefinedMarkets.forEach(market => categoriesSet.add(market));
+            }
 
-            marketCategories = Array.from(categoriesSet).sort();
+            // Sort markets alphabetically (or keep API order if preferred)
+            marketCategories = Array.from(categoriesSet).sort((a, b) => {
+                // Prioritize "popular markets" to always be first
+                if (a.toLowerCase().includes('popular')) return -1;
+                if (b.toLowerCase().includes('popular')) return 1;
+                // Alphabetical for the rest
+                return a.localeCompare(b);
+            });
 
             // Set default market to first category, or keep current if it exists in new categories
             if (marketCategories.length > 0) {
                 // If current market doesn't exist in new categories, reset to first
                 if (!currentMarket || !marketCategories.includes(currentMarket)) {
                     currentMarket = marketCategories[0];
-                    console.log(`  ✓ Market set to: ${currentMarket}`);
+                    console.log(`  ✓ Market set to: ${currentMarket} (discovered from data)`);
                 }
             } else {
                 currentMarket = '';
@@ -2217,16 +2647,22 @@
         }
 
         function populateLeagueDropdown() {
-            const leagues = [...new Set(allMatches.map(m => m.league))].sort();
+            const leagueSet = new Set();
+            for (const match of allMatches) {
+                if (match.league) leagueSet.add(match.league);
+            }
+            
+            const leagues = Array.from(leagueSet).sort();
             const menu = document.getElementById('leagueMenu');
-
-            menu.innerHTML = `
-                <div class="dropdown-item selected" data-value="all">All Leagues</div>
-                ${leagues.map(league =>
-                `<div class="dropdown-item" data-value="${league}">${league}</div>`
-            ).join('')}
-            `;
-
+            
+            // Build HTML efficiently with checkmark icons
+            const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Leagues</div>'];
+            for (const league of leagues) {
+                items.push(`<div class="dropdown-item" data-value="${league}"><i class="fas fa-check"></i>${league}</div>`);
+            }
+            
+            menu.innerHTML = items.join('');
+            
             // Add click handlers for league items
             menu.querySelectorAll('.dropdown-item').forEach(item => {
                 item.addEventListener('click', (e) => {
@@ -2235,10 +2671,16 @@
                     selectedLeague = value;
                     document.getElementById('leagueLabel').textContent = value === 'all' ? 'All Leagues' : value;
                     menu.classList.remove('active');
+                    
+                    // Update selected state
+                    menu.querySelectorAll('.dropdown-item').forEach(menuItem => {
+                        menuItem.classList.toggle('selected', menuItem.dataset.value === value);
+                    });
+                    
                     applyFilters();
                 });
             });
-
+            
             document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
@@ -2288,11 +2730,11 @@
             console.log('All filters cleared - showing all data');
         }
 
-        const applyFilters = debounce(function() {
+        let applyFilters = debounce(function() {
             const startTime = performance.now();
-            
+
             let matches = allMatches;
-            
+
             // Apply filters with early returns for better performance
             if (selectedLeague !== 'all') {
                 matches = matches.filter(m => m.league === selectedLeague);
@@ -2312,7 +2754,7 @@
                     const league = m.league?.toLowerCase();
                     const homeTeam = m.home_team?.toLowerCase();
                     const awayTeam = m.away_team?.toLowerCase();
-                    
+
                     return matchName?.includes(query) ||
                            league?.includes(query) ||
                            homeTeam?.includes(query) ||
@@ -2329,7 +2771,7 @@
                 const filterTime = (performance.now() - startTime).toFixed(0);
                 console.log(`Filtered and rendered in ${filterTime}ms`);
             });
-        }, 150);
+        }, 100); // Reduced from 150ms to 100ms for faster response
 
         // Progressive table rendering - show first batch immediately, rest in background
         async function renderTable() {
@@ -2344,38 +2786,36 @@
 
             // Check if bookmakers are available
             if (bookmakers.length === 0) {
-                console.error('  ❌ No bookmakers found in data! Cannot render table.');
-                tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 20px; color: var(--text-secondary);">No bookmaker data available. Data may still be loading...</th></tr>';
+                // Show informative message and clear skeleton flag
+                tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 20px; color: var(--text-secondary);">⚠️ No bookmaker data available. Try refreshing.</th></tr>';
+                tableHead.dataset.skeleton = 'false';
+                tableHead.dataset.rendered = 'false';
+                tableHead.dataset.bookmakerCount = '0';
                 tableBody.innerHTML = '';
-                return;  // Stop rendering if no bookmakers
+                return;
             }
             
-            // ALWAYS render header if bookmakers changed or not yet rendered
-            if (tableHead.dataset.bookmakerCount !== String(bookmakers.length)) {
-                console.log(`  ↳ Building table header for ${bookmakers.length} bookmakers...`);
-                const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
-                
-                for (const bm of bookmakers) {
-                    const logo = bookmakerLogos[bm.code] || `https://ui-avatars.com/api/?name=${encodeURIComponent(bm.name)}&size=80`;
-                    headerCells.push(`
-                        <th>
-                            <div class="bookmaker-header">
-                                <img src="${logo}" alt="${bm.name}" class="bookmaker-logo" loading="lazy" />
-                                <div class="bookmaker-name">${bm.name}</div>
-                            </div>
-                        </th>
-                    `);
-                }
-                
-                tableHead.innerHTML = `<tr>${headerCells.join('')}</tr>`;
-                tableHead.dataset.rendered = 'true';
-                tableHead.dataset.bookmakerCount = bookmakers.length;
-                console.log('  ✓ Table header rendered');
+            const headerCells = ['<th>Match</th>', '<th style="width: 120px;">Team</th>', '<th style="width: 80px;">Type</th>'];
+            
+            for (const bm of bookmakers) {
+                headerCells.push(`
+                    <th>
+                        <div class="bookmaker-header">
+                            <div class="bookmaker-name">${bm.name}</div>
+                        </div>
+                    </th>
+                `);
             }
+            
+            const newHTML = `<tr>${headerCells.join('')}</tr>`;
+            tableHead.innerHTML = newHTML;
+            tableHead.dataset.skeleton = 'false';
+            tableHead.dataset.rendered = 'true';
+            tableHead.dataset.bookmakerCount = bookmakers.length;
 
             // OPTIMIZED PROGRESSIVE RENDERING
-            const FIRST_BATCH = 10;  // Show first 10 matches immediately (visible viewport)
-            const BATCH_SIZE = 30;    // Then render 30 at a time
+            const FIRST_BATCH = 5;   // Show first 5 matches immediately for faster FCP
+            const BATCH_SIZE = 20;   // Then render 20 at a time for better performance
             const totalMatches = filteredMatches.length;
             
             // Clear table body
@@ -2417,6 +2857,105 @@
             }
         }
 
+        // Get type label dynamically from actual data
+        function getTypeLabel(sport, market, selection, odd, match) {
+            if (!odd || !odd.selection) {
+                // Fallback when no odd data available
+                if (selection === 'draw') return 'DRAW';
+                if (selection === 'home') return 'HOME';
+                if (selection === 'away') return 'AWAY';
+                return selection?.toUpperCase() || '';
+            }
+            
+            const marketLower = (market || '').toLowerCase();
+            const selectionText = odd.selection.toLowerCase();
+            const homeTeam = (match.home_team || '').toLowerCase();
+            const awayTeam = (match.away_team || '').toLowerCase();
+            
+            // Check if selection is a team name (moneyline/winner)
+            const isHomeTeam = homeTeam && selectionText.includes(homeTeam);
+            const isAwayTeam = awayTeam && selectionText.includes(awayTeam);
+            const isTeamSelection = isHomeTeam || isAwayTeam;
+            
+            // Extract numeric values from selection (handicap/totals)
+            const numericMatch = odd.selection.match(/([-+]?\d+\.?\d*)/);
+            
+            // Pattern 1: Over/Under totals (O 230.5, U 230.5)
+            if (selectionText.includes('over') || selectionText.includes('under')) {
+                if (numericMatch) {
+                    const prefix = selectionText.includes('over') ? 'O' : 'U';
+                    return `${prefix} ${numericMatch[1]}`;
+                }
+                return selectionText.includes('over') ? 'Over' : 'Under';
+            }
+            
+            // Pattern 2: Handicap/Spread with value (-5.5, +5.5)
+            if (numericMatch && !isTeamSelection) {
+                const value = numericMatch[1];
+                // If it's a handicap value (starts with + or -)
+                if (value.startsWith('+') || value.startsWith('-')) {
+                    return value;
+                }
+                // If market indicates it's a handicap
+                if (marketLower.includes('handicap') || marketLower.includes('spread') || marketLower.includes('line')) {
+                    return value;
+                }
+            }
+            
+            // Pattern 3: Draw option
+            if (selectionText === 'draw' || selectionText === 'tie') {
+                return 'DRAW';
+            }
+            
+            // Pattern 4: Team-based moneyline (extract from market context)
+            if (isTeamSelection) {
+                // Check if it's a special market (half, quarter, period, set, inning, etc.)
+                const periodMatch = marketLower.match(/(\d+)(st|nd|rd|th)?\s*(half|quarter|period|set|inning|frame)/);
+                if (periodMatch) {
+                    const num = periodMatch[1];
+                    const type = periodMatch[3];
+                    const abbrev = {
+                        'half': 'H',
+                        'quarter': 'Q',
+                        'period': 'P',
+                        'set': 'S',
+                        'inning': 'I',
+                        'frame': 'F'
+                    }[type] || type.charAt(0).toUpperCase();
+                    return `${num}${abbrev}`;
+                }
+                
+                // Default moneyline indicator
+                return isHomeTeam ? 'HOME' : 'AWAY';
+            }
+            
+            // Pattern 5: Extract meaningful text from selection
+            // Clean up the selection text to get the core meaning
+            const cleanSelection = odd.selection
+                .replace(homeTeam, '')
+                .replace(awayTeam, '')
+                .replace(/[+-]\d+\.?\d*/g, '')
+                .trim();
+            
+            if (cleanSelection) {
+                // Abbreviate common terms
+                const abbrev = cleanSelection
+                    .replace(/over/i, 'O')
+                    .replace(/under/i, 'U')
+                    .replace(/yes/i, 'Y')
+                    .replace(/no/i, 'N')
+                    .replace(/even/i, 'E')
+                    .replace(/odd/i, 'O')
+                    .trim()
+                    .slice(0, 8); // Max 8 characters
+                    
+                if (abbrev) return abbrev.toUpperCase();
+            }
+            
+            // Final fallback: use selection position
+            return selection === 'home' ? 'HOME' : selection === 'away' ? 'AWAY' : 'WIN';
+        }
+
         function renderMatchRow(match) {
             const teams = match.match_name || 'Unknown Match';
             const matchDate = match.match_date ? new Date(match.match_date) : null;
@@ -2430,22 +2969,40 @@
 
             // Get odds map by selection (home/draw/away) for current market
             const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
+            
+            // Get sport-specific selections (2-way or 3-way betting)
+            const currentSport = window.currentSport || 'football';
+            const sportSelections = SPORT_SELECTIONS[currentSport] || SPORT_SELECTIONS.football;
+            const hasDraws = sportSelections.includes('draw');
+            const rowCount = sportSelections.length;
 
             // Pre-build odds cells for better performance
             const homeCells = [];
             const drawCells = [];
             const awayCells = [];
             
+            // Get first odd from each selection to determine type labels
+            const sampleHomeOdd = homeOdds.values().next().value;
+            const sampleDrawOdd = drawOdds.values().next().value;
+            const sampleAwayOdd = awayOdds.values().next().value;
+            
+            // Get dynamic type labels based on sport and market
+            const homeTypeLabel = getTypeLabel(currentSport, currentMarket, 'home', sampleHomeOdd, match);
+            const drawTypeLabel = getTypeLabel(currentSport, currentMarket, 'draw', sampleDrawOdd, match);
+            const awayTypeLabel = getTypeLabel(currentSport, currentMarket, 'away', sampleAwayOdd, match);
+            
             for (const bm of bookmakers) {
                 homeCells.push(renderOddsCell(homeOdds.get(bm.code), match.match_name, bm.code, 'home'));
-                drawCells.push(renderOddsCell(drawOdds.get(bm.code), match.match_name, bm.code, 'draw'));
+                if (hasDraws) {
+                    drawCells.push(renderOddsCell(drawOdds.get(bm.code), match.match_name, bm.code, 'draw'));
+                }
                 awayCells.push(renderOddsCell(awayOdds.get(bm.code), match.match_name, bm.code, 'away'));
             }
 
-            // Create 3 rows: one for home, one for draw, one for away
-            return `
+            // Create rows dynamically based on sport (2-way or 3-way)
+            let rows = `
                 <tr style="border-top: 2px solid var(--border-color);">
-                    <td rowspan="3">
+                    <td rowspan="${rowCount}">
                         <div class="match-info">
                             <div class="match-teams">${teams}</div>
                             <div class="match-time">${timeStr}</div>
@@ -2456,29 +3013,38 @@
                         <span class="selection-team">${homeTeam}</span>
                     </td>
                     <td>
-                        <span class="selection-type home">HOME</span>
+                        <span class="selection-type home">${homeTypeLabel}</span>
                     </td>
                     ${homeCells.join('')}
-                </tr>
+                </tr>`;
+            
+            // Add draw row only if sport supports draws
+            if (hasDraws) {
+                rows += `
                 <tr>
                     <td>
                         <span class="selection-team" style="opacity: 0.3;">—</span>
                     </td>
                     <td>
-                        <span class="selection-type draw">DRAW</span>
+                        <span class="selection-type draw">${drawTypeLabel}</span>
                     </td>
                     ${drawCells.join('')}
-                </tr>
+                </tr>`;
+            }
+            
+            // Add away row
+            rows += `
                 <tr>
                     <td>
                         <span class="selection-team">${awayTeam}</span>
                     </td>
                     <td>
-                        <span class="selection-type away">AWAY</span>
+                        <span class="selection-type away">${awayTypeLabel}</span>
                     </td>
                     ${awayCells.join('')}
-                </tr>
-            `;
+                </tr>`;
+            
+            return rows;
         }
 
         function getMatchOddsBySelection(match) {
@@ -2534,16 +3100,29 @@
 
             const oddKey = `${matchName}-${bookmakerCode}-${selection}`;
             const prevOdd = previousOdds.get(oddKey);
-            let arrowHtml = '';
+            let movementHtml = '';
             let cellExtraClass = '';
 
-            if (prevOdd !== undefined && prevOdd !== odd.decimal_odds) {
-                const isUp = odd.decimal_odds > prevOdd;
-                arrowHtml = `<i class="fas fa-arrow-${isUp ? 'up' : 'down'} odds-arrow ${isUp ? 'up' : 'down'}"></i>`;
+            // Check for odds movement from API data first, then compare with previous
+            if (odd.odds_movement && odd.odds_movement !== 'none') {
+                const isUp = odd.odds_movement === 'up';
+                const change = odd.odds_change ? Math.abs(odd.odds_change).toFixed(2) : '';
+                movementHtml = `
+                    <div class="odds-movement ${isUp ? 'up' : 'down'}">
+                        <i class="fas fa-arrow-${isUp ? 'up' : 'down'}"></i>
+                        ${change ? `<span class="odds-change">${change}</span>` : ''}
+                    </div>`;
                 cellExtraClass = isUp ? 'flash-up' : 'flash-down';
-                
-                // Debug log for arrow display
-                console.log(`Odd changed: ${oddKey} - ${prevOdd} → ${odd.decimal_odds} (${isUp ? 'UP' : 'DOWN'})`);
+            } else if (prevOdd !== undefined && prevOdd !== odd.decimal_odds) {
+                // Fallback to comparing with our previous stored value
+                const isUp = odd.decimal_odds > prevOdd;
+                const change = Math.abs(odd.decimal_odds - prevOdd).toFixed(2);
+                movementHtml = `
+                    <div class="odds-movement ${isUp ? 'up' : 'down'}">
+                        <i class="fas fa-arrow-${isUp ? 'up' : 'down'}"></i>
+                        <span class="odds-change">${change}</span>
+                    </div>`;
+                cellExtraClass = isUp ? 'flash-up' : 'flash-down';
             }
 
             previousOdds.set(oddKey, odd.decimal_odds);
@@ -2554,12 +3133,21 @@
             
             // Get clickout URL
             const clickoutUrl = odd.clickout_url || '#';
-            const clickHandler = clickoutUrl !== '#' ? `onclick="window.open('${clickoutUrl}', '_blank')"` : '';
+            const clickHandler = clickoutUrl !== '#' ? `onclick="window.open('${clickoutUrl}', '_blank'); event.stopPropagation();" style="cursor: pointer;"` : '';
+            
+            // Format fractional odds if available
+            const fractionalOdds = odd.fractional_odds || '';
+            const fractionalHtml = fractionalOdds ? `<div class="fractional-odds">${fractionalOdds}</div>` : '';
 
             return `
                 <td>
                     <div class="odds-cell ${cellClass} ${cellExtraClass}" ${clickHandler}>
-                        <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>${arrowHtml}
+                        <div class="odds-main">
+                            <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>
+                            ${isBest ? '<span class="best-badge">★</span>' : ''}
+                        </div>
+                        ${fractionalHtml}
+                        ${movementHtml}
                     </div>
                 </td>
             `;
@@ -2570,8 +3158,11 @@
             const tableHead = document.getElementById('tableHead');
             const tableBody = document.getElementById('tableBody');
             
-            // Show minimal header
-            tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 12px;">Loading data...</th></tr>';
+            // Show minimal header - make sure it's cleared later
+            tableHead.innerHTML = '<tr><th colspan="100%" style="text-align: center; padding: 12px; color: var(--text-muted);">⏳ Loading live odds...</th></tr>';
+            tableHead.dataset.skeleton = 'true';
+            tableHead.dataset.rendered = 'false';
+            tableHead.dataset.bookmakerCount = '0';
             
             // Show skeleton rows
             const skeletonRows = [];
@@ -2632,9 +3223,199 @@
             };
         }
 
-        // Auto-refresh every 30 seconds
+        // Performance optimizations
+        // 1. Virtual scrolling disabled - was causing data to disappear on scroll
+        function implementVirtualScrolling() {
+            // Disabled to prevent data disappearing
+            return;
+        }
+
+        // 2. Optimize CSS for better performance
+        function optimizeCSS() {
+            // DISABLED: will-change causes "memory consumption too high" errors
+            // Browser handles animations efficiently without explicit hints
+            // Only use will-change on specific user interactions, not bulk elements
+            return;
+        }
+
+        // 3. Implement Web Workers for heavy computations
+        function implementWebWorkers() {
+            // Create a worker for filtering operations
+            const filterWorker = new Worker(URL.createObjectURL(new Blob([`
+                self.onmessage = function(e) {
+                    const { matches, selectedLeague, selectedDate, searchQuery } = e.data;
+                    let filtered = matches;
+
+                    if (selectedLeague !== 'all') {
+                        filtered = filtered.filter(m => m.league === selectedLeague);
+                    }
+
+                    if (selectedDate !== 'all') {
+                        filtered = filtered.filter(m => {
+                            if (!m.match_date) return false;
+                            return new Date(m.match_date).toDateString() === selectedDate;
+                        });
+                    }
+
+                    if (searchQuery) {
+                        const query = searchQuery.toLowerCase();
+                        filtered = filtered.filter(m => {
+                            const matchName = m.match_name?.toLowerCase();
+                            const league = m.league?.toLowerCase();
+                            const homeTeam = m.home_team?.toLowerCase();
+                            const awayTeam = m.away_team?.toLowerCase();
+
+                            return matchName?.includes(query) ||
+                                   league?.includes(query) ||
+                                   homeTeam?.includes(query) ||
+                                   awayTeam?.includes(query);
+                        });
+                    }
+
+                    self.postMessage(filtered);
+                };
+            `], { type: 'application/javascript' })));
+
+            filterWorker.onmessage = async function(e) {
+                filteredMatches = e.data;
+                document.getElementById('totalMatches').textContent = filteredMatches.length;
+                try {
+                    await renderTable();
+                } catch (err) {
+                    console.error('Render failed:', err);
+                }
+            };
+
+            // Override applyFilters to use Web Worker for better performance
+            const originalApplyFilters = applyFilters;
+            applyFilters = debounce(function() {
+                if (allMatches.length > 100) { // Use Web Worker for large datasets
+                    filterWorker.postMessage({
+                        matches: allMatches,
+                        selectedLeague,
+                        selectedDate,
+                        searchQuery
+                    });
+                } else {
+                    originalApplyFilters();
+                }
+            }, 100); // Reduced from 150ms to 100ms for faster filtering
+        }
+
+        // Initialize performance optimizations - Start immediately, don't block
+        document.addEventListener('DOMContentLoaded', () => {
+            // Register Service Worker immediately but asynchronously (non-blocking)
+            if ('serviceWorker' in navigator) {
+                // Don't await - let it register in background
+                navigator.serviceWorker.register('/html/sw.js')
+                    .then(reg => console.log('✅ Service Worker registered'))
+                    .catch(err => console.log('❌ Service Worker registration failed:', err));
+            }
+
+            // Initialize WebSocket immediately (non-blocking)
+            // Will connect in background while UI renders
+            setTimeout(() => initWebSocket(), 0);
+
+            // Web Workers - start immediately for filtering
+            implementWebWorkers();
+            
+            // CSS optimizations - defer slightly to not block initial render
+            if (window.requestIdleCallback) {
+                requestIdleCallback(optimizeCSS, { timeout: 500 });
+            } else {
+                setTimeout(optimizeCSS, 500);
+            }
+        });
+
+        // WebSocket initialization with fallback to HTTP polling
+        function initWebSocket() {
+            if (!useWebSocket) return;
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.hostname}:${window.location.port || 80}/ws/oddsmagnet`;
+            
+            try {
+                wsConnection = new WebSocket(wsUrl);
+                
+                wsConnection.onopen = () => {
+                    console.log('🟢 WebSocket connected - real-time updates enabled');
+                    // Subscribe to current sport
+                    const currentSport = window.currentSport || 'football';
+                    wsConnection.send(JSON.stringify({ 
+                        action: 'subscribe', 
+                        sport: currentSport 
+                    }));
+                };
+                
+                wsConnection.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.matches) {
+                            const timestamp = new Date().toLocaleTimeString();
+                            console.log(`📡 [${timestamp}] WebSocket update received:`, data.matches.length, 'matches, iteration:', data.iteration);
+                            processWebSocketData(data);
+                        }
+                    } catch (err) {
+                        console.error('WebSocket message parse error:', err);
+                    }
+                };
+                
+                wsConnection.onerror = (error) => {
+                    console.warn('⚠️ WebSocket error, falling back to HTTP polling');
+                    useWebSocket = false;
+                };
+                
+                wsConnection.onclose = () => {
+                    console.log('🔴 WebSocket disconnected');
+                    // Attempt reconnect after 5 seconds
+                    setTimeout(() => {
+                        if (useWebSocket) initWebSocket();
+                    }, 5000);
+                };
+            } catch (err) {
+                console.warn('WebSocket not available, using HTTP polling');
+                useWebSocket = false;
+            }
+        }
+
+        function processWebSocketData(data) {
+            const timestamp = new Date().toLocaleTimeString();
+            const currentSport = window.currentSport || 'football';
+            
+            // IMPORTANT: Only process updates that match the currently selected sport
+            if (data.sport !== currentSport) {
+                console.log(`⏭️ [${timestamp}] Ignoring ${data.sport} update (current sport: ${currentSport})`);
+                return; // Ignore updates for other sports
+            }
+            
+            console.log(`📊 [${timestamp}] Processing WebSocket data for sport:`, data.sport, '| Matches:', data.matches?.length, '| Timestamp:', data.timestamp);
+            
+            // Clear any stale cache immediately for real-time updates
+            dataCache = null;
+            lastETag = null;
+            
+            // Clean team names by removing youth team indicators (U19, U21, etc.)
+            allMatches = (data.matches || []).map(match => ({
+                ...match,
+                home_team: cleanTeamName(match.home_team),
+                away_team: cleanTeamName(match.away_team)
+            }));
+            dataCache = allMatches;
+            cachedSport = data.sport; // Track which sport this cache is for
+            lastDataTimestamp = data.timestamp;
+            lastETag = data.etag || null;
+            expectedSport = data.sport || window.currentSport; // Update expected sport
+            
+            processDataProgressively().catch(err => {
+                console.error('Error processing WebSocket data:', err);
+            });
+        }
+
+        // Auto-refresh every 30 seconds (only if WebSocket is not active)
         setInterval(() => {
-            loadData();
+            if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+                loadData().catch(err => console.error('Auto-refresh failed:', err));
+            }
         }, 30000);
     </script>
 </body>

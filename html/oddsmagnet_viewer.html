@@ -560,10 +560,8 @@
             content-visibility: auto;
             contain-intrinsic-size: auto 60px;
             contain: layout style paint;
-        }
-
-        .odds-table tbody tr:hover {
-            background: rgba(59, 130, 246, 0.12);
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
 
         .odds-table td {
@@ -581,10 +579,7 @@
             background: var(--bg-primary);
             z-index: 5;
             box-shadow: 2px 0 4px rgba(0,0,0,0.2);
-        }
-
-        .odds-table tbody tr:hover td:first-child {
-            background: rgba(59, 130, 246, 0.12);
+            transform: translateZ(0);
         }
 
         /* Match Cell */
@@ -619,6 +614,7 @@
             flex-direction: column;
             gap: 4px;
             align-items: flex-start;
+            pointer-events: none;
         }
 
         .selection-type {
@@ -663,10 +659,14 @@
             border-radius: 4px;
             min-width: 60px;
             position: relative;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
 
-        .odds-cell:hover {
-            background: rgba(59, 130, 246, 0.15);
+        @media (hover: hover) {
+            .odds-cell:hover {
+                background: rgba(59, 130, 246, 0.15);
+            }
         }
         
         .odds-main {
