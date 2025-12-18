@@ -1777,6 +1777,9 @@
         let sortState = { field: null, direction: 'none' }; // none, asc, desc
         let showOnlyBookmarks = false;
         
+        // Global callback for when data finishes rendering (used by bookmark navigation)
+        let onRenderComplete = null;
+        
         // Tooltip singleton - reuse same element for performance
         let tooltipElement = null;
         let tooltipTimeout = null;
@@ -2637,66 +2640,54 @@
                     
                     console.log(`🔖 Navigating to bookmark: ${matchId} in sport: ${sport}`);
                     
-                    // Helper function to scroll to match with retries
-                    function scrollToMatch(maxRetries = 20, delay = 300) {
-                        let retries = 0;
-                        const attemptScroll = () => {
-                            const matchRows = document.querySelectorAll(`[data-match-id="${matchId}"]`);
-                            if (matchRows.length > 0) {
-                                console.log(`✓ Found match (${matchRows.length} rows), scrolling to it...`);
-                                // Get the first row (it's the one with match info)
-                                const firstRow = matchRows[0];
+                    // Helper function to scroll to match
+                    function scrollToMatch() {
+                        const matchRows = document.querySelectorAll(`[data-match-id="${matchId}"]`);
+                        if (matchRows.length > 0) {
+                            console.log(`✓ Found match (${matchRows.length} rows), scrolling to it...`);
+                            // Get the first row (it's the one with match info)
+                            const firstRow = matchRows[0];
+                            setTimeout(() => {
+                                // Scroll the table container
+                                const tableContainer = document.querySelector('.table-container');
+                                if (tableContainer) {
+                                    firstRow.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                }
+                                // Highlight all rows of this match
+                                matchRows.forEach(row => {
+                                    row.style.backgroundColor = 'rgba(59, 130, 246, 0.4)';
+                                    row.style.transition = 'background-color 0.3s';
+                                });
                                 setTimeout(() => {
-                                    // Scroll the table container
-                                    const tableContainer = document.querySelector('.table-container');
-                                    if (tableContainer) {
-                                        firstRow.scrollIntoView({behavior: 'smooth', block: 'center'});
-                                    }
-                                    // Highlight all rows of this match
                                     matchRows.forEach(row => {
-                                        row.style.backgroundColor = 'rgba(59, 130, 246, 0.4)';
-                                        row.style.transition = 'background-color 0.3s';
+                                        row.style.backgroundColor = '';
                                     });
-                                    setTimeout(() => {
-                                        matchRows.forEach(row => {
-                                            row.style.backgroundColor = '';
-                                        });
-                                    }, 3000);
-                                }, 100);
-                            } else if (retries < maxRetries) {
-                                retries++;
-                                console.log(`⏳ Match not rendered yet, retrying (${retries}/${maxRetries})...`);
-                                setTimeout(attemptScroll, delay);
-                            } else {
-                                console.warn('⚠️ Could not find match after', maxRetries, 'attempts');
-                                alert('Match loaded but could not be found in the table. It may have ended or filters are hiding it.');
-                            }
-                        };
-                        attemptScroll();
+                                }, 3000);
+                            }, 100);
+                        } else {
+                            console.warn('⚠️ Could not find match in rendered table');
+                            alert('Match loaded but could not be found in the table. It may have ended or filters are hiding it.');
+                        }
                     }
                     
                     // Switch to the sport if different
                     if (sport !== window.currentSport) {
                         console.log(`🔄 Switching to ${sport} to show bookmarked match...`);
                         
-                        // Set a flag to trigger scroll after data loads
-                        window.pendingBookmarkScroll = {matchId, sport};
+                        // Set callback to trigger after rendering completes
+                        onRenderComplete = scrollToMatch;
                         
                         // Trigger sport change
                         const sportItem = document.querySelector(`#sportMenu .dropdown-item[data-sport="${sport}"]`);
                         if (sportItem) {
                             sportItem.click();
-                            // Start trying to scroll after a short delay
-                            setTimeout(() => {
-                                scrollToMatch(25, 400); // More retries with longer delay for sport switch
-                            }, 500);
                         } else {
                             alert(`Could not switch to ${sport}. Please select it manually.`);
+                            onRenderComplete = null; // Clear callback
                         }
                     } else {
                         // Same sport, just scroll to match immediately
-                        console.log(`📍 Scrolling to match in current sport...`);
-                        scrollToMatch(10, 200);
+                        scrollToMatch();
                     }
                 });
             });
@@ -3537,8 +3528,8 @@
 
             filteredMatches = matches;
             
-            // PRIORITY: Always show bookmarked matches at the top, even when no sorting is active
-            if (bookmarkedMatches.size > 0 && !showOnlyBookmarks) {
+            // PRIORITY: ALWAYS show bookmarked matches at the top for ALL sports and states
+            if (bookmarkedMatches.size > 0) {
                 filteredMatches.sort((a, b) => {
                     const matchIdA = getMatchId(a);
                     const matchIdB = getMatchId(b);
@@ -3625,6 +3616,13 @@
             const firstRows = firstBatch.map(match => renderMatchRow(match));
             tableBody.innerHTML = firstRows.join('');
             tableBody.classList.add('fade-in');
+            
+            // Call onRenderComplete callback if set (used by bookmark navigation)
+            if (onRenderComplete) {
+                const callback = onRenderComplete;
+                onRenderComplete = null; // Reset after calling
+                setTimeout(() => callback(), 50); // Small delay to ensure DOM is ready
+            }
             
             // Render remaining batches progressively in background (non-blocking)
             if (totalMatches > FIRST_BATCH) {
