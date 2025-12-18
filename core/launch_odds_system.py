@@ -455,6 +455,39 @@ def main():
         print("⚠️  oddsmagnet_tennis_realtime.py not found, skipping OddsMagnet Tennis")
         print()
     
+    # ============================================================================
+    # ODDSMAGNET BOXING COLLECTOR
+    # ============================================================================
+    print("=" * 80)
+    print("🥊 Starting OddsMagnet Boxing Real-Time Collector...")
+    print("   - Tracking ALL Boxing events (Boxing, MMA, UFC, etc.)")
+    print("   - Update interval: 30 seconds")
+    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_boxing.json")
+    print()
+    
+    boxing_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_boxing_realtime.py"
+    if boxing_script.exists():
+        try:
+            # Start OddsMagnet Boxing collector in background
+            boxing_process = subprocess.Popen(
+                [sys.executable, str(boxing_script)],
+                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
+            )
+            processes.append(boxing_process)
+            print("✅ OddsMagnet Boxing collector started (PID: {})".format(boxing_process.pid))
+            print()
+            
+            # Give it a moment to initialize
+            time.sleep(3)
+            
+        except Exception as e:
+            print(f"⚠️  Could not start OddsMagnet Boxing collector: {e}")
+            print("   Continuing without OddsMagnet Boxing...")
+            print()
+    else:
+        print("⚠️  oddsmagnet_boxing_realtime.py not found, skipping OddsMagnet Boxing")
+        print()
+    
     # Start the web viewer
     print("🌐 Starting Web Viewer UI...")
     print("   - Real-time monitoring dashboard")

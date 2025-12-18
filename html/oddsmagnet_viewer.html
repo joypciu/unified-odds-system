@@ -1512,6 +1512,11 @@
                     <i class="fas fa-table-tennis" style="margin-right: 8px;"></i>
                     Tennis
                 </div>
+                <div class="dropdown-item" data-sport="boxing">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-fist-raised" style="margin-right: 8px;"></i>
+                    Boxing
+                </div>
             </div>
         </div>
     </div>
@@ -1660,7 +1665,8 @@
             cricket: ['home', 'draw', 'away'],           // 3-way betting (draw possible in Test cricket)
             baseball: ['home', 'away'],                   // 2-way betting (no draws in baseball)
             tabletennis: ['home', 'away'],                // 2-way betting (no draws in table tennis)
-            tennis: ['home', 'away']                      // 2-way betting (no draws in tennis)
+            tennis: ['home', 'away'],                     // 2-way betting (no draws in tennis)
+            boxing: ['home', 'away']                      // 2-way betting (fighter1 vs fighter2)
         };
         
         // Debounce utility for performance
@@ -2048,6 +2054,11 @@
                         label: 'Tennis',
                         icon: 'fas fa-table-tennis',
                         headerLabel: '🎾 Tennis (Grand Slams/ATP/WTA)'
+                    },
+                    boxing: {
+                        label: 'Boxing',
+                        icon: 'fas fa-fist-raised',
+                        headerLabel: '🥊 Boxing (Boxing/MMA/UFC)'
                     },
                     football: {
                         label: 'Football',
@@ -2439,6 +2450,7 @@
                                 : currentSport === 'baseball' ? 'baseball'
                                 : currentSport === 'tabletennis' ? 'tabletennis'
                                 : currentSport === 'tennis' ? 'tennis'
+                                : currentSport === 'boxing' ? 'boxing'
                                 : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport
