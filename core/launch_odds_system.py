@@ -256,7 +256,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Football collector: {e}")
@@ -286,7 +286,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Basketball collector: {e}")
@@ -316,7 +316,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet American Football collector: {e}")
@@ -346,7 +346,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Cricket collector: {e}")
@@ -379,7 +379,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Baseball collector: {e}")
@@ -412,7 +412,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Table Tennis collector: {e}")
@@ -445,7 +445,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Tennis collector: {e}")
@@ -478,7 +478,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Boxing collector: {e}")
@@ -511,7 +511,7 @@ def main():
             print()
             
             # Give it a moment to initialize
-            time.sleep(3)
+            time.sleep(1)
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Volleyball collector: {e}")
