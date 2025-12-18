@@ -30,11 +30,11 @@ current_dir = Path(__file__).parent
 if str(current_dir) not in sys.path:
     sys.path.insert(0, str(current_dir))
 
-from oddsmagnet_optimized_scraper import scrape_oddsmagnet_sport
-from oddsmagnet_optimized_collector import OddsMagnetRealtimeCollector
+from oddsmagnet_optimized_scraper import OddsMagnetOptimizedScraper
+from oddsmagnet_optimized_collector import OddsMagnetRealtimeCollector as BaseCollector
 
 
-class BoxingRealtimeCollector(OddsMagnetRealtimeCollector):
+class BoxingRealtimeCollector(BaseCollector):
     """Real-time collector for Boxing odds from OddsMagnet"""
     
     def __init__(self, sport: str = 'boxing', output_file: str = 'oddsmagnet_boxing.json',
@@ -76,13 +76,14 @@ class BoxingRealtimeCollector(OddsMagnetRealtimeCollector):
             print(f"⏰ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             print(f"{'='*80}\n")
             
-            # Scrape boxing odds (ALL markets - dynamic discovery)
-            result = await scrape_oddsmagnet_sport(
+            # Scrape boxing odds using optimized scraper
+            scraper = OddsMagnetOptimizedScraper(
                 sport=self.sport,
-                market_filter=self.market_filter,  # None = ALL markets
                 max_workers=self.max_workers,
                 rate_limit=self.rate_limit
             )
+            
+            result = await scraper.scrape_sport(market_filter=self.market_filter)
             
             matches = result.get('matches', [])
             
