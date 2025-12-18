@@ -81,6 +81,9 @@
         .fa-basketball-ball:before { content: "\f434"; }
         .fa-football-ball:before { content: "\f44e"; }
         .fa-baseball-ball:before { content: "\f433"; }
+        .fa-table-tennis:before { content: "\f45d"; }
+        .fa-fist-raised:before { content: "\f6de"; }
+        .fa-volleyball-ball:before { content: "\f45f"; }
         .fa-filter:before { content: "\f0b0"; }
         .fa-search:before { content: "\f002"; }
         .fa-sync:before { content: "\f021"; }
@@ -553,16 +556,16 @@
 
         .odds-table tbody tr {
             border-bottom: 1px solid var(--border-color);
-            transition: all 0.2s ease;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
             /* Performance optimization: only render visible rows */
             content-visibility: auto;
             contain-intrinsic-size: auto 60px;
+            will-change: auto;
         }
 
         .odds-table tbody tr:hover {
             background: rgba(59, 130, 246, 0.12);
             box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
-            transform: translateX(2px);
         }
 
         .odds-table td {
@@ -580,7 +583,8 @@
             background: var(--bg-primary);
             z-index: 5;
             box-shadow: 2px 0 4px rgba(0,0,0,0.2);
-            transition: background 0.2s ease;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            will-change: auto;
         }
 
         .odds-table tbody tr:hover td:first-child {
@@ -658,7 +662,7 @@
             gap: 2px;
             font-weight: 600;
             color: var(--text-primary);
-            transition: all 0.15s ease;
+            transition: background-color 0.1s ease;
             cursor: pointer;
             padding: 6px 8px;
             border-radius: 4px;
@@ -668,7 +672,6 @@
 
         .odds-cell:hover {
             background: rgba(59, 130, 246, 0.15);
-            transform: scale(1.05);
         }
         
         .odds-main {
