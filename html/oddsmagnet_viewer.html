@@ -1517,6 +1517,11 @@
                     <i class="fas fa-fist-raised" style="margin-right: 8px;"></i>
                     Boxing
                 </div>
+                <div class="dropdown-item" data-sport="volleyball">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-volleyball-ball" style="margin-right: 8px;"></i>
+                    Volleyball
+                </div>
             </div>
         </div>
     </div>
@@ -1666,7 +1671,8 @@
             baseball: ['home', 'away'],                   // 2-way betting (no draws in baseball)
             tabletennis: ['home', 'away'],                // 2-way betting (no draws in table tennis)
             tennis: ['home', 'away'],                     // 2-way betting (no draws in tennis)
-            boxing: ['home', 'away']                      // 2-way betting (fighter1 vs fighter2)
+            boxing: ['home', 'away'],                     // 2-way betting (fighter1 vs fighter2)
+            volleyball: ['home', 'away']                  // 2-way betting (no draws in volleyball)
         };
         
         // Debounce utility for performance
@@ -2060,6 +2066,11 @@
                         icon: 'fas fa-fist-raised',
                         headerLabel: '🥊 Boxing (Boxing/MMA/UFC)'
                     },
+                    volleyball: {
+                        label: 'Volleyball',
+                        icon: 'fas fa-volleyball-ball',
+                        headerLabel: '🏐 Volleyball (International Leagues)'
+                    },
                     football: {
                         label: 'Football',
                         icon: 'fas fa-futbol',
@@ -2451,6 +2462,7 @@
                                 : currentSport === 'tabletennis' ? 'tabletennis'
                                 : currentSport === 'tennis' ? 'tennis'
                                 : currentSport === 'boxing' ? 'boxing'
+                                : currentSport === 'volleyball' ? 'volleyball'
                                 : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport

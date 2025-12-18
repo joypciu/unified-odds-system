@@ -488,6 +488,39 @@ def main():
         print("⚠️  oddsmagnet_boxing_realtime.py not found, skipping OddsMagnet Boxing")
         print()
     
+    # ============================================================================
+    # ODDSMAGNET VOLLEYBALL COLLECTOR
+    # ============================================================================
+    print("=" * 80)
+    print("🏐 Starting OddsMagnet Volleyball Real-Time Collector...")
+    print("   - Tracking ALL Volleyball leagues (Spain, Poland, Russia, Brazil, etc.)")
+    print("   - Update interval: 30 seconds")
+    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_volleyball.json")
+    print()
+    
+    volleyball_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_volleyball_realtime.py"
+    if volleyball_script.exists():
+        try:
+            # Start OddsMagnet Volleyball collector in background
+            volleyball_process = subprocess.Popen(
+                [sys.executable, str(volleyball_script)],
+                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
+            )
+            processes.append(volleyball_process)
+            print("✅ OddsMagnet Volleyball collector started (PID: {})".format(volleyball_process.pid))
+            print()
+            
+            # Give it a moment to initialize
+            time.sleep(3)
+            
+        except Exception as e:
+            print(f"⚠️  Could not start OddsMagnet Volleyball collector: {e}")
+            print("   Continuing without OddsMagnet Volleyball...")
+            print()
+    else:
+        print("⚠️  oddsmagnet_volleyball_realtime.py not found, skipping OddsMagnet Volleyball")
+        print()
+    
     # Start the web viewer
     print("🌐 Starting Web Viewer UI...")
     print("   - Real-time monitoring dashboard")
