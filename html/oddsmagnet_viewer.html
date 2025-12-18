@@ -556,16 +556,14 @@
 
         .odds-table tbody tr {
             border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.15s ease, box-shadow 0.15s ease;
             /* Performance optimization: only render visible rows */
             content-visibility: auto;
             contain-intrinsic-size: auto 60px;
-            will-change: auto;
+            contain: layout style paint;
         }
 
         .odds-table tbody tr:hover {
             background: rgba(59, 130, 246, 0.12);
-            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
         }
 
         .odds-table td {
@@ -583,13 +581,10 @@
             background: var(--bg-primary);
             z-index: 5;
             box-shadow: 2px 0 4px rgba(0,0,0,0.2);
-            transition: background-color 0.15s ease, box-shadow 0.15s ease;
-            will-change: auto;
         }
 
         .odds-table tbody tr:hover td:first-child {
             background: rgba(59, 130, 246, 0.12);
-            box-shadow: 2px 0 8px rgba(59, 130, 246, 0.3);
         }
 
         /* Match Cell */
@@ -598,6 +593,7 @@
             flex-direction: column;
             gap: 3px;
             min-width: 160px;
+            pointer-events: none;
         }
 
         .match-teams {
@@ -662,7 +658,6 @@
             gap: 2px;
             font-weight: 600;
             color: var(--text-primary);
-            transition: background-color 0.1s ease;
             cursor: pointer;
             padding: 6px 8px;
             border-radius: 4px;
