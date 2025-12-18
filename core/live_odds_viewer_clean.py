@@ -2325,6 +2325,175 @@ async def get_oddsmagnet_cricket(
         )
 
 
+@app.get("/oddsmagnet/api/baseball")
+@app.get("/oddsmagnet/baseball")  # Keep for backward compatibility
+async def get_oddsmagnet_baseball(
+    request: Request,
+    page: int = 1,
+    page_size: int = 999,
+    league: str = None,
+    search: str = None
+):
+    """Get OddsMagnet Baseball matches with pagination and filtering
+    
+    This endpoint provides real-time Baseball odds from all leagues (MLB, NPB, KBO, etc.).
+    Supports ETag caching for faster subsequent loads.
+    
+    Accessible via:
+    - /oddsmagnet/api/baseball (recommended)
+    - /oddsmagnet/baseball (legacy)
+    
+    Query Parameters:
+    - page: Page number (default: 1)
+    - page_size: Items per page (default: 999 [all], max: 999)
+    - league: Filter by specific league (partial match)
+    - search: Search in match name (partial match, case-insensitive)
+    """
+    try:
+        # Validate pagination parameters
+        page = max(1, page)
+        page_size = min(max(1, page_size), 999)
+        
+        # Read from Baseball realtime collector
+        baseball_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_baseball.json"
+        
+        if not baseball_file.exists():
+            return JSONResponse(
+                content={
+                    'error': 'OddsMagnet Baseball data not available',
+                    'message': 'Baseball collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_baseball_realtime.py',
+                    'matches': [],
+                    'timestamp': datetime.now().isoformat(),
+                    'source': 'oddsmagnet_baseball',
+                    'sport': 'baseball'
+                },
+                status_code=503
+            )
+        
+        # Read data with timeout (5 seconds max)
+        try:
+            try:
+                async with asyncio.timeout(5.0):
+                    async with aiofiles.open(baseball_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        data = json.loads(content)
+            except AttributeError:
+                async def read_file():
+                    async with aiofiles.open(baseball_file, 'r', encoding='utf-8') as f:
+                        content = await f.read()
+                        return json.loads(content)
+                data = await asyncio.wait_for(read_file(), timeout=5.0)
+        except asyncio.TimeoutError:
+            return JSONResponse(
+                content={
+                    'error': 'Request timeout',
+                    'message': 'Baseball data file is being updated. Please try again in a moment.',
+                    'matches': [],
+                    'timestamp': datetime.now().isoformat(),
+                    'source': 'oddsmagnet_baseball',
+                    'sport': 'baseball'
+                },
+                status_code=504
+            )
+        except json.JSONDecodeError:
+            return JSONResponse(
+                content={
+                    'error': 'Data temporarily unavailable',
+                    'message': 'Baseball data is being updated. Please try again in a moment.',
+                    'matches': [],
+                    'timestamp': datetime.now().isoformat(),
+                    'source': 'oddsmagnet_baseball',
+                    'sport': 'baseball'
+                },
+                status_code=503
+            )
+        
+        # Generate ETag from actual data content (timestamp + iteration + query params)
+        data_timestamp = data.get('timestamp', '')
+        data_iteration = data.get('iteration', 0)
+        etag_base = f"{data_timestamp}-{data_iteration}-{page}-{page_size}-{league}-{search}"
+        etag = f'"{hashlib.md5(etag_base.encode()).hexdigest()}"'
+        
+        # Check if client has cached version
+        if_none_match = request.headers.get('if-none-match')
+        if if_none_match == etag:
+            return Response(
+                status_code=304,
+                headers={
+                    'ETag': etag,
+                    'Cache-Control': 'no-cache',
+                }
+            )
+        
+        # Data is from real-time collector
+        all_matches = data.get('matches', [])
+        
+        # Apply additional filters
+        filtered_matches = all_matches
+        if league:
+            league_lower = league.lower()
+            filtered_matches = [
+                m for m in filtered_matches 
+                if league_lower in m.get('league', '').lower() or 
+                   league_lower in m.get('match_uri', '').lower()
+            ]
+        
+        if search:
+            search_lower = search.lower()
+            filtered_matches = [
+                m for m in filtered_matches 
+                if search_lower in m.get('match_name', '').lower()
+            ]
+        
+        # Calculate pagination
+        total_filtered = len(filtered_matches)
+        total_pages = (total_filtered + page_size - 1) // page_size if total_filtered > 0 else 1
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_matches = filtered_matches[start_idx:end_idx]
+        
+        response_data = {
+            'source': 'oddsmagnet_baseball',
+            'sport': 'baseball',
+            'timestamp': data.get('timestamp'),
+            'iteration': data.get('iteration'),
+            'pagination': {
+                'page': page,
+                'page_size': page_size,
+                'total_items': total_filtered,
+                'total_pages': total_pages,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            },
+            'filters': {
+                'league': league,
+                'search': search
+            },
+            'total_matches': len(all_matches),
+            'league_breakdown': data.get('league_breakdown', {}),
+            'matches': paginated_matches
+        }
+        
+        # Return with proper cache control headers and ETag
+        return JSONResponse(
+            content=response_data,
+            headers={
+                'ETag': etag,
+                'Cache-Control': 'no-cache',
+                'X-Data-Timestamp': data_timestamp,
+                'X-Data-Iteration': str(data_iteration),
+            }
+        )
+        
+    except Exception as e:
+        return JSONResponse(
+            content={
+                'error': str(e),
+                'matches': []
+            }
+        )
+
+
 @app.get("/bet365")
 async def get_bet365_optic_odds():
     """Get all Bet365 odds in OpticOdds format (default)"""

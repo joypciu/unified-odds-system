@@ -2409,11 +2409,12 @@
                 const sportPath = currentSport === 'basketball' ? 'basketball' 
                                 : currentSport === 'americanfootball' ? 'americanfootball'
                                 : currentSport === 'cricket' ? 'cricket'
+                                : currentSport === 'baseball' ? 'baseball'
                                 : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport
-                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket
-                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket
+                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket or /om/baseball
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket or /oddsmagnet/api/baseball
                 const apiEndpoint = window.location.port === '9000' 
                     ? `/om/${sportPath}` 
                     : `/oddsmagnet/api/${sportPath}`;
