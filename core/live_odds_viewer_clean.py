@@ -13,6 +13,7 @@ import json
 import asyncio
 import time
 import hashlib
+import gzip
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -455,11 +456,11 @@ async def monitor_files():
             }
             await broadcast(status_message)
             
-            await asyncio.sleep(2)  # Check every 2 seconds
+            await asyncio.sleep(5)  # Check every 5 seconds (optimized)
             
         except Exception as e:
             print(f"Monitor error: {e}")
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
 
 
 async def broadcast(message: dict):
@@ -649,10 +650,10 @@ async def oddsmagnet_websocket(websocket: WebSocket):
 
 # Background task to push updates to WebSocket clients
 async def push_oddsmagnet_updates():
-    """Monitor oddsmagnet files and push updates to connected clients"""
+    """Monitor oddsmagnet files and push updates to connected clients - OPTIMIZED with reduced polling"""
     last_mtimes = {}
     
-    print("🔄 WebSocket monitor started - checking for data updates every 2s")
+    print("🔄 WebSocket monitor started - checking for data updates every 5s (optimized)")
     
     # Map sports to their data files
     sport_files = {
@@ -672,22 +673,35 @@ async def push_oddsmagnet_updates():
             # Check each sport that has active connections
             for sport in ['football', 'basketball', 'cricket', 'americanfootball', 'baseball', 'tabletennis', 'tennis', 'boxing', 'volleyball']:
                 if not oddsmagnet_connections[sport]:
-                    continue  # Skip sports with no active connections
+                    continue  # Skip sports with no active connections - OPTIMIZATION
                 
                 data_file = sport_files.get(sport)
                 if not data_file or not data_file.exists():
                     continue  # Skip if file doesn't exist
                 
+                # OPTIMIZATION: Try compressed file first (70% smaller, faster I/O)
+                compressed_file = Path(str(data_file) + '.gz')
+                use_compressed = compressed_file.exists()
+                check_file = compressed_file if use_compressed else data_file
+                
                 # Get file modification time
-                current_mtime = data_file.stat().st_mtime
+                current_mtime = check_file.stat().st_mtime
                 cache_key = f"{sport}:{current_mtime}"
                 
                 # Check if file changed (using mtime for efficiency)
                 if last_mtimes.get(sport) != current_mtime:
                     # File changed - read and push update
-                    async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
-                        content = await f.read()
-                        data = json.loads(content)
+                    if use_compressed:
+                        # Read compressed file (faster I/O)
+                        async with aiofiles.open(compressed_file, 'rb') as f:
+                            compressed_content = await f.read()
+                            content = gzip.decompress(compressed_content).decode('utf-8')
+                            data = json.loads(content)
+                    else:
+                        # Fall back to uncompressed
+                        async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
+                            content = await f.read()
+                            data = json.loads(content)
                     
                     last_mtimes[sport] = current_mtime
                     
@@ -697,7 +711,7 @@ async def push_oddsmagnet_updates():
                         'matches': data.get('matches', []),
                         'timestamp': data.get('timestamp'),
                         'iteration': data.get('iteration'),
-                        'etag': hashlib.md5(content.encode()).hexdigest()
+                        'etag': hashlib.md5(content.encode() if isinstance(content, str) else content).hexdigest()
                     }
                     
                     print(f"📡 PUSHING {sport.upper()} UPDATE: {len(data.get('matches', []))} matches to {len(oddsmagnet_connections[sport])} clients")
@@ -722,7 +736,8 @@ async def push_oddsmagnet_updates():
                         oddsmagnet_cache['data'] = None
                         oddsmagnet_cache['file_mtime'] = None
             
-            await asyncio.sleep(2)  # Check every 2 seconds
+            # OPTIMIZATION: Reduced from 2s to 5s - less CPU usage, still responsive
+            await asyncio.sleep(5)
             
         except Exception as e:
             print(f"❌ Error in push_oddsmagnet_updates: {e}")

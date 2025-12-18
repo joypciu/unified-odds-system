@@ -255,8 +255,7 @@ def main():
             print("✅ OddsMagnet Football collector started (PID: {})".format(oddsmagnet_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Football collector: {e}")
@@ -285,8 +284,7 @@ def main():
             print("✅ OddsMagnet Basketball collector started (PID: {})".format(basketball_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Basketball collector: {e}")
@@ -315,8 +313,7 @@ def main():
             print("✅ OddsMagnet American Football collector started (PID: {})".format(americanfootball_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet American Football collector: {e}")
@@ -345,8 +342,7 @@ def main():
             print("✅ OddsMagnet Cricket collector started (PID: {})".format(cricket_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Cricket collector: {e}")
@@ -378,8 +374,7 @@ def main():
             print("✅ OddsMagnet Baseball collector started (PID: {})".format(baseball_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Baseball collector: {e}")
@@ -411,8 +406,7 @@ def main():
             print("✅ OddsMagnet Table Tennis collector started (PID: {})".format(tabletennis_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Table Tennis collector: {e}")
@@ -444,8 +438,7 @@ def main():
             print("✅ OddsMagnet Tennis collector started (PID: {})".format(tennis_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Tennis collector: {e}")
@@ -477,8 +470,7 @@ def main():
             print("✅ OddsMagnet Boxing collector started (PID: {})".format(boxing_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Boxing collector: {e}")
@@ -510,8 +502,7 @@ def main():
             print("✅ OddsMagnet Volleyball collector started (PID: {})".format(volleyball_process.pid))
             print()
             
-            # Give it a moment to initialize
-            time.sleep(1)
+            # Parallel startup - no delay needed
             
         except Exception as e:
             print(f"⚠️  Could not start OddsMagnet Volleyball collector: {e}")
