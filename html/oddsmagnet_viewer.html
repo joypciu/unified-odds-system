@@ -1653,7 +1653,8 @@
             basketball: ['home', 'away'],                 // 2-way betting (no draws)
             americanfootball: ['home', 'away'],          // 2-way betting (no draws)
             cricket: ['home', 'draw', 'away'],           // 3-way betting (draw possible in Test cricket)
-            baseball: ['home', 'away']                    // 2-way betting (no draws in baseball)
+            baseball: ['home', 'away'],                   // 2-way betting (no draws in baseball)
+            tabletennis: ['home', 'away']                 // 2-way betting (no draws in table tennis)
         };
         
         // Debounce utility for performance
@@ -2822,100 +2823,103 @@
             }
         }
 
-        // Get sport-specific type labels for the odds table
+        // Get type label dynamically from actual data
         function getTypeLabel(sport, market, selection, odd, match) {
+            if (!odd || !odd.selection) {
+                // Fallback when no odd data available
+                if (selection === 'draw') return 'DRAW';
+                if (selection === 'home') return 'HOME';
+                if (selection === 'away') return 'AWAY';
+                return selection?.toUpperCase() || '';
+            }
+            
             const marketLower = (market || '').toLowerCase();
-            const selectionLower = (selection || '').toLowerCase();
+            const selectionText = odd.selection.toLowerCase();
+            const homeTeam = (match.home_team || '').toLowerCase();
+            const awayTeam = (match.away_team || '').toLowerCase();
             
-            // Basketball-specific type labels
-            if (sport === 'basketball') {
-                // Handicap/Spread markets
-                if (marketLower.includes('handicap') || marketLower.includes('spread')) {
-                    if (odd && odd.selection) {
-                        // Extract spread value from selection (e.g., "Boston Celtics -5.5" or "-5.5")
-                        const spreadMatch = odd.selection.match(/([-+]\d+\.?\d*)/);
-                        if (spreadMatch) {
-                            return `${spreadMatch[1]}`;
-                        }
-                    }
-                    return 'Spread';
+            // Check if selection is a team name (moneyline/winner)
+            const isHomeTeam = homeTeam && selectionText.includes(homeTeam);
+            const isAwayTeam = awayTeam && selectionText.includes(awayTeam);
+            const isTeamSelection = isHomeTeam || isAwayTeam;
+            
+            // Extract numeric values from selection (handicap/totals)
+            const numericMatch = odd.selection.match(/([-+]?\d+\.?\d*)/);
+            
+            // Pattern 1: Over/Under totals (O 230.5, U 230.5)
+            if (selectionText.includes('over') || selectionText.includes('under')) {
+                if (numericMatch) {
+                    const prefix = selectionText.includes('over') ? 'O' : 'U';
+                    return `${prefix} ${numericMatch[1]}`;
                 }
-                
-                // Over/Under markets
-                if (marketLower.includes('over') || marketLower.includes('under') || marketLower.includes('total')) {
-                    if (odd && odd.selection) {
-                        const selText = odd.selection.toLowerCase();
-                        const totalMatch = odd.selection.match(/(\d+\.?\d*)/);
-                        if (totalMatch) {
-                            const isOver = selText.includes('over');
-                            return `${isOver ? 'O' : 'U'} ${totalMatch[1]}`;
-                        }
-                    }
-                    if (selectionLower.includes('over')) return 'Over';
-                    if (selectionLower.includes('under')) return 'Under';
-                }
-                
-                // Quarter/Half markets
-                if (marketLower.includes('1st half') || marketLower.includes('first half')) {
-                    if (marketLower.includes('total') || marketLower.includes('over') || marketLower.includes('under')) {
-                        return selectionLower.includes('over') ? '1H O' : '1H U';
-                    }
-                    return '1H ML';
-                }
-                
-                if (marketLower.includes('quarter')) {
-                    const quarterNum = marketLower.match(/(\d+)/)?.[1] || '';
-                    return `Q${quarterNum}`;
-                }
-                
-                // Default: Moneyline
-                return 'ML';
+                return selectionText.includes('over') ? 'Over' : 'Under';
             }
             
-            // American Football - similar to basketball
-            if (sport === 'americanfootball') {
-                if (marketLower.includes('handicap') || marketLower.includes('spread')) {
-                    if (odd && odd.selection) {
-                        const spreadMatch = odd.selection.match(/([-+]\d+\.?\d*)/);
-                        if (spreadMatch) return `${spreadMatch[1]}`;
-                    }
-                    return 'Spread';
+            // Pattern 2: Handicap/Spread with value (-5.5, +5.5)
+            if (numericMatch && !isTeamSelection) {
+                const value = numericMatch[1];
+                // If it's a handicap value (starts with + or -)
+                if (value.startsWith('+') || value.startsWith('-')) {
+                    return value;
                 }
-                
-                if (marketLower.includes('over') || marketLower.includes('under') || marketLower.includes('total')) {
-                    if (odd && odd.selection) {
-                        const totalMatch = odd.selection.match(/(\d+\.?\d*)/);
-                        if (totalMatch) {
-                            const isOver = odd.selection.toLowerCase().includes('over');
-                            return `${isOver ? 'O' : 'U'} ${totalMatch[1]}`;
-                        }
-                    }
-                    return selectionLower.includes('over') ? 'Over' : 'Under';
+                // If market indicates it's a handicap
+                if (marketLower.includes('handicap') || marketLower.includes('spread') || marketLower.includes('line')) {
+                    return value;
                 }
-                
-                if (marketLower.includes('1st half')) return '1H';
-                if (marketLower.includes('quarter')) {
-                    const quarterNum = marketLower.match(/(\d+)/)?.[1] || '';
-                    return `Q${quarterNum}`;
-                }
-                
-                return 'ML';
             }
             
-            // Cricket - Test/ODI/T20 specific
-            if (sport === 'cricket') {
-                if (marketLower.includes('innings')) return 'Innings';
-                if (marketLower.includes('batsman')) return 'Batsman';
-                if (selectionLower === 'draw') return 'DRAW';
-                return selection === 'home' ? 'HOME' : selection === 'away' ? 'AWAY' : 'WIN';
+            // Pattern 3: Draw option
+            if (selectionText === 'draw' || selectionText === 'tie') {
+                return 'DRAW';
             }
             
-            // Football - traditional HOME/DRAW/AWAY
-            if (selectionLower === 'draw') return 'DRAW';
-            if (selection === 'home') return 'HOME';
-            if (selection === 'away') return 'AWAY';
+            // Pattern 4: Team-based moneyline (extract from market context)
+            if (isTeamSelection) {
+                // Check if it's a special market (half, quarter, period, set, inning, etc.)
+                const periodMatch = marketLower.match(/(\d+)(st|nd|rd|th)?\s*(half|quarter|period|set|inning|frame)/);
+                if (periodMatch) {
+                    const num = periodMatch[1];
+                    const type = periodMatch[3];
+                    const abbrev = {
+                        'half': 'H',
+                        'quarter': 'Q',
+                        'period': 'P',
+                        'set': 'S',
+                        'inning': 'I',
+                        'frame': 'F'
+                    }[type] || type.charAt(0).toUpperCase();
+                    return `${num}${abbrev}`;
+                }
+                
+                // Default moneyline indicator
+                return isHomeTeam ? 'HOME' : 'AWAY';
+            }
             
-            return selection.toUpperCase();
+            // Pattern 5: Extract meaningful text from selection
+            // Clean up the selection text to get the core meaning
+            const cleanSelection = odd.selection
+                .replace(homeTeam, '')
+                .replace(awayTeam, '')
+                .replace(/[+-]\d+\.?\d*/g, '')
+                .trim();
+            
+            if (cleanSelection) {
+                // Abbreviate common terms
+                const abbrev = cleanSelection
+                    .replace(/over/i, 'O')
+                    .replace(/under/i, 'U')
+                    .replace(/yes/i, 'Y')
+                    .replace(/no/i, 'N')
+                    .replace(/even/i, 'E')
+                    .replace(/odd/i, 'O')
+                    .trim()
+                    .slice(0, 8); // Max 8 characters
+                    
+                if (abbrev) return abbrev.toUpperCase();
+            }
+            
+            // Final fallback: use selection position
+            return selection === 'home' ? 'HOME' : selection === 'away' ? 'AWAY' : 'WIN';
         }
 
         function renderMatchRow(match) {
