@@ -93,6 +93,11 @@
         .fa-arrow-up:before { content: "\f062"; }
         .fa-arrow-down:before { content: "\f063"; }
         .fa-check:before { content: "\f00c"; }
+        .fa-bookmark:before { content: "\f02e"; }
+        .fa-sort:before { content: "\f0dc"; }
+        .fa-sort-up:before { content: "\f0de"; }
+        .fa-sort-down:before { content: "\f0dd"; }
+        .fa-info-circle:before { content: "\f05a"; }
     </style>
     
     <style>
@@ -753,6 +758,124 @@
             color: #10b981;
         }
 
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 12px;
+            z-index: 10000;
+            pointer-events: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            max-width: 280px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        
+        .tooltip.show {
+            opacity: 1;
+        }
+        
+        .tooltip-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--accent-primary);
+            font-size: 13px;
+        }
+        
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .tooltip-row:last-child {
+            border-bottom: none;
+        }
+        
+        .tooltip-label {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+        
+        .tooltip-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Bookmark Button */
+        .bookmark-btn {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.15s ease;
+            z-index: 10;
+        }
+        
+        .bookmark-btn:hover {
+            color: var(--accent-primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .bookmark-btn.bookmarked {
+            color: #fbbf24;
+        }
+        
+        .bookmarked-row {
+            background: rgba(251, 191, 36, 0.05) !important;
+            border-left: 3px solid #fbbf24 !important;
+        }
+
+        /* Sort Controls */
+        .sort-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .sort-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+            font-weight: 500;
+        }
+        
+        .sort-btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+        
+        .sort-btn.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+        
+        .sort-btn i {
+            font-size: 11px;
+        }
+
         /* Bookmaker Header */
         .bookmaker-name {
             font-size: 11px;
@@ -1404,6 +1527,22 @@
                 <i class="fas fa-sync-alt"></i>
                 <span>Refresh</span>
             </button>
+            
+            <!-- Sort Controls -->
+            <div class="sort-controls">
+                <button class="sort-btn" id="sortTimeBtn" data-sort="time" title="Sort by match time">
+                    <i class="fas fa-sort"></i>
+                    <span>Time</span>
+                </button>
+                <button class="sort-btn" id="sortOddsBtn" data-sort="odds" title="Sort by best odds">
+                    <i class="fas fa-sort"></i>
+                    <span>Best Odds</span>
+                </button>
+                <button class="sort-btn" id="showBookmarksBtn" title="Show bookmarked matches">
+                    <i class="fas fa-bookmark"></i>
+                    <span id="bookmarkCount">0</span>
+                </button>
+            </div>
         </div>
 
         <!-- Market Tabs -->
@@ -1567,7 +1706,7 @@
     </button>
 
     <script>
-        // Global State
+        // Global State - Optimized with efficient data structures
         let allMatches = [];
         let filteredMatches = [];
         let bookmakers = [];
@@ -1576,15 +1715,263 @@
         let selectedLeague = 'all';
         let selectedDate = 'all';
         let searchQuery = '';
-        let previousOdds = new Map();
+        let previousOdds = new Map(); // O(1) lookups
         let isLoading = false;
-        let dataCache = null; // Cache for fetched data
-        let lastETag = null; // ETag for conditional requests
-        let lastDataTimestamp = null; // Track last data timestamp to detect updates
-        let cachedSport = null; // Track which sport the cached data is for
-        let wsConnection = null; // WebSocket connection
-        let useWebSocket = true; // Flag to enable/disable WebSocket
-        let expectedSport = 'football'; // Track which sport data we're expecting
+        let dataCache = null;
+        let lastETag = null;
+        let lastDataTimestamp = null;
+        let cachedSport = null;
+        let wsConnection = null;
+        let useWebSocket = true;
+        let expectedSport = 'football';
+        
+        // NEW: Advanced features with O(1) complexity
+        const bookmarkedMatches = new Set(); // O(1) add/remove/has
+        const matchCache = new Map(); // O(1) match lookups by ID
+        let sortState = { field: null, direction: 'none' }; // none, asc, desc
+        let showOnlyBookmarks = false;
+        
+        // Tooltip singleton - reuse same element for performance
+        let tooltipElement = null;
+        let tooltipTimeout = null;
+        
+        // Load bookmarks from localStorage - O(n) where n = bookmark count
+        function loadBookmarks() {
+            try {
+                const stored = localStorage.getItem('oddsmagnet_bookmarks');
+                if (stored) {
+                    const bookmarks = JSON.parse(stored);
+                    bookmarks.forEach(id => bookmarkedMatches.add(id));
+                    updateBookmarkCount();
+                }
+            } catch (e) {
+                console.warn('Failed to load bookmarks:', e);
+            }
+        }
+        
+        // Save bookmarks to localStorage - O(n) where n = bookmark count
+        function saveBookmarks() {
+            try {
+                localStorage.setItem('oddsmagnet_bookmarks', JSON.stringify([...bookmarkedMatches]));
+            } catch (e) {
+                console.warn('Failed to save bookmarks:', e);
+            }
+        }
+        
+        // Toggle bookmark - O(1)
+        function toggleBookmark(matchId) {
+            if (bookmarkedMatches.has(matchId)) {
+                bookmarkedMatches.delete(matchId);
+            } else {
+                bookmarkedMatches.add(matchId);
+            }
+            saveBookmarks();
+            updateBookmarkCount();
+            
+            // Update UI for this match only - O(1)
+            const matchRow = document.querySelector(`[data-match-id="${matchId}"]`);
+            if (matchRow) {
+                const btn = matchRow.querySelector('.bookmark-btn');
+                if (btn) {
+                    btn.classList.toggle('bookmarked', bookmarkedMatches.has(matchId));
+                    btn.innerHTML = bookmarkedMatches.has(matchId) ? '<i class="fas fa-bookmark"></i>' : '<i class="far fa-bookmark"></i>';
+                }
+                matchRow.classList.toggle('bookmarked-row', bookmarkedMatches.has(matchId));
+            }
+        }
+        
+        // Update bookmark count display - O(1)
+        function updateBookmarkCount() {
+            const count = bookmarkedMatches.size;
+            const countEl = document.getElementById('bookmarkCount');
+            if (countEl) {
+                countEl.textContent = count;
+            }
+        }
+        
+        // Sort matches - O(n log n) using efficient sort with pre-computed keys
+        function sortMatches(field, force Direction = null) {
+            if (!field) return;
+            
+            // Update sort state
+            if (sortState.field === field && forceDirection === null) {
+                // Cycle through: none -> asc -> desc -> none
+                sortState.direction = sortState.direction === 'none' ? 'asc' : 
+                                      sortState.direction === 'asc' ? 'desc' : 'none';
+            } else {
+                sortState.field = field;
+                sortState.direction = forceDirection || 'asc';
+            }
+            
+            // Update UI buttons
+            updateSortButtons();
+            
+            // If sort is none, restore original order
+            if (sortState.direction === 'none') {
+                applyFilters();
+                return;
+            }
+            
+            // Pre-compute sort keys for O(n log n) complexity
+            const sortKeys = new Map();
+            
+            filteredMatches.forEach(match => {
+                let key;
+                
+                if (field === 'time') {
+                    // Sort by match time
+                    key = match.match_date ? new Date(match.match_date).getTime() : 0;
+                } else if (field === 'odds') {
+                    // Sort by best odds value (highest decimal odds)
+                    key = getBestOddsValue(match);
+                }
+                
+                sortKeys.set(match, key);
+            });
+            
+            // Sort using pre-computed keys - O(n log n)
+            filteredMatches.sort((a, b) => {
+                const keyA = sortKeys.get(a);
+                const keyB = sortKeys.get(b);
+                
+                if (sortState.direction === 'asc') {
+                    return keyA - keyB;
+                } else {
+                    return keyB - keyA;
+                }
+            });
+            
+            // Re-render table with sorted data
+            renderTable();
+        }
+        
+        // Get best odds value from match - O(m) where m = number of bookmakers
+        function getBestOddsValue(match) {
+            if (!match.markets || !match.markets[currentMarket]) return 0;
+            
+            const markets = match.markets[currentMarket];
+            if (!Array.isArray(markets)) return 0;
+            
+            let bestOdds = 0;
+            
+            markets.forEach(market => {
+                if (market.odds) {
+                    market.odds.forEach(odd => {
+                        const value = parseFloat(odd.decimal_odds);
+                        if (value > bestOdds) {
+                            bestOdds = value;
+                        }
+                    });
+                }
+            });
+            
+            return bestOdds;
+        }
+        
+        // Update sort button UI - O(1)
+        function updateSortButtons() {
+            const buttons = document.querySelectorAll('.sort-btn[data-sort]');
+            buttons.forEach(btn => {
+                const field = btn.dataset.sort;
+                btn.classList.toggle('active', sortState.field === field && sortState.direction !== 'none');
+                
+                const icon = btn.querySelector('i');
+                if (sortState.field === field) {
+                    if (sortState.direction === 'asc') {
+                        icon.className = 'fas fa-sort-up';
+                    } else if (sortState.direction === 'desc') {
+                        icon.className = 'fas fa-sort-down';
+                    } else {
+                        icon.className = 'fas fa-sort';
+                    }
+                } else {
+                    icon.className = 'fas fa-sort';
+                }
+            });
+        }
+        
+        // Show tooltip on hover - O(1)
+        function showTooltip(event, match, bookmaker, odd) {
+            // Clear any existing timeout
+            if (tooltipTimeout) {
+                clearTimeout(tooltipTimeout);
+            }
+            
+            // Create tooltip element if it doesn't exist
+            if (!tooltipElement) {
+                tooltipElement = document.createElement('div');
+                tooltipElement.className = 'tooltip';
+                document.body.appendChild(tooltipElement);
+            }
+            
+            // Build tooltip content
+            const matchDate = match.match_date ? new Date(match.match_date) : null;
+            const timeStr = matchDate ? matchDate.toLocaleString() : 'TBD';
+            
+            let content = `
+                <div class="tooltip-header">${bookmaker.name}</div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Match:</span>
+                    <span class="tooltip-value">${match.match_name}</span>
+                </div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">League:</span>
+                    <span class="tooltip-value">${match.league || 'Unknown'}</span>
+                </div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Time:</span>
+                    <span class="tooltip-value">${timeStr}</span>
+                </div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Selection:</span>
+                    <span class="tooltip-value">${odd.selection}</span>
+                </div>
+                <div class="tooltip-row">
+                    <span class="tooltip-label">Decimal Odds:</span>
+                    <span class="tooltip-value">${odd.decimal_odds}</span>
+                </div>
+            `;
+            
+            // Add fractional odds if available
+            if (odd.fractional_odds) {
+                content += `
+                    <div class="tooltip-row">
+                        <span class="tooltip-label">Fractional:</span>
+                        <span class="tooltip-value">${odd.fractional_odds}</span>
+                    </div>
+                `;
+            }
+            
+            tooltipElement.innerHTML = content;
+            
+            // Position tooltip near cursor
+            const x = event.clientX;
+            const y = event.clientY;
+            const offset = 15;
+            
+            tooltipElement.style.left = (x + offset) + 'px';
+            tooltipElement.style.top = (y + offset) + 'px';
+            
+            // Show tooltip after brief delay
+            tooltipTimeout = setTimeout(() => {
+                tooltipElement.classList.add('show');
+            }, 300);
+        }
+        
+        // Hide tooltip - O(1)
+        function hideTooltip() {
+            if (tooltipTimeout) {
+                clearTimeout(tooltipTimeout);
+            }
+            if (tooltipElement) {
+                tooltipElement.classList.remove('show');
+            }
+        }
+        
+        // Generate unique match ID - O(1)
+        function getMatchId(match) {
+            return `${match.match_name}_${match.match_date || 'nodate'}`.replace(/[^a-zA-Z0-9]/g, '_');
+        }
         
         // Clean team names by removing youth team indicators (like backend match_name_cleaner.py)
         function cleanTeamName(teamName) {
@@ -1834,6 +2221,9 @@
 
         // Event Listeners
         function setupEventListeners() {
+            // Load bookmarks from localStorage on init
+            loadBookmarks();
+            
             // Search with debounce
             const searchInput = document.getElementById('searchInput');
             searchInput.addEventListener('input', debounce((e) => {
@@ -1866,6 +2256,59 @@
                         console.log('\u2713 Refresh complete!');
                     }, 500);
                 });
+            });
+            
+            // NEW: Sort buttons
+            document.getElementById('sortTimeBtn').addEventListener('click', () => {
+                sortMatches('time');
+            });
+            
+            document.getElementById('sortOddsBtn').addEventListener('click', () => {
+                sortMatches('odds');
+            });
+            
+            // NEW: Show bookmarks toggle
+            document.getElementById('showBookmarksBtn').addEventListener('click', () => {
+                showOnlyBookmarks = !showOnlyBookmarks;
+                const btn = document.getElementById('showBookmarksBtn');
+                btn.classList.toggle('active', showOnlyBookmarks);
+                applyFilters();
+            });
+            
+            // NEW: Event delegation for bookmark buttons and tooltips
+            const tableBody = document.getElementById('tableBody');
+            
+            // Bookmark clicks - O(1) using event delegation
+            tableBody.addEventListener('click', (e) => {
+                const bookmarkBtn = e.target.closest('.bookmark-btn');
+                if (bookmarkBtn) {
+                    e.stopPropagation();
+                    const matchRow = bookmarkBtn.closest('[data-match-id]');
+                    if (matchRow) {
+                        const matchId = matchRow.dataset.matchId;
+                        toggleBookmark(matchId);
+                    }
+                }
+            });
+            
+            // Tooltip hover - O(1) using event delegation
+            tableBody.addEventListener('mouseover', (e) => {
+                const oddsCell = e.target.closest('.odds-cell');
+                if (oddsCell && oddsCell.dataset.tooltip) {
+                    try {
+                        const data = JSON.parse(oddsCell.dataset.tooltip);
+                        showTooltip(e, data.match, data.bookmaker, data.odd);
+                    } catch (err) {
+                        console.warn('Tooltip data parse error:', err);
+                    }
+                }
+            });
+            
+            tableBody.addEventListener('mouseout', (e) => {
+                const oddsCell = e.target.closest('.odds-cell');
+                if (oddsCell) {
+                    hideTooltip();
+                }
             });
 
             // Sport selector
@@ -2761,6 +3204,14 @@
                            awayTeam?.includes(query);
                 });
             }
+            
+            // NEW: Filter by bookmarks - O(n) where n = filtered match count
+            if (showOnlyBookmarks && bookmarkedMatches.size > 0) {
+                matches = matches.filter(m => {
+                    const matchId = getMatchId(m);
+                    return bookmarkedMatches.has(matchId); // O(1) lookup
+                });
+            }
 
             filteredMatches = matches;
 
@@ -2963,6 +3414,12 @@
                 `${matchDate.getMonth() + 1}/${matchDate.getDate()} ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
                 'TBD';
 
+            // NEW: Generate match ID and check bookmark status - O(1)
+            const matchId = getMatchId(match);
+            const isBookmarked = bookmarkedMatches.has(matchId);
+            const bookmarkIcon = isBookmarked ? 'fas fa-bookmark' : 'far fa-bookmark';
+            const bookmarkClass = isBookmarked ? 'bookmark-btn bookmarked' : 'bookmark-btn';
+
             // Get team names for selection labels
             const homeTeam = match.home_team || 'Home';
             const awayTeam = match.away_team || 'Away';
@@ -2991,18 +3448,23 @@
             const drawTypeLabel = getTypeLabel(currentSport, currentMarket, 'draw', sampleDrawOdd, match);
             const awayTypeLabel = getTypeLabel(currentSport, currentMarket, 'away', sampleAwayOdd, match);
             
+            // Build cells with tooltip data embedded
             for (const bm of bookmakers) {
-                homeCells.push(renderOddsCell(homeOdds.get(bm.code), match.match_name, bm.code, 'home'));
+                homeCells.push(renderOddsCell(homeOdds.get(bm.code), match, bm, 'home'));
                 if (hasDraws) {
-                    drawCells.push(renderOddsCell(drawOdds.get(bm.code), match.match_name, bm.code, 'draw'));
+                    drawCells.push(renderOddsCell(drawOdds.get(bm.code), match, bm, 'draw'));
                 }
-                awayCells.push(renderOddsCell(awayOdds.get(bm.code), match.match_name, bm.code, 'away'));
+                awayCells.push(renderOddsCell(awayOdds.get(bm.code), match, bm, 'away'));
             }
 
             // Create rows dynamically based on sport (2-way or 3-way)
+            const rowClass = isBookmarked ? 'bookmarked-row' : '';
             let rows = `
-                <tr style="border-top: 2px solid var(--border-color);">
-                    <td rowspan="${rowCount}">
+                <tr style="border-top: 2px solid var(--border-color);" class="${rowClass}" data-match-id="${matchId}">
+                    <td rowspan="${rowCount}" style="position: relative;">
+                        <button class="${bookmarkClass}" title="Bookmark this match">
+                            <i class="${bookmarkIcon}"></i>
+                        </button>
                         <div class="match-info">
                             <div class="match-teams">${teams}</div>
                             <div class="match-time">${timeStr}</div>
@@ -3021,7 +3483,7 @@
             // Add draw row only if sport supports draws
             if (hasDraws) {
                 rows += `
-                <tr>
+                <tr class="${rowClass}" data-match-id="${matchId}">
                     <td>
                         <span class="selection-team" style="opacity: 0.3;">—</span>
                     </td>
@@ -3034,7 +3496,7 @@
             
             // Add away row
             rows += `
-                <tr>
+                <tr class="${rowClass}" data-match-id="${matchId}">
                     <td>
                         <span class="selection-team">${awayTeam}</span>
                     </td>
@@ -3093,12 +3555,12 @@
             return { homeOdds, drawOdds, awayOdds };
         }
 
-        function renderOddsCell(odd, matchName, bookmakerCode, selection) {
+        function renderOddsCell(odd, match, bookmaker, selection) {
             if (!odd || !odd.decimal_odds) {
                 return '<td><span class="locked">-</span></td>';
             }
 
-            const oddKey = `${matchName}-${bookmakerCode}-${selection}`;
+            const oddKey = `${match.match_name}-${bookmaker.code}-${selection}`;
             const prevOdd = previousOdds.get(oddKey);
             let movementHtml = '';
             let cellExtraClass = '';
@@ -3126,6 +3588,25 @@
             }
 
             previousOdds.set(oddKey, odd.decimal_odds);
+            
+            // NEW: Prepare tooltip data - stored as JSON in data attribute for O(1) access
+            const tooltipData = {
+                match: {
+                    match_name: match.match_name,
+                    league: match.league,
+                    match_date: match.match_date
+                },
+                bookmaker: {
+                    name: bookmaker.name,
+                    code: bookmaker.code
+                },
+                odd: {
+                    selection: odd.selection,
+                    decimal_odds: odd.decimal_odds,
+                    fractional_odds: odd.fractional_odds || null
+                }
+            };
+            const tooltipJson = JSON.stringify(tooltipData).replace(/"/g, '&quot;');
 
             // Find if this is best odds
             const isBest = odd.is_best_odds;
@@ -3141,7 +3622,7 @@
 
             return `
                 <td>
-                    <div class="odds-cell ${cellClass} ${cellExtraClass}" ${clickHandler}>
+                    <div class="odds-cell ${cellClass} ${cellExtraClass}" ${clickHandler} data-tooltip="${tooltipJson}">
                         <div class="odds-main">
                             <span class="odds-value">${odd.decimal_odds.toFixed(2)}</span>
                             ${isBest ? '<span class="best-badge">★</span>' : ''}
