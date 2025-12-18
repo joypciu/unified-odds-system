@@ -572,7 +572,8 @@ oddsmagnet_connections: Dict[str, List[WebSocket]] = {
     'football': [],
     'basketball': [],
     'cricket': [],
-    'americanfootball': []
+    'americanfootball': [],
+    'baseball': []
 }
 
 
@@ -654,13 +655,14 @@ async def push_oddsmagnet_updates():
         'football': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10.json",
         'basketball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_basketball.json",
         'cricket': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_cricket.json",
-        'americanfootball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_americanfootball.json"
+        'americanfootball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_americanfootball.json",
+        'baseball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_baseball.json"
     }
     
     while True:
         try:
             # Check each sport that has active connections
-            for sport in ['football', 'basketball', 'cricket', 'americanfootball']:
+            for sport in ['football', 'basketball', 'cricket', 'americanfootball', 'baseball']:
                 if not oddsmagnet_connections[sport]:
                     continue  # Skip sports with no active connections
                 

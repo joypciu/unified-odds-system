@@ -1497,6 +1497,11 @@
                     <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
                     Cricket
                 </div>
+                <div class="dropdown-item" data-sport="baseball">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
+                    Baseball
+                </div>
             </div>
         </div>
     </div>
@@ -1623,6 +1628,17 @@
                 'innings runs',
                 'top batsman',
                 'player performance'
+            ],
+            baseball: [
+                'popular markets',
+                'over under betting',
+                'handicap betting',
+                'innings markets',
+                'total markets',
+                '1st innings markets',
+                'player props',
+                'team totals',
+                'alternative lines'
             ]
         };
         
@@ -1631,7 +1647,8 @@
             football: ['home', 'draw', 'away'],          // 3-way betting
             basketball: ['home', 'away'],                 // 2-way betting (no draws)
             americanfootball: ['home', 'away'],          // 2-way betting (no draws)
-            cricket: ['home', 'draw', 'away']            // 3-way betting (draw possible in Test cricket)
+            cricket: ['home', 'draw', 'away'],           // 3-way betting (draw possible in Test cricket)
+            baseball: ['home', 'away']                    // 2-way betting (no draws in baseball)
         };
         
         // Debounce utility for performance
@@ -1899,7 +1916,8 @@
                 football: 'fa-futbol',
                 basketball: 'fa-basketball-ball',
                 americanfootball: 'fa-football-ball',
-                cricket: 'fa-baseball-ball'
+                cricket: 'fa-baseball-ball',
+                baseball: 'fa-baseball-ball'
             };
             
             const sportIcon = sportIcons[currentSport] || 'fa-futbol';
@@ -1912,16 +1930,17 @@
                 </div>
             `;
             
-            // Add each market category with sport context
+            // Add each dynamically discovered market category
             marketCategories.forEach(market => {
                 const isActive = market === currentMarket;
-                const isPredefined = (SPORT_MARKETS[currentSport] || []).includes(market);
-                const icon = isPredefined ? sportIcon : 'fa-chart-bar';
+                // All markets from API - use chart icon to indicate dynamic discovery
+                const icon = 'fa-chart-bar';
                 
                 html += `
                     <div class="filter-menu-item ${isActive ? 'active' : ''}" data-value="${market}">
                         <i class="fas ${icon}" style="margin-right: 8px; color: var(--accent-primary);"></i>
                         ${market}
+                        <span style="margin-left: auto; font-size: 11px; color: var(--text-tertiary); opacity: 0.6;">from API</span>
                     </div>
                 `;
             });
@@ -2536,12 +2555,8 @@
             
             // Get current sport
             const currentSport = window.currentSport || 'football';
-            
-            // Start with predefined sport-specific markets
-            const predefinedMarkets = SPORT_MARKETS[currentSport] || SPORT_MARKETS.football;
-            predefinedMarkets.forEach(market => categoriesSet.add(market));
 
-            // Also extract from actual data (in case there are additional markets)
+            // PRIORITY 1: Extract from actual data (dynamic discovery from API)
             for (const match of allMatches) {
                 if (match.markets) {
                     for (const category of Object.keys(match.markets)) {
@@ -2549,19 +2564,19 @@
                     }
                 }
             }
+            
+            // PRIORITY 2: If no data yet, use predefined fallback
+            if (categoriesSet.size === 0) {
+                const predefinedMarkets = SPORT_MARKETS[currentSport] || SPORT_MARKETS.football;
+                predefinedMarkets.forEach(market => categoriesSet.add(market));
+            }
 
-            // Sort markets with predefined ones first
+            // Sort markets alphabetically (or keep API order if preferred)
             marketCategories = Array.from(categoriesSet).sort((a, b) => {
-                const aIndex = predefinedMarkets.indexOf(a);
-                const bIndex = predefinedMarkets.indexOf(b);
-                
-                // Both in predefined list - sort by predefined order
-                if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-                // Only a is predefined - a comes first
-                if (aIndex !== -1) return -1;
-                // Only b is predefined - b comes first
-                if (bIndex !== -1) return 1;
-                // Neither predefined - alphabetical
+                // Prioritize "popular markets" to always be first
+                if (a.toLowerCase().includes('popular')) return -1;
+                if (b.toLowerCase().includes('popular')) return 1;
+                // Alphabetical for the rest
                 return a.localeCompare(b);
             });
 
@@ -2570,7 +2585,7 @@
                 // If current market doesn't exist in new categories, reset to first
                 if (!currentMarket || !marketCategories.includes(currentMarket)) {
                     currentMarket = marketCategories[0];
-                    console.log(`  ✓ Market set to: ${currentMarket}`);
+                    console.log(`  ✓ Market set to: ${currentMarket} (discovered from data)`);
                 }
             } else {
                 currentMarket = '';

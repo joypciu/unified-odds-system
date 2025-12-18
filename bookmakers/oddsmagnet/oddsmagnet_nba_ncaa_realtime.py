@@ -147,7 +147,7 @@ class NBANCAARealtimeCollector:
             print(f"⚠️ Error saving snapshot: {e}")
             return False
     
-    def run_realtime_loop(self, update_interval: float = 60.0):
+    def run_realtime_loop(self, update_interval: float = 30.0):
         """Main real-time collection loop"""
         print("\n" + "="*80)
         print("REAL-TIME COLLECTION STARTED - NBA & NCAA BASKETBALL")
@@ -275,7 +275,7 @@ def main():
         requests_per_second=15.0
     )
     
-    collector.run_realtime_loop(update_interval=60.0)
+    collector.run_realtime_loop(update_interval=30.0)
 
 
 if __name__ == '__main__':

@@ -116,7 +116,7 @@ class CricketRealtimeCollector:
             print(f"⚠️ Error saving snapshot: {e}")
             return False
     
-    def run_realtime_loop(self, update_interval: float = 60.0, max_matches: int = 300):
+    def run_realtime_loop(self, update_interval: float = 30.0, max_matches: int = 300):
         """Main real-time collection loop"""
         print("\n" + "="*80)
         print("REAL-TIME COLLECTION STARTED - CRICKET (ALL LEAGUES)")
@@ -258,8 +258,8 @@ def main():
         requests_per_second=15.0  # 15 req/s
     )
     
-    # Start real-time loop (60s update interval)
-    collector.run_realtime_loop(update_interval=60.0, max_matches=300)
+    # Start real-time loop (30s update interval)
+    collector.run_realtime_loop(update_interval=30.0, max_matches=300)
 
 
 if __name__ == '__main__':

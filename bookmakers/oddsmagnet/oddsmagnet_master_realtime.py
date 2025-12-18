@@ -108,7 +108,7 @@ class MasterRealtimeCollector:
             print(f"⚠️ Error saving snapshot: {e}")
             return False
     
-    def run_realtime_loop(self, update_interval: float = 60.0, max_matches: int = 500):
+    def run_realtime_loop(self, update_interval: float = 30.0, max_matches: int = 500):
         """Main real-time collection loop"""
         print("\n" + "="*80)
         print("REAL-TIME COLLECTION STARTED - ALL LEAGUES (MASTER)")
@@ -230,9 +230,9 @@ def main():
         requests_per_second=15.0
     )
     
-    # Start real-time loop (60 second updates, max 500 matches)
+    # Start real-time loop (30 second updates, max 500 matches)
     collector.run_realtime_loop(
-        update_interval=60.0,
+        update_interval=30.0,
         max_matches=500  # Limit for performance
     )
 

@@ -24,6 +24,10 @@ A high-performance Python-based scraping solution for collecting betting odds da
 bookmakers/oddsmagnet/
 ├── oddsmagnet_top10_realtime.py          # ⭐ TOP 10 leagues collector (30s updates)
 ├── oddsmagnet_master_realtime.py         # Master collector (all leagues)
+├── oddsmagnet_basketball_realtime.py     # Basketball collector (60s updates)
+├── oddsmagnet_baseball_realtime.py       # ⚾ Baseball collector (60s updates)
+├── oddsmagnet_cricket_realtime.py        # Cricket collector (60s updates)
+├── oddsmagnet_americanfootball_realtime.py # American Football collector (60s)
 ├── oddsmagnet_optimized_scraper.py       # Core scraper (concurrent)
 ├── oddsmagnet_optimized_collector.py     # Match fetcher
 └── README_ODDSMAGNET.md                  # This file
@@ -32,7 +36,11 @@ bookmakers/oddsmagnet/
 ### Data Output Files
 
 ```
-├── oddsmagnet_top10.json                 # TOP 10 leagues data (UI uses this)
+├── oddsmagnet_top10.json                 # TOP 10 football leagues data (UI uses this)
+├── oddsmagnet_basketball.json            # Basketball data
+├── oddsmagnet_baseball.json              # ⚾ Baseball data (NEW!)
+├── oddsmagnet_cricket.json               # Cricket data
+├── oddsmagnet_americanfootball.json      # American Football data
 └── oddsmagnet_realtime.json              # All leagues data (master)
 ```
 

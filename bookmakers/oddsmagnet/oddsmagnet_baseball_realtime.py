@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-OddsMagnet American Football Real-Time Collector
-Continuously collects American Football odds from all leagues (NFL, NCAA)
-Updates oddsmagnet_americanfootball.json every 60 seconds
+OddsMagnet Baseball Real-Time Collector
+Continuously collects baseball odds from all leagues (MLB, NPB, KBO, etc.)
+Updates oddsmagnet_baseball.json every 60 seconds
 """
 
 import requests
@@ -19,26 +19,24 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from utils.helpers.match_name_cleaner import clean_match_data
 
-class AmericanFootballRealtimeCollector:
-    """Real-time collector for American Football odds"""
+class BaseballRealtimeCollector:
+    """Real-time collector for baseball odds"""
     
-    # Important market categories for American Football
-    # NOTE: These are market CATEGORIES (not individual market names)
-    # Each category contains multiple markets like "win market", "handicaps", "totals"
-    IMPORTANT_MARKETS = [
-        'popular markets',           # Contains: win market, handicaps, totals
-        'over under betting',        # Total points over/under markets
-        'handicap betting',          # Point spread/handicap markets  
-        '1st half markets',          # First half betting markets
-        'total markets',             # Total points markets
-        'quarter betting'            # Quarter-specific markets
-    ]
+    # Market discovery settings
+    # NOTE: Markets are discovered dynamically from the API
+    # Set market_filter=None to collect ALL available markets
+    # Or provide a list to filter specific categories
+    MARKET_FILTER = None  # None = Collect ALL markets from API (dynamic)
+    MAX_MARKETS_PER_CATEGORY = None  # None = Collect all markets in each category
+    
+    # Track discovered market categories across all matches
+    discovered_markets = set()
     
     def __init__(self, max_workers: int = 20, requests_per_second: float = 15.0):
         """Initialize the collector with fast parallel fetching"""
         self.max_workers = max_workers
         self.requests_per_second = requests_per_second
-        self.output_file = Path(__file__).parent / 'oddsmagnet_americanfootball.json'
+        self.output_file = Path(__file__).parent / 'oddsmagnet_baseball.json'
         self.running = True
         self.iteration = 0
         
@@ -59,24 +57,24 @@ class AmericanFootballRealtimeCollector:
         self.running = False
     
     def get_all_matches(self) -> List[Dict]:
-        """Get all available American Football matches from OddsMagnet"""
+        """Get all available baseball matches from OddsMagnet"""
         from oddsmagnet_optimized_collector import OddsMagnetOptimizedCollector
         temp_collector = OddsMagnetOptimizedCollector(
             max_workers=self.max_workers,
             requests_per_second=self.requests_per_second
         )
-        return temp_collector.get_all_matches_summary(sport='american-football', use_cache=True)
+        return temp_collector.get_all_matches_summary(sport='baseball', use_cache=True)
     
     def fetch_match_odds(self, match: Dict) -> Optional[Dict]:
-        """Fetch odds for a single American Football match"""
+        """Fetch odds for a single baseball match with dynamic market discovery"""
         try:
             match_data = self.scraper.scrape_match_all_markets(
                 match_uri=match['match_uri'],
                 match_name=match['match_name'],
                 league_name=match['league'],
                 match_date=match.get('match_date'),
-                market_filter=self.IMPORTANT_MARKETS,
-                max_markets_per_category=5,
+                market_filter=self.MARKET_FILTER,  # Dynamic: None = ALL markets
+                max_markets_per_category=self.MAX_MARKETS_PER_CATEGORY,
                 use_concurrent=True
             )
             
@@ -85,6 +83,11 @@ class AmericanFootballRealtimeCollector:
                 match_data['away_team'] = match.get('away_team', '')
                 match_data['league_slug'] = match.get('league_slug', '')
                 match_data['fetch_timestamp'] = datetime.now().isoformat()
+                
+                # Track discovered market categories
+                if 'markets' in match_data:
+                    for category in match_data['markets'].keys():
+                        self.discovered_markets.add(category)
                 
                 # Clean match data
                 match_data = clean_match_data(match_data)
@@ -119,16 +122,18 @@ class AmericanFootballRealtimeCollector:
             print(f"⚠️ Error saving snapshot: {e}")
             return False
     
-    def run_realtime_loop(self, update_interval: float = 30.0, max_matches: int = 300):
+    def run_realtime_loop(self, update_interval: float = 30.0):
         """Main real-time collection loop"""
         print("\n" + "="*80)
-        print("REAL-TIME COLLECTION STARTED - AMERICAN FOOTBALL (ALL LEAGUES)")
+        print("REAL-TIME COLLECTION STARTED - BASEBALL (ALL LEAGUES)")
         print("="*80)
         print(f"Update interval: {update_interval}s")
-        print(f"Max matches per update: {max_matches}")
         print(f"Output file: {self.output_file}")
-        print(f"Markets: {len(self.IMPORTANT_MARKETS)} important categories")
-        print(f"  • " + ", ".join(self.IMPORTANT_MARKETS[:4]) + "...")
+        print(f"Market Discovery: DYNAMIC (from API)")
+        if self.MARKET_FILTER:
+            print(f"  • Filtered to: {', '.join(self.MARKET_FILTER[:5])}...")
+        else:
+            print(f"  • Collecting ALL available markets")
         print(f"Workers: {self.max_workers} concurrent")
         print(f"Rate limit: {self.requests_per_second} req/s")
         print("Press Ctrl+C to stop gracefully")
@@ -142,46 +147,41 @@ class AmericanFootballRealtimeCollector:
             print(f"UPDATE #{self.iteration} - {datetime.now().strftime('%H:%M:%S')}")
             print(f"{'─'*80}")
             
-            # Step 1: Get all American Football matches
-            print("\n📡 Fetching American Football match list...")
+            # Step 1: Get all baseball matches
+            print("\n⚾ Fetching baseball match list...")
             all_matches = self.get_all_matches()
             
-            # Limit to max_matches for performance
-            matches_to_process = all_matches[:max_matches] if max_matches else all_matches
-            
-            print(f"   Total available: {len(all_matches)} matches")
-            print(f"   Processing: {len(matches_to_process)} matches")
-            
-            if not matches_to_process:
-                print("⚠️ No American Football matches found")
+            if not all_matches:
+                print("⚠️ No baseball matches found")
                 time.sleep(update_interval)
                 continue
             
             # Count matches by league
             league_counts = {}
-            for match in matches_to_process:
-                league = match.get('league', 'unknown')
+            for match in all_matches:
+                league = match.get('league', 'Unknown')
                 league_counts[league] = league_counts.get(league, 0) + 1
             
-            print(f"\n🏈 Top leagues:")
-            for league, count in sorted(league_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
+            print(f"   Total matches: {len(all_matches)}")
+            print(f"\n⚾ Matches by league:")
+            for league, count in sorted(league_counts.items(), key=lambda x: x[1], reverse=True):
                 print(f"  • {league}: {count}")
             
             # Step 2: Fetch odds for all matches in parallel
-            print(f"\n🚀 Processing {len(matches_to_process)} matches...")
+            print(f"\n🚀 Processing {len(all_matches)} matches with {self.max_workers} workers...")
+            print(f"   Market Discovery: Dynamic (fetching from API)")
             
             snapshot = {
                 'timestamp': datetime.now().isoformat(),
                 'iteration': self.iteration,
-                'source': 'oddsmagnet_americanfootball',
-                'sport': 'american-football',
+                'source': 'oddsmagnet',
+                'sport': 'baseball',
                 'scope': 'all_leagues',
-                'market_categories': self.IMPORTANT_MARKETS,
-                'total_available': len(all_matches),
-                'total_matches': len(matches_to_process),
-                'update_interval': update_interval,
-                'leagues_tracked': list(set([m.get('league', '') for m in matches_to_process])),
-                'total_leagues': len(set([m.get('league', '') for m in matches_to_process])),
+                'total_matches': len(all_matches),
+                'league_breakdown': league_counts,
+                'market_discovery': 'dynamic',  # Indicates dynamic discovery
+                'market_filter': self.MARKET_FILTER or 'all',
+                'discovered_market_categories': sorted(list(self.discovered_markets)),
                 'matches': []
             }
             
@@ -191,7 +191,7 @@ class AmericanFootballRealtimeCollector:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                 future_to_match = {
                     executor.submit(self.fetch_match_odds, match): (i, match)
-                    for i, match in enumerate(matches_to_process, 1)
+                    for i, match in enumerate(all_matches, 1)
                 }
                 
                 for future in as_completed(future_to_match):
@@ -206,12 +206,12 @@ class AmericanFootballRealtimeCollector:
                             completed += 1
                             
                             # Show progress every 20 matches
-                            if completed % 20 == 0 or completed == len(matches_to_process):
-                                percent = (completed / len(matches_to_process)) * 100
-                                print(f"  [{completed}/{len(matches_to_process)}] {percent:.1f}% - {match['match_name'][:50]}")
+                            if completed % 20 == 0 or completed == len(all_matches):
+                                percent = (completed / len(all_matches)) * 100
+                                print(f"  [{completed}/{len(all_matches)}] {percent:.1f}% - {match['match_name'][:60]}")
                     
                     except Exception as e:
-                        print(f"  ✗ [{i}/{len(matches_to_process)}] Error: {e}")
+                        pass  # Silent fail for individual matches
             
             # Step 3: Save snapshot
             snapshot['matches_processed'] = completed
@@ -225,54 +225,62 @@ class AmericanFootballRealtimeCollector:
             print(f"\n{'─'*80}")
             print(f"UPDATE #{self.iteration} COMPLETE")
             print(f"{'─'*80}")
-            print(f"  ✅ Matches processed: {completed}/{len(matches_to_process)}")
-            print(f"  🎯 Total odds collected: {total_odds:,}")
+            print(f"  ✅ Matches processed: {completed}/{len(all_matches)}")
+            print(f"  📊 Total odds collected: {total_odds:,}")
+            print(f"  📋 Market categories discovered: {len(self.discovered_markets)}")
+            if self.discovered_markets:
+                print(f"     {', '.join(sorted(list(self.discovered_markets))[:8])}...")
             print(f"  ⏱️  Cycle duration: {cycle_duration:.1f}s")
-            if saved:
-                print(f"  💾 Saved to: {self.output_file.name}")
-            print(f"{'─'*80}")
+            print(f"  💾 File saved: {'✅' if saved else '❌'}")
             
-            # Sleep until next update
-            if self.running:
-                sleep_time = max(0, update_interval - cycle_duration)
-                if sleep_time > 0:
-                    print(f"\n😴 Sleeping {sleep_time:.1f}s until next update...")
-                    time.sleep(sleep_time)
-                else:
-                    print(f"\n⚠️ Cycle took {cycle_duration:.1f}s (longer than {update_interval}s interval)")
-        
-        print("\n✅ Collector stopped gracefully")
+            # Calculate wait time
+            wait_time = max(0, update_interval - cycle_duration)
+            if wait_time > 0:
+                print(f"  ⏳ Next update in {wait_time:.1f}s...")
+                time.sleep(wait_time)
+            else:
+                print(f"  ⚠️  Cycle took longer than interval ({cycle_duration:.1f}s > {update_interval}s)")
 
 
 def main():
     """Main entry point"""
-    print("\n" + "#"*80)
-    print("ODDSMAGNET AMERICAN FOOTBALL REAL-TIME COLLECTOR")
-    print("#"*80)
+    import argparse
     
-    print(f"\nImportant Markets ({len(AmericanFootballRealtimeCollector.IMPORTANT_MARKETS)}):")
-    for i, market in enumerate(AmericanFootballRealtimeCollector.IMPORTANT_MARKETS, 1):
-        print(f"  {i}. {market}")
-    print()
+    parser = argparse.ArgumentParser(description='OddsMagnet Baseball Real-Time Collector')
+    parser.add_argument('--interval', type=float, default=30.0,
+                       help='Update interval in seconds (default: 30)')
+    parser.add_argument('--workers', type=int, default=20,
+                       help='Number of concurrent workers (default: 20)')
+    parser.add_argument('--rate', type=float, default=15.0,
+                       help='Requests per second (default: 15)')
     
-    # Create collector with optimized settings
-    collector = AmericanFootballRealtimeCollector(
-        max_workers=20,           # 20 concurrent workers
-        requests_per_second=15.0  # 15 req/s
+    args = parser.parse_args()
+    
+    print("\n" + "="*80)
+    print("ODDSMAGNET BASEBALL COLLECTOR - DYNAMIC MARKET DISCOVERY")
+    print("="*80)
+    print(f"\nConfiguration:")
+    print(f"  Update interval: {args.interval}s")
+    print(f"  Workers: {args.workers}")
+    print(f"  Rate limit: {args.rate} req/s")
+    print(f"\nMarket Discovery Mode:")
+    print(f"  ✅ DYNAMIC - Markets discovered from API in real-time")
+    print(f"  ✅ Collects ALL available market categories")
+    print(f"  ✅ Adapts to OddsMagnet's current offerings")
+    print("\n" + "="*80)
+    
+    collector = BaseballRealtimeCollector(
+        max_workers=args.workers,
+        requests_per_second=args.rate
     )
     
-    # Start real-time loop (30s update interval)
-    collector.run_realtime_loop(update_interval=30.0, max_matches=300)
-
-
-if __name__ == '__main__':
     try:
-        main()
+        collector.run_realtime_loop(update_interval=args.interval)
     except KeyboardInterrupt:
-        print("\n\n⏹️ Stopped by user")
-        sys.exit(0)
-    except Exception as e:
-        print(f"\n❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+        print("\n\n⚠️ Interrupted by user")
+    finally:
+        print("\n✅ Collector stopped")
+
+
+if __name__ == "__main__":
+    main()
