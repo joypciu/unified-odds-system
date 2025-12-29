@@ -37,39 +37,59 @@ async def debug_chrome():
             print("   google-chrome --remote-debugging-port=9222 --headless=new")
             return
         
-        # Step 3: Get or create context
-        print("\n3️⃣  Getting browser context...")
-        if browser.contexts:
-            context = browser.contexts[0]
-            print("   ✓ Using existing context")
-        else:
-            context = await browser.new_context(
-                viewport={'width': 1920, 'height': 1080},
-                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                extra_http_headers={
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                    'Sec-Fetch-Dest': 'document',
-                    'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'none',
-                    'Upgrade-Insecure-Requests': '1'
-                }
-            )
-            print("   ✓ Created new context")
+        # Step 3: Create FRESH context (don't use existing)
+        print("\n3️⃣  Creating fresh browser context with stealth...")
         
-        # Apply stealth scripts
-        print("\n   Applying anti-detection scripts...")
+        # Close any existing contexts
+        for ctx in browser.contexts:
+            await ctx.close()
+        
+        # Stealth scripts to inject before page creation
         stealth_js = """
         Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
         Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
         Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
-        window.chrome = { runtime: {} };
+        window.chrome = { runtime: {}, loadTimes: function() {}, csi: function() {} };
         Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
         Object.defineProperty(navigator, 'vendor', { get: () => 'Google Inc.' });
+        Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 0 });
+        Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
+        Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
+        
+        // Mock getUserMedia
+        navigator.mediaDevices = {
+            getUserMedia: () => Promise.resolve({}),
+            enumerateDevices: () => Promise.resolve([])
+        };
+        
+        // Override permissions
+        const originalQuery = window.navigator.permissions.query;
+        window.navigator.permissions.query = (parameters) => (
+            parameters.name === 'notifications' ?
+                Promise.resolve({ state: Notification.permission }) :
+                originalQuery(parameters)
+        );
         """
+        
+        context = await browser.new_context(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            extra_http_headers={
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                'Sec-Ch-Ua-Mobile': '?0',
+                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Upgrade-Insecure-Requests': '1'
+            }
+        )
+        
         await context.add_init_script(stealth_js)
-        print("   ✓ Anti-detection scripts applied")
+        print("   ✓ Fresh context with anti-detection scripts created")
         
         # Step 4: Create page
         print("\n4️⃣  Creating new page...")
