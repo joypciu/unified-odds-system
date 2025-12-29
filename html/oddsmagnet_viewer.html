@@ -3930,31 +3930,47 @@
             let mainMarket = markets.find(m => m.odds && Array.isArray(m.odds) && m.odds.length > 0);
             if (!mainMarket) return { homeOdds, drawOdds, awayOdds };
 
-            const marketName = mainMarket.market_name?.toLowerCase() || '';
+            const marketName = (mainMarket.name || mainMarket.market_name || '');
+            const marketNameLower = marketName.toLowerCase();
+            const marketCategory = (currentMarket || '').toLowerCase();
             const homeTeam = match.home_team?.toLowerCase();
             const awayTeam = match.away_team?.toLowerCase();
             
-            // Detect market type and handle selections appropriately
-            const isOverUnder = marketName.includes('over') || marketName.includes('under') || marketName.includes('total');
-            const isHandicap = marketName.includes('handicap') || marketName.includes('spread');
+            // Detect market type based on both category and market name
+            const isOverUnder = marketCategory.includes('over') || marketCategory.includes('under') || 
+                               marketNameLower.includes('over') || marketNameLower.includes('under') || 
+                               marketNameLower.includes('total');
+            const isYesNo = marketCategory.includes('both teams') || marketNameLower.includes('both teams') ||
+                           marketCategory.includes('yes/no') || marketNameLower.includes('clean sheet');
+            const isHandicap = marketCategory.includes('handicap') || marketCategory.includes('spread') ||
+                              marketNameLower.includes('handicap') || marketNameLower.includes('spread');
+            const isCorrectScore = marketCategory.includes('correct score') || marketNameLower.includes('correct score');
             
             for (const odd of mainMarket.odds) {
                 if (!odd.bookmaker_code || !odd.decimal_odds) continue;
                 
-                const selection = odd.selection?.toLowerCase();
+                const selection = (odd.selection || '').toLowerCase();
+                const betName = (odd.bet_name || '').toLowerCase();
                 
                 if (isOverUnder) {
                     // For Over/Under markets: map over to home, under to away
-                    if (selection.includes('over')) {
+                    if (selection.includes('over') || betName.includes('over')) {
                         homeOdds.set(odd.bookmaker_code, odd);
-                    } else if (selection.includes('under')) {
+                    } else if (selection.includes('under') || betName.includes('under')) {
+                        awayOdds.set(odd.bookmaker_code, odd);
+                    }
+                } else if (isYesNo) {
+                    // For Yes/No markets: map yes to home, no to away
+                    if (selection.includes('yes') || betName.includes('yes')) {
+                        homeOdds.set(odd.bookmaker_code, odd);
+                    } else if (selection.includes('no') || betName.includes('no')) {
                         awayOdds.set(odd.bookmaker_code, odd);
                     }
                 } else if (isHandicap) {
                     // For Handicap markets: try to match team names, or use first/second odds
-                    if (homeTeam && selection.includes(homeTeam)) {
+                    if (homeTeam && (selection.includes(homeTeam) || betName.includes(homeTeam))) {
                         homeOdds.set(odd.bookmaker_code, odd);
-                    } else if (awayTeam && selection.includes(awayTeam)) {
+                    } else if (awayTeam && (selection.includes(awayTeam) || betName.includes(awayTeam))) {
                         awayOdds.set(odd.bookmaker_code, odd);
                     } else {
                         // Fallback: assign based on order (first is home, second is away)
@@ -3964,13 +3980,40 @@
                             awayOdds.set(odd.bookmaker_code, odd);
                         }
                     }
+                } else if (isCorrectScore) {
+                    // For Correct Score: group by unique scores, limit to first 3 scores
+                    const scoreGroups = new Map();
+                    for (const o of mainMarket.odds) {
+                        const score = o.selection || o.bet_name;
+                        if (!scoreGroups.has(score)) {
+                            scoreGroups.set(score, []);
+                        }
+                        scoreGroups.get(score).push(o);
+                    }
+                    // For now, just take first 3 unique scores and map to home/draw/away
+                    const scores = Array.from(scoreGroups.keys()).slice(0, 3);
+                    if (scores[0]) {
+                        const oddsForScore = scoreGroups.get(scores[0]);
+                        oddsForScore.forEach(o => homeOdds.set(o.bookmaker_code, o));
+                    }
+                    if (scores[1]) {
+                        const oddsForScore = scoreGroups.get(scores[1]);
+                        oddsForScore.forEach(o => drawOdds.set(o.bookmaker_code, o));
+                    }
+                    if (scores[2]) {
+                        const oddsForScore = scoreGroups.get(scores[2]);
+                        oddsForScore.forEach(o => awayOdds.set(o.bookmaker_code, o));
+                    }
+                    break; // Don't continue loop for correct score
                 } else {
                     // Standard markets (win, moneyline, etc.): match by team names and draw
-                    if (selection === 'draw') {
+                    if (selection === 'draw' || betName === 'draw') {
                         drawOdds.set(odd.bookmaker_code, odd);
-                    } else if (homeTeam && (selection === homeTeam || selection?.includes(homeTeam))) {
+                    } else if (homeTeam && (selection === homeTeam || selection.includes(homeTeam) || 
+                                           betName === homeTeam || betName.includes(homeTeam))) {
                         homeOdds.set(odd.bookmaker_code, odd);
-                    } else if (awayTeam && (selection === awayTeam || selection?.includes(awayTeam))) {
+                    } else if (awayTeam && (selection === awayTeam || selection.includes(awayTeam) ||
+                                           betName === awayTeam || betName.includes(awayTeam))) {
                         awayOdds.set(odd.bookmaker_code, odd);
                     }
                 }
