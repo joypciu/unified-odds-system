@@ -8,6 +8,8 @@ import json
 import time
 import asyncio
 import logging
+import subprocess
+import socket
 from datetime import datetime
 from typing import Dict, List, Optional
 from pathlib import Path
@@ -44,11 +46,87 @@ class BaseSportScraper:
         
         logging.info(f"🎯 Initialized {sport.upper()} scraper")
     
+    def _is_port_open(self, port: int, host: str = 'localhost') -> bool:
+        """Check if a port is open"""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        try:
+            result = sock.connect_ex((host, port))
+            sock.close()
+            return result == 0
+        except:
+            return False
+    
+    def _start_chrome_debug(self):
+        """Start Chrome with remote debugging if not already running"""
+        if self._is_port_open(9222):
+            logging.info(f"✓ Chrome already running on port 9222")
+            return True
+        
+        try:
+            logging.info(f"🚀 Starting Chrome with remote debugging on port 9222...")
+            
+            # Try to find Chrome executable
+            chrome_paths = [
+                '/usr/bin/google-chrome',
+                '/usr/bin/google-chrome-stable',
+                'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+                'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+            ]
+            
+            chrome_exe = None
+            for path in chrome_paths:
+                if Path(path).exists():
+                    chrome_exe = path
+                    break
+            
+            if not chrome_exe:
+                logging.warning("Chrome executable not found")
+                return False
+            
+            # Start Chrome in background
+            cmd = [
+                chrome_exe,
+                '--remote-debugging-port=9222',
+                '--user-data-dir=/tmp/chrome_oddsmagnet',
+                '--no-first-run',
+                '--disable-blink-features=AutomationControlled',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--headless=new'
+            ]
+            
+            subprocess.Popen(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True
+            )
+            
+            # Wait for Chrome to start
+            for _ in range(10):
+                time.sleep(0.5)
+                if self._is_port_open(9222):
+                    logging.info(f"✓ Chrome started successfully on port 9222")
+                    return True
+            
+            logging.warning("Chrome started but port 9222 not accessible")
+            return False
+            
+        except Exception as e:
+            logging.warning(f"Failed to start Chrome: {e}")
+            return False
+    
     async def connect(self):
         """Connect to browser (local debugging or headless)"""
         self.playwright = await async_playwright().start()
         
         if self.mode == 'local':
+            # Ensure Chrome with remote debugging is running
+            self._start_chrome_debug()
+            
             # Connect to existing Chrome with remote debugging
             try:
                 self.browser = await self.playwright.chromium.connect_over_cdp(
