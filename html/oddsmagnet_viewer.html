@@ -3860,6 +3860,7 @@
             // For tennis/tournaments with no teams, use the match name
             let teams;
             let homeTeam, awayTeam;
+            let isTournamentEvent = false;
             
             if (match.home_team || match.away_team || match.home || match.away) {
                 homeTeam = match.home_team || match.home || 'Team 1';
@@ -3867,9 +3868,12 @@
                 teams = `${homeTeam} vs ${awayTeam}`;
             } else if (match.name) {
                 // Tennis tournaments, boxing events, etc. use name field
+                // Extract top 2 players from odds for display
+                isTournamentEvent = true;
                 teams = match.name;
-                homeTeam = match.name;
-                awayTeam = '';
+                const topPlayers = getTopPlayersFromMatch(match);
+                homeTeam = topPlayers[0] || match.name;
+                awayTeam = topPlayers[1] || '';
             } else {
                 teams = 'Unknown Match';
                 homeTeam = 'Unknown';
@@ -3982,6 +3986,30 @@
             return rows;
         }
 
+        // Helper function to extract top players/competitors from tournament events
+        function getTopPlayersFromMatch(match) {
+            const players = [];
+            if (!match.markets || !currentMarket) return players;
+            
+            const markets = match.markets[currentMarket];
+            if (!Array.isArray(markets) || markets.length === 0) return players;
+            
+            const mainMarket = markets.find(m => m.odds && Array.isArray(m.odds) && m.odds.length > 0);
+            if (!mainMarket || !mainMarket.odds) return players;
+            
+            // Get unique selections from odds (player names)
+            const uniquePlayers = new Set();
+            for (const odd of mainMarket.odds) {
+                const playerName = odd.bet_name || odd.selection;
+                if (playerName && playerName.toLowerCase() !== 'draw') {
+                    uniquePlayers.add(playerName);
+                }
+                if (uniquePlayers.size >= 2) break; // Only need top 2
+            }
+            
+            return Array.from(uniquePlayers);
+        }
+
         function getMatchOddsBySelection(match) {
             const homeOdds = new Map();
             const drawOdds = new Map();
@@ -4003,6 +4031,9 @@
             const marketCategory = (currentMarket || '').toLowerCase();
             const homeTeam = match.home_team?.toLowerCase();
             const awayTeam = match.away_team?.toLowerCase();
+            
+            // Check if this is a tournament event (no home/away teams)
+            const isTournamentEvent = !match.home_team && !match.away_team;
             
             // Detect market type based on both category and market name
             const isOverUnder = marketCategory.includes('over') || marketCategory.includes('under') || 
@@ -4075,6 +4106,33 @@
                     break; // Don't continue loop for correct score
                 } else {
                     // Standard markets (win, moneyline, etc.): match by team names and draw
+                    
+                    // For tournament events (tennis, boxing), take first 2 unique selections as home/away
+                    if (isTournamentEvent) {
+                        const playerSelections = [];
+                        for (const o of mainMarket.odds) {
+                            const playerName = (o.bet_name || o.selection || '').toLowerCase();
+                            if (playerName && playerName !== 'draw' && !playerSelections.includes(playerName)) {
+                                playerSelections.push(playerName);
+                                if (playerSelections.length >= 2) break;
+                            }
+                        }
+                        
+                        // Map odds to first player (home) and second player (away)
+                        for (const o of mainMarket.odds) {
+                            if (!o.bookmaker_code || !o.decimal_odds) continue;
+                            const playerName = (o.bet_name || o.selection || '').toLowerCase();
+                            
+                            if (playerName === playerSelections[0]) {
+                                homeOdds.set(o.bookmaker_code, o);
+                            } else if (playerName === playerSelections[1]) {
+                                awayOdds.set(o.bookmaker_code, o);
+                            }
+                        }
+                        break; // Exit loop after mapping tournament odds
+                    }
+                    
+                    // Regular team-based markets
                     if (selection === 'draw' || betName === 'draw') {
                         drawOdds.set(odd.bookmaker_code, odd);
                     } else if (homeTeam && (selection === homeTeam || selection.includes(homeTeam) || 

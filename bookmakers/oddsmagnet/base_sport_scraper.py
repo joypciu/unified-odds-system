@@ -362,6 +362,27 @@ class BaseSportScraper:
                     return b_data
         return None
     
+    def extract_players_from_odds(self, odds_data: Dict) -> List[str]:
+        """
+        Extract player/fighter names from odds data for tournament events.
+        Returns list of unique player names (typically 2 for tennis/boxing).
+        """
+        if not odds_data or 'data' not in odds_data:
+            return []
+        
+        players = []
+        seen = set()
+        
+        for row in odds_data.get('data', []):
+            bet_name = row.get('bet_name', '').strip()
+            if bet_name and bet_name.lower() not in ['draw', ''] and bet_name not in seen:
+                players.append(bet_name)
+                seen.add(bet_name)
+                if len(players) >= 2:
+                    break
+        
+        return players
+    
     def transform_odds_to_ui_format(self, odds_data: Dict) -> List[Dict]:
         """
         Transform Pandas DataFrame JSON format to UI-expected format
@@ -537,6 +558,23 @@ class BaseSportScraper:
             
             # Transform odds from Pandas format to UI format
             transformed_odds = self.transform_odds_to_ui_format(odds)
+            
+            # For tournament events (tennis, boxing), extract player names from odds
+            # and populate home_team/away_team if they're currently null
+            match_data = matches_map[match_slug]
+            if not match_data.get('home_team') and not match_data.get('away_team'):
+                # This is a tournament event - extract player names
+                players = self.extract_players_from_odds(odds)
+                if len(players) >= 2:
+                    match_data['home_team'] = players[0]
+                    match_data['home'] = players[0]
+                    match_data['away_team'] = players[1]
+                    match_data['away'] = players[1]
+                    logging.debug(f"{self.sport}: Tournament event - extracted players: {players[0]} vs {players[1]}")
+                elif len(players) == 1:
+                    # Single player (rare case)
+                    match_data['home_team'] = players[0]
+                    match_data['home'] = players[0]
             
             # Add market to match
             category = mapping['market_category']
