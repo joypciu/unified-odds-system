@@ -4183,11 +4183,16 @@
             previousOdds.set(oddKey, odd.decimal_odds);
             
             // NEW: Prepare tooltip data - stored as JSON in data attribute for O(1) access
+            // Build match name from home_team/away_team or fallback to match name
+            const tooltipMatchName = match.home_team && match.away_team 
+                ? `${match.home_team} vs ${match.away_team}`
+                : (match.name || match.match_name || 'Unknown Match');
+            
             const tooltipData = {
                 match: {
-                    match_name: match.match_name,
-                    league: match.league,
-                    match_date: match.match_date
+                    match_name: tooltipMatchName,
+                    league: match.league || match.competition || 'Unknown',
+                    match_date: match.datetime || match.match_date || null
                 },
                 bookmaker: {
                     name: bookmaker.name,
