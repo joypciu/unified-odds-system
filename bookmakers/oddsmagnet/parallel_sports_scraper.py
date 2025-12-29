@@ -50,6 +50,24 @@ SPORTS_CONFIG = {
         'top_leagues': 5,
         'output': 'oddsmagnet_tabletennis.json',
         'markets': ['win market'],
+    },
+    'volleyball': {
+        'enabled': True,
+        'top_leagues': 8,
+        'output': 'oddsmagnet_volleyball.json',
+        'markets': ['win market'],
+    },
+    'cricket': {
+        'enabled': True,
+        'top_leagues': 6,
+        'output': 'oddsmagnet_cricket.json',
+        'markets': ['win market'],
+    },
+    'boxing': {
+        'enabled': True,
+        'top_leagues': 5,
+        'output': 'oddsmagnet_boxing.json',
+        'markets': ['win market'],
     }
 }
 
