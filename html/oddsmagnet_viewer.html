@@ -3791,15 +3791,21 @@
             // OddsMagnet uses home_team/away_team, not match_name
             // For tennis/tournaments with no teams, use the match name
             let teams;
+            let homeTeam, awayTeam;
+            
             if (match.home_team || match.away_team || match.home || match.away) {
-                const homeTeam = match.home_team || match.home || 'Team 1';
-                const awayTeam = match.away_team || match.away || 'Team 2';
+                homeTeam = match.home_team || match.home || 'Team 1';
+                awayTeam = match.away_team || match.away || 'Team 2';
                 teams = `${homeTeam} vs ${awayTeam}`;
             } else if (match.name) {
                 // Tennis tournaments, boxing events, etc. use name field
                 teams = match.name;
+                homeTeam = match.name;
+                awayTeam = '';
             } else {
                 teams = 'Unknown Match';
+                homeTeam = 'Unknown';
+                awayTeam = 'Match';
             }
             
             // Parse datetime field (format: "2026-01-02 20:00:00")
