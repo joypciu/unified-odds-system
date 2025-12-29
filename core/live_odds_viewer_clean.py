@@ -1325,7 +1325,7 @@ async def get_oddsmagnet_top10(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Top 10 data not available',
-                    'message': 'Top 10 leagues collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_top10_realtime.py',
+                    'message': 'OddsMagnet collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': []
                 }
             )
@@ -1500,7 +1500,7 @@ async def get_oddsmagnet_basketball(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Basketball data not available',
-                    'message': 'Basketball collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_basketball_realtime.py',
+                    'message': 'Basketball collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': [],
                     'timestamp': datetime.now().isoformat(),
                     'source': 'oddsmagnet_basketball',
@@ -1931,7 +1931,7 @@ async def get_oddsmagnet_nba_ncaa(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet NBA/NCAA data not available',
-                    'message': 'NBA/NCAA collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_nba_ncaa_realtime.py',
+                    'message': 'NBA/NCAA collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': []
                 }
             )
@@ -2044,7 +2044,7 @@ async def get_oddsmagnet_americanfootball(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet American Football data not available',
-                    'message': 'American Football collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_americanfootball_realtime.py',
+                    'message': 'American Football collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': [],
                     'timestamp': datetime.now().isoformat(),
                     'source': 'oddsmagnet_americanfootball',
@@ -2214,7 +2214,7 @@ async def get_oddsmagnet_cricket(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Cricket data not available',
-                    'message': 'Cricket collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_cricket_realtime.py',
+                    'message': 'Cricket collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': [],
                     'timestamp': datetime.now().isoformat(),
                     'source': 'oddsmagnet_cricket',
@@ -2384,7 +2384,7 @@ async def get_oddsmagnet_baseball(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Baseball data not available',
-                    'message': 'Baseball collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_baseball_realtime.py',
+                    'message': 'Baseball collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': [],
                     'timestamp': datetime.now().isoformat(),
                     'source': 'oddsmagnet_baseball',
@@ -2553,7 +2553,7 @@ async def get_oddsmagnet_tabletennis(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Table Tennis data not available',
-                    'message': 'Table Tennis collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_tabletennis_realtime.py',
+                    'message': 'Table Tennis collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': [],
                     'timestamp': datetime.now().isoformat(),
                     'source': 'oddsmagnet_tabletennis',
@@ -2722,7 +2722,7 @@ async def get_oddsmagnet_tennis(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Tennis data not available',
-                    'message': 'Tennis collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_tennis_realtime.py',
+                    'message': 'Tennis collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': [],
                     'timestamp': datetime.now().isoformat(),
                     'source': 'oddsmagnet_tennis',
@@ -2891,7 +2891,7 @@ async def get_oddsmagnet_boxing(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Boxing data not available',
-                    'message': 'Boxing collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_boxing_realtime.py',
+                    'message': 'Boxing collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': [],
                     'timestamp': datetime.now().isoformat(),
                     'source': 'oddsmagnet_boxing',
@@ -3060,7 +3060,7 @@ async def get_oddsmagnet_volleyball(
             return JSONResponse(
                 content={
                     'error': 'OddsMagnet Volleyball data not available',
-                    'message': 'Volleyball collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_volleyball_realtime.py',
+                    'message': 'Volleyball collector not running. Start with: python bookmakers/oddsmagnet/oddsmagnet_realtime_parallel.py --mode local',
                     'matches': [],
                     'timestamp': datetime.now().isoformat(),
                     'source': 'oddsmagnet_volleyball',

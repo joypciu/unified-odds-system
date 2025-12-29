@@ -222,294 +222,33 @@ def main():
         print(f"❌ Error starting unified system: {e}")
         sys.exit(1)
     
-    # Start OddsMagnet Real-Time Collectors (Football + Basketball)
-    print("⚽ Starting OddsMagnet Football Real-Time Collector...")
-    print("   - Tracking ALL matches from top 10 football leagues")
-    print("   - Update interval: 15 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_realtime.json")
+    # Start OddsMagnet Parallel Scraper (Playwright-based, all sports in parallel)
+    print("⚽ Starting OddsMagnet Parallel Scraper (5x Faster)...")
+    print("   - Browser automation bypassing CloudFront WAF")
+    print("   - Parallel scraping: football, basketball, tennis, american-football, table-tennis")
+    print("   - 5 sports scraped simultaneously using multiprocessing")
+    print("   - Update interval: 60 seconds (completes in ~3 minutes)")
+    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_*.json")
     print()
     
-    # Top 10 football leagues
-    top_10_leagues = [
-        'england-premier-league',
-        'spain-laliga',
-        'italy-serie-a',
-        'germany-bundesliga',
-        'france-ligue-1',
-        'champions-league',  # UEFA Champions League
-        'europe-uefa-europa-league',  # UEFA Europa League
-        'england-championship',
-        'netherlands-eredivisie',
-        'portugal-primeira-liga'
-    ]
-    
-    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10_realtime.py"
+    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "parallel_sports_scraper.py"
     if oddsmagnet_script.exists():
         try:
-            # Start OddsMagnet TOP 10 collector in background
+            # Start OddsMagnet parallel scraper in background (all sports)
             oddsmagnet_process = subprocess.Popen(
-                [sys.executable, str(oddsmagnet_script)],
+                [sys.executable, str(oddsmagnet_script), "--mode", "local", "--continuous", "--interval", "60"],
                 cwd=str(base_dir / "bookmakers" / "oddsmagnet")
             )
             processes.append(oddsmagnet_process)
-            print("✅ OddsMagnet Football collector started (PID: {})".format(oddsmagnet_process.pid))
+            print("✅ OddsMagnet parallel scraper started (PID: {})".format(oddsmagnet_process.pid))
             print()
-            
-            # Parallel startup - no delay needed
             
         except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet Football collector: {e}")
-            print("   Continuing without OddsMagnet Football...")
+            print(f"⚠️  Could not start OddsMagnet scraper: {e}")
+            print("   Continuing without OddsMagnet...")
             print()
     else:
-        print("⚠️  oddsmagnet_top10_realtime.py not found, skipping OddsMagnet Football")
-        print()
-    
-    # Start OddsMagnet Basketball Real-Time Collector
-    print("🏀 Starting OddsMagnet Basketball Real-Time Collector...")
-    print("   - Tracking ALL basketball leagues (NBA, NCAA, International)")
-    print("   - Update interval: 60 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_basketball.json")
-    print()
-    
-    basketball_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_basketball_realtime.py"
-    if basketball_script.exists():
-        try:
-            # Start OddsMagnet Basketball collector in background
-            basketball_process = subprocess.Popen(
-                [sys.executable, str(basketball_script)],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(basketball_process)
-            print("✅ OddsMagnet Basketball collector started (PID: {})".format(basketball_process.pid))
-            print()
-            
-            # Parallel startup - no delay needed
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet Basketball collector: {e}")
-            print("   Continuing without OddsMagnet Basketball...")
-            print()
-    else:
-        print("⚠️  oddsmagnet_basketball_realtime.py not found, skipping OddsMagnet Basketball")
-        print()
-    
-    # Start OddsMagnet American Football Real-Time Collector
-    print("🏈 Starting OddsMagnet American Football Real-Time Collector...")
-    print("   - Tracking ALL American Football leagues (NFL, NCAA)")
-    print("   - Update interval: 60 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_americanfootball.json")
-    print()
-    
-    americanfootball_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_americanfootball_realtime.py"
-    if americanfootball_script.exists():
-        try:
-            # Start OddsMagnet American Football collector in background
-            americanfootball_process = subprocess.Popen(
-                [sys.executable, str(americanfootball_script)],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(americanfootball_process)
-            print("✅ OddsMagnet American Football collector started (PID: {})".format(americanfootball_process.pid))
-            print()
-            
-            # Parallel startup - no delay needed
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet American Football collector: {e}")
-            print("   Continuing without OddsMagnet American Football...")
-            print()
-    else:
-        print("⚠️  oddsmagnet_americanfootball_realtime.py not found, skipping OddsMagnet American Football")
-        print()
-    
-    # Start OddsMagnet Cricket Real-Time Collector
-    print("🏏 Starting OddsMagnet Cricket Real-Time Collector...")
-    print("   - Tracking ALL Cricket leagues (IPL, Ashes, T20, etc.)")
-    print("   - Update interval: 60 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_cricket.json")
-    print()
-    
-    cricket_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_cricket_realtime.py"
-    if cricket_script.exists():
-        try:
-            # Start OddsMagnet Cricket collector in background
-            cricket_process = subprocess.Popen(
-                [sys.executable, str(cricket_script)],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(cricket_process)
-            print("✅ OddsMagnet Cricket collector started (PID: {})".format(cricket_process.pid))
-            print()
-            
-            # Parallel startup - no delay needed
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet Cricket collector: {e}")
-            print("   Continuing without OddsMagnet Cricket...")
-            print()
-    else:
-        print("⚠️  oddsmagnet_cricket_realtime.py not found, skipping OddsMagnet Cricket")
-        print()
-    
-    # ============================================================================
-    # ODDSMAGNET BASEBALL COLLECTOR
-    # ============================================================================
-    print("=" * 80)
-    print("⚾ Starting OddsMagnet Baseball Real-Time Collector...")
-    print("   - Tracking ALL Baseball leagues (MLB, NPB, KBO, etc.)")
-    print("   - Update interval: 30 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_baseball.json")
-    print()
-    
-    baseball_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_baseball_realtime.py"
-    if baseball_script.exists():
-        try:
-            # Start OddsMagnet Baseball collector in background
-            baseball_process = subprocess.Popen(
-                [sys.executable, str(baseball_script)],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(baseball_process)
-            print("✅ OddsMagnet Baseball collector started (PID: {})".format(baseball_process.pid))
-            print()
-            
-            # Parallel startup - no delay needed
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet Baseball collector: {e}")
-            print("   Continuing without OddsMagnet Baseball...")
-            print()
-    else:
-        print("⚠️  oddsmagnet_baseball_realtime.py not found, skipping OddsMagnet Baseball")
-        print()
-    
-    # ============================================================================
-    # ODDSMAGNET TABLE TENNIS COLLECTOR
-    # ============================================================================
-    print("=" * 80)
-    print("🏓 Starting OddsMagnet Table Tennis Real-Time Collector...")
-    print("   - Tracking ALL Table Tennis leagues (Setka Cup, Czech Pro League, etc.)")
-    print("   - Update interval: 30 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_tabletennis.json")
-    print()
-    
-    tabletennis_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_tabletennis_realtime.py"
-    if tabletennis_script.exists():
-        try:
-            # Start OddsMagnet Table Tennis collector in background
-            tabletennis_process = subprocess.Popen(
-                [sys.executable, str(tabletennis_script)],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(tabletennis_process)
-            print("✅ OddsMagnet Table Tennis collector started (PID: {})".format(tabletennis_process.pid))
-            print()
-            
-            # Parallel startup - no delay needed
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet Table Tennis collector: {e}")
-            print("   Continuing without OddsMagnet Table Tennis...")
-            print()
-    else:
-        print("⚠️  oddsmagnet_tabletennis_realtime.py not found, skipping OddsMagnet Table Tennis")
-        print()
-    
-    # ============================================================================
-    # ODDSMAGNET TENNIS COLLECTOR
-    # ============================================================================
-    print("=" * 80)
-    print("🎾 Starting OddsMagnet Tennis Real-Time Collector...")
-    print("   - Tracking ALL Tennis tournaments (Grand Slams, ATP, WTA, ITF, etc.)")
-    print("   - Update interval: 30 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_tennis.json")
-    print()
-    
-    tennis_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_tennis_realtime.py"
-    if tennis_script.exists():
-        try:
-            # Start OddsMagnet Tennis collector in background
-            tennis_process = subprocess.Popen(
-                [sys.executable, str(tennis_script)],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(tennis_process)
-            print("✅ OddsMagnet Tennis collector started (PID: {})".format(tennis_process.pid))
-            print()
-            
-            # Parallel startup - no delay needed
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet Tennis collector: {e}")
-            print("   Continuing without OddsMagnet Tennis...")
-            print()
-    else:
-        print("⚠️  oddsmagnet_tennis_realtime.py not found, skipping OddsMagnet Tennis")
-        print()
-    
-    # ============================================================================
-    # ODDSMAGNET BOXING COLLECTOR
-    # ============================================================================
-    print("=" * 80)
-    print("🥊 Starting OddsMagnet Boxing Real-Time Collector...")
-    print("   - Tracking ALL Boxing events (Boxing, MMA, UFC, etc.)")
-    print("   - Update interval: 30 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_boxing.json")
-    print()
-    
-    boxing_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_boxing_realtime.py"
-    if boxing_script.exists():
-        try:
-            # Start OddsMagnet Boxing collector in background
-            boxing_process = subprocess.Popen(
-                [sys.executable, str(boxing_script)],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(boxing_process)
-            print("✅ OddsMagnet Boxing collector started (PID: {})".format(boxing_process.pid))
-            print()
-            
-            # Parallel startup - no delay needed
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet Boxing collector: {e}")
-            print("   Continuing without OddsMagnet Boxing...")
-            print()
-    else:
-        print("⚠️  oddsmagnet_boxing_realtime.py not found, skipping OddsMagnet Boxing")
-        print()
-    
-    # ============================================================================
-    # ODDSMAGNET VOLLEYBALL COLLECTOR
-    # ============================================================================
-    print("=" * 80)
-    print("🏐 Starting OddsMagnet Volleyball Real-Time Collector...")
-    print("   - Tracking ALL Volleyball leagues (Spain, Poland, Russia, Brazil, etc.)")
-    print("   - Update interval: 30 seconds")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_volleyball.json")
-    print()
-    
-    volleyball_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_volleyball_realtime.py"
-    if volleyball_script.exists():
-        try:
-            # Start OddsMagnet Volleyball collector in background
-            volleyball_process = subprocess.Popen(
-                [sys.executable, str(volleyball_script)],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(volleyball_process)
-            print("✅ OddsMagnet Volleyball collector started (PID: {})".format(volleyball_process.pid))
-            print()
-            
-            # Parallel startup - no delay needed
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet Volleyball collector: {e}")
-            print("   Continuing without OddsMagnet Volleyball...")
-            print()
-    else:
-        print("⚠️  oddsmagnet_volleyball_realtime.py not found, skipping OddsMagnet Volleyball")
+        print("⚠️  parallel_sports_scraper.py not found, skipping OddsMagnet")
         print()
     
     # Start the web viewer
@@ -555,9 +294,8 @@ def main():
             print("   2. Unified Odds Collector - PREGAME ONLY fetching from enabled sources")
         else:
             print("   2. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
-        print("   3. OddsMagnet Football Collector - Top 10 leagues, ALL matches, 15s updates")
-        print("   4. OddsMagnet Basketball Collector - All leagues (NBA/NCAA/Intl), 60s updates")
-        print("   5. Web Viewer - Real-time dashboard with monitoring")
+        print("   3. OddsMagnet Parallel Scraper - 5 sports simultaneously, 60s cycle")
+        print("   4. Web Viewer - Real-time dashboard with monitoring")
     else:
         if args.live_only:
             print("   1. Unified Odds Collector - LIVE ONLY fetching from all sources")
@@ -565,9 +303,8 @@ def main():
             print("   1. Unified Odds Collector - PREGAME ONLY fetching from all sources")
         else:
             print("   1. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
-        print("   2. OddsMagnet Football Collector - Top 10 leagues, ALL matches, 15s updates")
-        print("   3. OddsMagnet Basketball Collector - All leagues (NBA/NCAA/Intl), 60s updates")
-        print("   4. Web Viewer - Real-time dashboard")
+        print("   2. OddsMagnet Parallel Scraper - 5 sports simultaneously, 60s cycle")
+        print("   3. Web Viewer - Real-time dashboard")
     print()
     print("💡 Features Available:")
     if not args.no_monitoring:
