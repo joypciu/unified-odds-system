@@ -6,8 +6,49 @@ Run this on VPS to diagnose why scraper finds no leagues
 
 import asyncio
 import sys
+import subprocess
+import socket
+import time
 from pathlib import Path
 from playwright.async_api import async_playwright
+
+def is_port_open(port=9222):
+    """Check if Chrome is running on port"""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(1)
+    try:
+        result = sock.connect_ex(('localhost', port))
+        sock.close()
+        return result == 0
+    except:
+        return False
+
+def start_chrome():
+    """Start Chrome with remote debugging"""
+    if is_port_open(9222):
+        print("   ✓ Chrome already running on port 9222")
+        return True
+    
+    print("   🚀 Starting Chrome on port 9222...")
+    subprocess.Popen([
+        'google-chrome',
+        '--remote-debugging-port=9222',
+        '--user-data-dir=/tmp/chrome_debug_auto',
+        '--no-first-run',
+        '--disable-blink-features=AutomationControlled',
+        '--disable-dev-shm-usage',
+        '--no-sandbox',
+        '--headless=new'
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    for _ in range(10):
+        time.sleep(0.5)
+        if is_port_open(9222):
+            print("   ✓ Chrome started successfully")
+            return True
+    
+    print("   ❌ Chrome failed to start")
+    return False
 
 async def debug_chrome():
     """Test Chrome connection and website access"""
@@ -15,6 +56,10 @@ async def debug_chrome():
     print("="*60)
     print("🔍 CHROME + ODDSMAGNET DEBUG SCRIPT")
     print("="*60)
+    print()
+    
+    # Auto-start Chrome if needed
+    start_chrome()
     print()
     
     playwright = None
