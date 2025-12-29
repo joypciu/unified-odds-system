@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Market Mapping</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .test { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .pass { background: #d4edda; }
+        .fail { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Market Mapping Tests</h1>
+    <div id="results"></div>
+
+    <script>
+        let currentMarket = '';
+        const results = document.getElementById('results');
+
+        function test(name, fn) {
+            try {
+                fn();
+                results.innerHTML += `<div class="test pass">✓ ${name}</div>`;
+            } catch (e) {
+                results.innerHTML += `<div class="test fail">✗ ${name}: ${e.message}</div>`;
+            }
+        }
+
+        function assert(condition, message) {
+            if (!condition) throw new Error(message);
+        }
+
+        // Copy the getMatchOddsBySelection function from oddsmagnet_viewer.html
+        function getMatchOddsBySelection(match) {
+            const homeOdds = new Map();
+            const drawOdds = new Map();
+            const awayOdds = new Map();
+            
+            if (!match.markets || !match.markets[currentMarket]) {
+                return { homeOdds, drawOdds, awayOdds };
+            }
+
+            const markets = match.markets[currentMarket];
+            if (!Array.isArray(markets)) return { homeOdds, drawOdds, awayOdds };
+
+            // Get the first market with odds
+            let mainMarket = markets.find(m => m.odds && Array.isArray(m.odds) && m.odds.length > 0);
+            if (!mainMarket) return { homeOdds, drawOdds, awayOdds };
+
+            const marketName = (mainMarket.name || mainMarket.market_name || '');
+            const marketNameLower = marketName.toLowerCase();
+            const marketCategory = (currentMarket || '').toLowerCase();
+            const homeTeam = match.home_team?.toLowerCase();
+            const awayTeam = match.away_team?.toLowerCase();
+            
+            // Detect market type based on both category and market name
+            const isOverUnder = marketCategory.includes('over') || marketCategory.includes('under') || 
+                               marketNameLower.includes('over') || marketNameLower.includes('under') || 
+                               marketNameLower.includes('total');
+            const isYesNo = marketCategory.includes('both teams') || marketNameLower.includes('both teams') ||
+                           marketCategory.includes('yes/no') || marketNameLower.includes('clean sheet');
+            const isHandicap = marketCategory.includes('handicap') || marketCategory.includes('spread') ||
+                              marketNameLower.includes('handicap') || marketNameLower.includes('spread');
+            
+            for (const odd of mainMarket.odds) {
+                if (!odd.bookmaker_code || !odd.decimal_odds) continue;
+                
+                const selection = (odd.selection || '').toLowerCase();
+                const betName = (odd.bet_name || '').toLowerCase();
+                
+                if (isOverUnder) {
+                    // For Over/Under markets: map over to home, under to away
+                    if (selection.includes('over') || betName.includes('over')) {
+                        homeOdds.set(odd.bookmaker_code, odd);
+                    } else if (selection.includes('under') || betName.includes('under')) {
+                        awayOdds.set(odd.bookmaker_code, odd);
+                    }
+                } else if (isYesNo) {
+                    // For Yes/No markets: map yes to home, no to away
+                    if (selection.includes('yes') || betName.includes('yes')) {
+                        homeOdds.set(odd.bookmaker_code, odd);
+                    } else if (selection.includes('no') || betName.includes('no')) {
+                        awayOdds.set(odd.bookmaker_code, odd);
+                    }
+                } else if (isHandicap) {
+                    // For Handicap markets: try to match team names
+                    if (homeTeam && (selection.includes(homeTeam) || betName.includes(homeTeam))) {
+                        homeOdds.set(odd.bookmaker_code, odd);
+                    } else if (awayTeam && (selection.includes(awayTeam) || betName.includes(awayTeam))) {
+                        awayOdds.set(odd.bookmaker_code, odd);
+                    } else {
+                        // Fallback: assign based on order
+                        if (!homeOdds.has(odd.bookmaker_code)) {
+                            homeOdds.set(odd.bookmaker_code, odd);
+                        } else {
+                            awayOdds.set(odd.bookmaker_code, odd);
+                        }
+                    }
+                } else {
+                    // Standard markets: match by team names and draw
+                    if (selection === 'draw' || betName === 'draw') {
+                        drawOdds.set(odd.bookmaker_code, odd);
+                    } else if (homeTeam && (selection === homeTeam || selection.includes(homeTeam) || 
+                                           betName === homeTeam || betName.includes(homeTeam))) {
+                        homeOdds.set(odd.bookmaker_code, odd);
+                    } else if (awayTeam && (selection === awayTeam || selection.includes(awayTeam) ||
+                                           betName === awayTeam || betName.includes(awayTeam))) {
+                        awayOdds.set(odd.bookmaker_code, odd);
+                    }
+                }
+            }
+
+            return { homeOdds, drawOdds, awayOdds };
+        }
+
+        // Test 1: Over/Under market
+        test('Over/Under market', () => {
+            currentMarket = 'over under betting';
+            const match = {
+                home_team: 'Team A',
+                away_team: 'Team B',
+                markets: {
+                    'over under betting': [{
+                        name: 'total goals over under',
+                        odds: [
+                            { bookmaker_code: 'vb', decimal_odds: 1.92, selection: 'over over', bet_name: 'over over' },
+                            { bookmaker_code: 'vb', decimal_odds: 1.78, selection: 'under under', bet_name: 'under under' }
+                        ]
+                    }]
+                }
+            };
+            const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
+            assert(homeOdds.size === 1, `Expected 1 home odd (over), got ${homeOdds.size}`);
+            assert(awayOdds.size === 1, `Expected 1 away odd (under), got ${awayOdds.size}`);
+            assert(drawOdds.size === 0, `Expected 0 draw odds, got ${drawOdds.size}`);
+        });
+
+        // Test 2: Both teams to score (Yes/No)
+        test('Both Teams to Score (Yes/No)', () => {
+            currentMarket = 'both teams to score';
+            const match = {
+                home_team: 'Team A',
+                away_team: 'Team B',
+                markets: {
+                    'both teams to score': [{
+                        name: 'both teams to score',
+                        odds: [
+                            { bookmaker_code: 'vb', decimal_odds: 2.95, selection: 'yes', bet_name: 'yes' },
+                            { bookmaker_code: 'vb', decimal_odds: 1.35, selection: 'no', bet_name: 'no' }
+                        ]
+                    }]
+                }
+            };
+            const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
+            assert(homeOdds.size === 1, `Expected 1 home odd (yes), got ${homeOdds.size}`);
+            assert(awayOdds.size === 1, `Expected 1 away odd (no), got ${awayOdds.size}`);
+            assert(drawOdds.size === 0, `Expected 0 draw odds, got ${drawOdds.size}`);
+        });
+
+        // Test 3: Popular markets (standard home/draw/away)
+        test('Popular Markets (Home/Draw/Away)', () => {
+            currentMarket = 'popular markets';
+            const match = {
+                home_team: 'vallecano',
+                away_team: 'getafe',
+                markets: {
+                    'popular markets': [{
+                        name: 'win market',
+                        odds: [
+                            { bookmaker_code: 'vb', decimal_odds: 2.11, selection: 'vallecano', bet_name: 'vallecano' },
+                            { bookmaker_code: 'vb', decimal_odds: 2.97, selection: 'draw', bet_name: 'draw' },
+                            { bookmaker_code: 'vb', decimal_odds: 3.86, selection: 'getafe', bet_name: 'getafe' }
+                        ]
+                    }]
+                }
+            };
+            const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
+            assert(homeOdds.size === 1, `Expected 1 home odd, got ${homeOdds.size}`);
+            assert(drawOdds.size === 1, `Expected 1 draw odd, got ${drawOdds.size}`);
+            assert(awayOdds.size === 1, `Expected 1 away odd, got ${awayOdds.size}`);
+        });
+
+        // Test 4: Handicap market
+        test('Handicap Market', () => {
+            currentMarket = 'handicap';
+            const match = {
+                home_team: 'Team A',
+                away_team: 'Team B',
+                markets: {
+                    'handicap': [{
+                        name: 'handicap',
+                        odds: [
+                            { bookmaker_code: 'vb', decimal_odds: 1.90, selection: 'team a +1.5', bet_name: 'team a +1.5' },
+                            { bookmaker_code: 'vb', decimal_odds: 1.85, selection: 'team b -1.5', bet_name: 'team b -1.5' }
+                        ]
+                    }]
+                }
+            };
+            const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);
+            assert(homeOdds.size === 1, `Expected 1 home odd, got ${homeOdds.size}`);
+            assert(awayOdds.size === 1, `Expected 1 away odd, got ${awayOdds.size}`);
+        });
+
+        results.innerHTML += `<div class="test" style="background: #d1ecf1;"><strong>All tests completed!</strong></div>`;
+    </script>
+</body>
+</html>

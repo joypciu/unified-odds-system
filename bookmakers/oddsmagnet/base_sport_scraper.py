@@ -251,7 +251,7 @@ class BaseSportScraper:
             for attempt in range(retries):
                 try:
                     await page.goto(url, wait_until='domcontentloaded', timeout=timeout)
-                    await asyncio.sleep(0.3)  # Give page time to render
+                    await asyncio.sleep(0.8)  # Give page time to render (increased for slow pages)
                     ssr_data = await self.extract_ssr_data(page)
                     
                     if ssr_data:
@@ -349,7 +349,8 @@ class BaseSportScraper:
     async def get_odds(self, market_url: str) -> Optional[Dict]:
         """Get odds from market"""
         url = f"https://oddsmagnet.com/{market_url}"
-        ssr_data = await self.fetch_page_data(url, timeout=15000)
+        # Longer timeout for odds pages (basketball/tennis can be slow)
+        ssr_data = await self.fetch_page_data(url, timeout=30000, retries=3)
         
         if not ssr_data:
             return None
