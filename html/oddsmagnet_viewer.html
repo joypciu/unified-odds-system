@@ -1642,50 +1642,59 @@
                 </button>
             </div>
             <div class="filter-modal-body" id="sportMenu">
-                <div class="dropdown-item selected" data-sport="football">
+                <div class="dropdown-item selected" data-sport="football" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-futbol" style="margin-right: 8px;"></i>
-                    Football
+                    <span class="sport-name">Football</span>
+                    <span class="match-count"></span>
                 </div>
-                <div class="dropdown-item" data-sport="basketball">
+                <div class="dropdown-item" data-sport="basketball" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-basketball-ball" style="margin-right: 8px;"></i>
-                    Basketball
+                    <span class="sport-name">Basketball</span>
+                    <span class="match-count"></span>
                 </div>
-                <div class="dropdown-item" data-sport="americanfootball">
+                <div class="dropdown-item" data-sport="americanfootball" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-football-ball" style="margin-right: 8px;"></i>
-                    American Football
+                    <span class="sport-name">American Football</span>
+                    <span class="match-count"></span>
                 </div>
-                <div class="dropdown-item" data-sport="cricket">
+                <div class="dropdown-item" data-sport="cricket" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
-                    Cricket
+                    <span class="sport-name">Cricket</span>
+                    <span class="match-count"></span>
                 </div>
-                <div class="dropdown-item" data-sport="baseball">
+                <div class="dropdown-item" data-sport="baseball" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-baseball-ball" style="margin-right: 8px;"></i>
-                    Baseball
+                    <span class="sport-name">Baseball</span>
+                    <span class="match-count"></span>
                 </div>
-                <div class="dropdown-item" data-sport="tabletennis">
+                <div class="dropdown-item" data-sport="tabletennis" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-table-tennis" style="margin-right: 8px;"></i>
-                    Table Tennis
+                    <span class="sport-name">Table Tennis</span>
+                    <span class="match-count"></span>
                 </div>
-                <div class="dropdown-item" data-sport="tennis">
+                <div class="dropdown-item" data-sport="tennis" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-table-tennis" style="margin-right: 8px;"></i>
-                    Tennis
+                    <span class="sport-name">Tennis</span>
+                    <span class="match-count"></span>
                 </div>
-                <div class="dropdown-item" data-sport="boxing">
+                <div class="dropdown-item" data-sport="boxing" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-fist-raised" style="margin-right: 8px;"></i>
-                    Boxing
+                    <span class="sport-name">Boxing</span>
+                    <span class="match-count"></span>
                 </div>
-                <div class="dropdown-item" data-sport="volleyball">
+                <div class="dropdown-item" data-sport="volleyball" data-count="0">
                     <i class="fas fa-check"></i>
                     <i class="fas fa-volleyball-ball" style="margin-right: 8px;"></i>
-                    Volleyball
+                    <span class="sport-name">Volleyball</span>
+                    <span class="match-count"></span>
                 </div>
             </div>
         </div>
@@ -2133,6 +2142,44 @@
             volleyball: ['home', 'away']                  // 2-way betting (no draws in volleyball)
         };
         
+        // Update sport dropdown with match counts from all sports
+        async function updateSportCounts() {
+            const sportEndpoints = {
+                'football': 'football/top10',
+                'basketball': 'basketball',
+                'americanfootball': 'americanfootball',
+                'cricket': 'cricket',
+                'baseball': 'baseball',
+                'tabletennis': 'tabletennis',
+                'tennis': 'tennis',
+                'boxing': 'boxing',
+                'volleyball': 'volleyball'
+            };
+
+            const sportMenu = document.getElementById('sportMenu');
+            const apiBase = window.location.port === '9000' ? '/om/' : '/oddsmagnet/api/';
+
+            for (const [sport, endpoint] of Object.entries(sportEndpoints)) {
+                try {
+                    const response = await fetch(`${apiBase}${endpoint}`, { cache: 'no-store' });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const matchCount = (data.matches || []).length;
+                        const sportItem = sportMenu.querySelector(`[data-sport="${sport}"]`);
+                        if (sportItem) {
+                            sportItem.setAttribute('data-count', matchCount);
+                            const countSpan = sportItem.querySelector('.match-count');
+                            if (countSpan && matchCount > 0) {
+                                countSpan.textContent = matchCount;
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Failed to fetch count for ${sport}:`, err);
+                }
+            }
+        }
+
         // Debounce utility for performance
         function debounce(func, wait) {
             let timeout;
@@ -2168,6 +2215,9 @@
             
             // Load data immediately (will use early fetch if available)
             loadData().catch(err => console.error('Initial load failed:', err));
+            
+            // Update sport counts to show/hide sports with 0 matches
+            updateSportCounts().catch(err => console.error('Failed to update sport counts:', err));
             
             // Defer non-critical visual effects
             if (window.requestIdleCallback) {
@@ -2823,9 +2873,10 @@
                 };
                 
                 const config = sportConfig[newSport] || sportConfig.football;
+                const matchCount = allMatches.length;
                 sportBtnLabel.textContent = config.label;
                 sportIcon.className = config.icon;
-                sportLabel.innerHTML = config.headerLabel;
+                sportLabel.innerHTML = `${config.headerLabel} <span style="color: #3b82f6; font-weight: 600;">(${matchCount} matches)</span>`;
                 
                 // Update current sport BEFORE any async operations
                 const previousSport = window.currentSport;
@@ -3295,6 +3346,23 @@
                     lastETag = newETag; // Store new ETag
                     
                     console.log(`✓ Downloaded ${allMatches.length} matches - starting progressive render...`);
+                    
+                    // Update match count for current sport in dropdown
+                    const currentSportItem = document.querySelector(`#sportMenu [data-sport="${currentSport}"]`);
+                    if (currentSportItem) {
+                        currentSportItem.setAttribute('data-count', allMatches.length);
+                        const countSpan = currentSportItem.querySelector('.match-count');
+                        if (countSpan) {
+                            countSpan.textContent = allMatches.length;
+                        }
+                    }
+                    
+                    // Update sport label with match count
+                    const sportLabel = document.querySelector('.sport-label');
+                    if (sportLabel && sportLabel.textContent) {
+                        const currentText = sportLabel.innerHTML.replace(/<span.*?<\/span>/, '').trim();
+                        sportLabel.innerHTML = `${currentText} <span style="color: #3b82f6; font-weight: 600;">(${allMatches.length} matches)</span>`;
+                    }
                     
                     // PROGRESSIVE RENDERING - start showing data immediately
                     updateStatus('Rendering...');
