@@ -23,6 +23,19 @@ class ChromeManager:
         self.platform = platform.system()
         self.chrome_process = None
         self.started_by_script = False
+    
+    def is_port_open(self, port: int = None) -> bool:
+        """Check if Chrome is running on specified port"""
+        import socket
+        port = port or self.debug_port
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        try:
+            result = sock.connect_ex(('localhost', port))
+            sock.close()
+            return result == 0
+        except:
+            return False
         
     def get_chrome_paths(self) -> list:
         """Get possible Chrome/Chromium executable paths based on platform"""
@@ -113,6 +126,11 @@ class ChromeManager:
     
     def start_chrome(self, url: str = "https://www.on.bet365.ca") -> bool:
         """Start Chrome with remote debugging enabled"""
+        # Check if Chrome is already running on the port
+        if self.is_port_open():
+            logger.info(f"✓ Chrome already running on port {self.debug_port}")
+            return True
+        
         chrome_exe = self.find_chrome_executable()
         
         if not chrome_exe:
@@ -205,26 +223,31 @@ class ChromeManager:
             logger.error(f"❌ Failed to start Chrome: {e}")
             return False
     
-    async def connect_to_chrome(self, playwright):
-        """Connect to Chrome instance via CDP"""
-        try:
-            # Try IPv4 first (127.0.0.1), then localhost
-            browser = await playwright.chromium.connect_over_cdp(
-                f'http://127.0.0.1:{self.debug_port}'
-            )
-            logger.info(f"✓ Connected to Chrome on port {self.debug_port}")
-            return browser
-        except Exception as e:
-            # Try with localhost as fallback
+    async def connect_to_chrome(self, playwright, retries: int = 3):
+        """Connect to Chrome instance via CDP with retries"""
+        for attempt in range(retries):
             try:
+                # Try IPv4 first (127.0.0.1), then localhost
                 browser = await playwright.chromium.connect_over_cdp(
-                    f'http://localhost:{self.debug_port}'
+                    f'http://127.0.0.1:{self.debug_port}'
                 )
                 logger.info(f"✓ Connected to Chrome on port {self.debug_port}")
                 return browser
-            except:
-                logger.error(f"❌ Failed to connect to Chrome: {e}")
-                return None
+            except Exception as e:
+                # Try with localhost as fallback
+                try:
+                    browser = await playwright.chromium.connect_over_cdp(
+                        f'http://localhost:{self.debug_port}'
+                    )
+                    logger.info(f"✓ Connected to Chrome on port {self.debug_port}")
+                    return browser
+                except Exception as e2:
+                    if attempt < retries - 1:
+                        logger.warning(f"Connection attempt {attempt + 1} failed, retrying...")
+                        await asyncio.sleep(2)
+                    else:
+                        logger.error(f"❌ Failed to connect to Chrome after {retries} attempts: {e2}")
+                        return None
     
     async def get_or_start_chrome(self, playwright):
         """Try to connect to existing Chrome, or start new instance"""
@@ -240,11 +263,22 @@ class ChromeManager:
         if not self.start_chrome():
             return None
         
-        # Wait for Chrome to start
-        await asyncio.sleep(7)
+        # Wait for Chrome to start and verify port is open
+        logger.info("Waiting for Chrome to start...")
+        for i in range(10):
+            await asyncio.sleep(0.5)
+            if self.is_port_open():
+                logger.info(f"✓ Chrome port {self.debug_port} is open")
+                break
+        else:
+            logger.error("Chrome port did not open in time")
+            return None
         
-        # Try to connect again
-        browser = await self.connect_to_chrome(playwright)
+        # Additional wait for Chrome to be fully ready
+        await asyncio.sleep(2)
+        
+        # Try to connect again with retries
+        browser = await self.connect_to_chrome(playwright, retries=5)
         return browser
     
     def cleanup(self):
@@ -287,9 +321,11 @@ async def setup_chrome_browser(playwright, debug_port: int = 9222) -> Tuple[Opti
                 get: () => undefined
             });
             
-            // Mock Chrome runtime
+            // Mock Chrome runtime with more methods
             window.chrome = {
-                runtime: {}
+                runtime: {},
+                loadTimes: function() {},
+                csi: function() {}
             };
             
             // Mock permissions
@@ -309,6 +345,35 @@ async def setup_chrome_browser(playwright, debug_port: int = 9222) -> Tuple[Opti
             Object.defineProperty(navigator, 'languages', {
                 get: () => ['en-US', 'en']
             });
+            
+            // Mock platform
+            Object.defineProperty(navigator, 'platform', {
+                get: () => 'Win32'
+            });
+            
+            // Mock vendor
+            Object.defineProperty(navigator, 'vendor', {
+                get: () => 'Google Inc.'
+            });
+            
+            // Mock hardware
+            Object.defineProperty(navigator, 'maxTouchPoints', {
+                get: () => 0
+            });
+            
+            Object.defineProperty(navigator, 'hardwareConcurrency', {
+                get: () => 8
+            });
+            
+            Object.defineProperty(navigator, 'deviceMemory', {
+                get: () => 8
+            });
+            
+            // Mock getUserMedia
+            navigator.mediaDevices = {
+                getUserMedia: () => Promise.resolve({}),
+                enumerateDevices: () => Promise.resolve([])
+            };
             
             // Remove automation indicators
             delete navigator.__proto__.webdriver;
