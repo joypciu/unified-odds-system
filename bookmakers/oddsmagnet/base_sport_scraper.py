@@ -1,0 +1,459 @@
+#!/usr/bin/env python3
+"""
+Base Sport Scraper - Modular scraper for individual sports
+Can be run independently or as part of parallel collection
+"""
+
+import json
+import time
+import asyncio
+import logging
+from datetime import datetime
+from typing import Dict, List, Optional
+from pathlib import Path
+from playwright.async_api import async_playwright, Page, Browser
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+
+class BaseSportScraper:
+    """Base class for sport-specific scrapers"""
+    
+    def __init__(self, sport: str, config: Dict, mode: str = 'local', max_concurrent: int = 20):
+        """
+        Initialize sport scraper
+        
+        Args:
+            sport: Sport name (football, basketball, tennis, etc.)
+            config: Sport configuration dict
+            mode: 'local' (remote debugging) or 'vps' (headless)
+            max_concurrent: Max concurrent browser tabs
+        """
+        self.sport = sport
+        self.config = config
+        self.mode = mode
+        self.max_concurrent = max_concurrent
+        self.playwright = None
+        self.browser = None
+        self.context = None
+        self.semaphore = None
+        self.output_file = Path(__file__).parent / config.get('output', f'oddsmagnet_{sport}.json')
+        
+        logging.info(f"🎯 Initialized {sport.upper()} scraper")
+    
+    async def connect(self):
+        """Connect to browser (local debugging or headless)"""
+        self.playwright = await async_playwright().start()
+        
+        if self.mode == 'local':
+            # Connect to existing Chrome with remote debugging
+            try:
+                self.browser = await self.playwright.chromium.connect_over_cdp(
+                    "http://localhost:9222"
+                )
+                self.context = self.browser.contexts[0]
+                logging.info(f"✓ {self.sport}: Connected to Chrome remote debugging")
+            except Exception as e:
+                logging.warning(f"{self.sport}: Remote debugging failed, switching to headless")
+                self.mode = 'vps'
+        
+        if self.mode == 'vps':
+            # Launch headless Chrome
+            self.browser = await self.playwright.chromium.launch(
+                headless=True,
+                args=[
+                    '--disable-blink-features=AutomationControlled',
+                    '--disable-dev-shm-usage',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox'
+                ]
+            )
+            self.context = await self.browser.new_context(
+                viewport={'width': 1920, 'height': 1080},
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            )
+            logging.info(f"✓ {self.sport}: Headless Chrome started")
+        
+        self.semaphore = asyncio.Semaphore(self.max_concurrent)
+        return True
+    
+    async def disconnect(self):
+        """Disconnect from browser"""
+        try:
+            if self.mode == 'vps' and self.browser:
+                await self.browser.close()
+            if self.playwright:
+                await self.playwright.stop()
+        except:
+            pass
+    
+    async def extract_ssr_data(self, page: Page) -> Optional[Dict]:
+        """Extract SSR data from page"""
+        try:
+            ssr_data = await page.evaluate("""() => {
+                const scripts = document.querySelectorAll('script[type="application/json"]');
+                for (let script of scripts) {
+                    try {
+                        return JSON.parse(script.textContent);
+                    } catch(e) {}
+                }
+                return null;
+            }""")
+            return ssr_data
+        except:
+            return None
+    
+    async def fetch_page_data(self, url: str, timeout: int = 20000) -> Optional[Dict]:
+        """Fetch SSR data from URL with timeout"""
+        async with self.semaphore:
+            page = await self.context.new_page()
+            try:
+                await page.goto(url, wait_until='domcontentloaded', timeout=timeout)
+                await asyncio.sleep(0.2)
+                ssr_data = await self.extract_ssr_data(page)
+                return ssr_data
+            except Exception as e:
+                logging.debug(f"{self.sport}: Failed to fetch {url}: {e}")
+                return None
+            finally:
+                await page.close()
+    
+    async def get_leagues(self) -> List[Dict]:
+        """Get leagues for sport"""
+        url = f"https://oddsmagnet.com/{self.sport}"
+        ssr_data = await self.fetch_page_data(url)
+        
+        if not ssr_data:
+            return []
+        
+        for key, value in ssr_data.items():
+            if isinstance(value, dict) and 'b' in value:
+                b_data = value.get('b', [])
+                if isinstance(b_data, list) and len(b_data) > 0:
+                    if isinstance(b_data[0], dict) and 'event_id' in b_data[0]:
+                        return b_data
+        return []
+    
+    async def get_matches(self, league: Dict) -> List[Dict]:
+        """Get matches for league"""
+        league_slug = league.get('event_slug', '')
+        sport_id = league.get('event_id', '').split('/')[0]
+        url = f"https://oddsmagnet.com/{sport_id}/{league_slug}"
+        
+        ssr_data = await self.fetch_page_data(url)
+        if not ssr_data:
+            return []
+        
+        for key, value in ssr_data.items():
+            if isinstance(value, dict) and 'b' in value:
+                b_data = value.get('b', {})
+                if isinstance(b_data, dict):
+                    for matches in b_data.values():
+                        if isinstance(matches, list) and len(matches) > 0:
+                            if isinstance(matches[0], list) and len(matches[0]) >= 8:
+                                return [{
+                                    'name': m[0], 
+                                    'league_id': m[1], 
+                                    'match_url': m[2],
+                                    'match_slug': m[3], 
+                                    'datetime': m[4], 
+                                    'home': m[5],
+                                    'home_team': m[5],  # UI expects home_team
+                                    'away': m[6], 
+                                    'away_team': m[6],  # UI expects away_team
+                                    'sport': m[7], 
+                                    'league': league.get('event_name', '')
+                                } for m in matches]
+        return []
+    
+    async def get_markets(self, match: Dict) -> Dict:
+        """Get markets for match"""
+        url = f"https://oddsmagnet.com/{match['match_url']}"
+        ssr_data = await self.fetch_page_data(url)
+        
+        if not ssr_data:
+            return {}
+        
+        for key, value in ssr_data.items():
+            if isinstance(value, dict) and 'b' in value:
+                b_data = value.get('b', {})
+                if isinstance(b_data, dict):
+                    markets = {}
+                    for category, market_list in b_data.items():
+                        if isinstance(market_list, list) and len(market_list) > 0:
+                            if isinstance(market_list[0], list) and len(market_list[0]) >= 2:
+                                markets[category] = market_list
+                    if markets:
+                        return markets
+        return {}
+    
+    async def get_odds(self, market_url: str) -> Optional[Dict]:
+        """Get odds from market"""
+        url = f"https://oddsmagnet.com/{market_url}"
+        ssr_data = await self.fetch_page_data(url, timeout=15000)
+        
+        if not ssr_data:
+            return None
+        
+        for key, value in ssr_data.items():
+            if isinstance(value, dict) and 'b' in value:
+                b_data = value.get('b', {})
+                if isinstance(b_data, dict) and 'schema' in b_data and 'data' in b_data:
+                    return b_data
+        return None
+    
+    def transform_odds_to_ui_format(self, odds_data: Dict) -> List[Dict]:
+        """
+        Transform Pandas DataFrame JSON format to UI-expected format
+        
+        Input (Pandas DataFrame JSON):
+        {
+            "schema": {"fields": [{"name": "bet_name"}, {"name": "vb"}, ...]},
+            "data": [
+                {
+                    "bet_name": "home",
+                    "vb": {"back_decimal": "1.50", ...},
+                    "xb": {"back_decimal": "1.55", ...}
+                }
+            ]
+        }
+        
+        Output (UI format):
+        [
+            {
+                "bookmaker_code": "vb",
+                "bookmaker_name": "VB", 
+                "decimal_odds": "1.50",
+                "bet_name": "home"
+            },
+            ...
+        ]
+        """
+        if not odds_data or 'schema' not in odds_data or 'data' not in odds_data:
+            return []
+        
+        schema = odds_data['schema']
+        data_rows = odds_data['data']
+        
+        # Get bookmaker codes from schema (exclude metadata fields)
+        excluded_fields = {'bet_name', 'mode_date', 'best_back_decimal', 'best_lay_decimal'}
+        bookmaker_codes = [
+            field['name'] 
+            for field in schema.get('fields', [])
+            if field['name'] not in excluded_fields
+        ]
+        
+        # Extract odds for each bookmaker
+        transformed_odds = []
+        for row in data_rows:
+            bet_name = row.get('bet_name', '')
+            
+            for bookie_code in bookmaker_codes:
+                if bookie_code in row and isinstance(row[bookie_code], dict):
+                    bookie_data = row[bookie_code]
+                    decimal_odds = bookie_data.get('back_decimal')
+                    
+                    if decimal_odds:
+                        # Convert string to float for UI compatibility
+                        try:
+                            decimal_odds_float = float(decimal_odds)
+                        except (ValueError, TypeError):
+                            continue  # Skip invalid odds
+                        
+                        transformed_odds.append({
+                            'bookmaker_code': bookie_code,
+                            'bookmaker_name': bookie_code.upper(),
+                            'decimal_odds': decimal_odds_float,  # Must be a number, not string
+                            'selection': bet_name,  # UI expects 'selection' not 'bet_name'
+                            'bet_name': bet_name,  # Keep for backward compatibility
+                            'clickout_url': bookie_data.get('back_clickout', ''),
+                            'fractional_odds': bookie_data.get('back_fractional', ''),
+                            'last_decimal': bookie_data.get('last_back_decimal', '0')
+                        })
+        
+        return transformed_odds
+    
+    async def scrape_once(self) -> Optional[Dict]:
+        """Scrape sport once"""
+        start = time.time()
+        logging.info(f"🔄 {self.sport.upper()}: Starting scrape...")
+        
+        # Get leagues
+        leagues = await self.get_leagues()
+        if not leagues:
+            logging.warning(f"❌ {self.sport.upper()}: No leagues found")
+            return None
+        
+        top_leagues = self.config.get('top_leagues', 5)
+        leagues = leagues[:top_leagues]
+        logging.info(f"  ↳ {self.sport}: Found {len(leagues)} leagues")
+        
+        # Get matches in parallel
+        match_tasks = [self.get_matches(league) for league in leagues]
+        all_matches_nested = await asyncio.gather(*match_tasks)
+        all_matches = [m for matches in all_matches_nested for m in matches if matches]
+        
+        if not all_matches:
+            logging.warning(f"❌ {self.sport.upper()}: No matches found")
+            return None
+        
+        logging.info(f"  ↳ {self.sport}: Found {len(all_matches)} matches")
+        
+        # Get markets (batched to avoid overwhelming)
+        batch_size = 30
+        all_markets = []
+        for i in range(0, len(all_matches), batch_size):
+            batch = all_matches[i:i+batch_size]
+            market_tasks = [self.get_markets(match) for match in batch]
+            markets_batch = await asyncio.gather(*market_tasks)
+            all_markets.extend(markets_batch)
+        
+        # Extract odds from priority markets
+        markets_to_fetch = self.config.get('markets', ['win market'])
+        odds_tasks = []
+        match_market_mapping = []
+        
+        for match, markets in zip(all_matches, all_markets):
+            if not markets:
+                continue
+            
+            for desired_market in markets_to_fetch:
+                market_found = False
+                
+                for category, market_list in markets.items():
+                    if not market_list:
+                        continue
+                    
+                    for market_info in market_list:
+                        market_name = market_info[0].lower()
+                        
+                        if (desired_market.lower() == market_name or 
+                            desired_market.lower() == category.lower() or
+                            (desired_market.lower() == 'win market' and 'win market' in market_name)):
+                            
+                            odds_tasks.append(self.get_odds(market_info[1]))
+                            match_market_mapping.append({
+                                'match': match,
+                                'market_category': category,
+                                'market_name': market_info[0],
+                                'market_url': market_info[1]
+                            })
+                            market_found = True
+                            break
+                    
+                    if market_found:
+                        break
+        
+        logging.info(f"  ↳ {self.sport}: Fetching odds for {len(odds_tasks)} markets...")
+        
+        # Fetch all odds in parallel (batched)
+        batch_size = 40
+        all_odds = []
+        for i in range(0, len(odds_tasks), batch_size):
+            batch = odds_tasks[i:i+batch_size]
+            odds_batch = await asyncio.gather(*batch)
+            all_odds.extend(odds_batch)
+        
+        # Build final structure with transformed odds
+        # Group by match to combine multiple markets
+        matches_map = {}
+        for mapping, odds in zip(match_market_mapping, all_odds):
+            if not odds:
+                continue
+            
+            match_slug = mapping['match']['match_slug']
+            
+            # Initialize match if not exists
+            if match_slug not in matches_map:
+                matches_map[match_slug] = {
+                    **mapping['match'],
+                    'markets': {}
+                }
+            
+            # Transform odds from Pandas format to UI format
+            transformed_odds = self.transform_odds_to_ui_format(odds)
+            
+            # Add market to match
+            category = mapping['market_category']
+            if category not in matches_map[match_slug]['markets']:
+                matches_map[match_slug]['markets'][category] = []
+            
+            matches_map[match_slug]['markets'][category].append({
+                'name': mapping['market_name'],
+                'url': mapping['market_url'],
+                'odds': transformed_odds  # UI-compatible format
+            })
+        
+        final_matches = list(matches_map.values())
+        
+        # Build output
+        result = {
+            'sport': self.sport,
+            'timestamp': datetime.now().isoformat(),
+            'leagues_count': len(leagues),
+            'matches_count': len(final_matches),
+            'matches': final_matches,
+            'scrape_time_seconds': round(time.time() - start, 2)
+        }
+        
+        logging.info(f"✅ {self.sport.upper()}: Scraped {len(final_matches)} matches in {result['scrape_time_seconds']}s")
+        
+        # Save to file
+        with open(self.output_file, 'w', encoding='utf-8') as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+        
+        return result
+    
+    async def run(self):
+        """Run scraper once"""
+        await self.connect()
+        try:
+            result = await self.scrape_once()
+            return result
+        finally:
+            await self.disconnect()
+
+
+async def main(sport: str, config: Dict, mode: str = 'local'):
+    """Main entry point for individual sport scraper"""
+    scraper = BaseSportScraper(sport, config, mode)
+    result = await scraper.run()
+    return result
+
+
+if __name__ == "__main__":
+    # Example usage
+    import sys
+    
+    SPORTS_CONFIG = {
+        'football': {
+            'enabled': True,
+            'top_leagues': 10,
+            'output': 'oddsmagnet_top10.json',
+            'markets': ['win market', 'over under betting', 'both teams to score'],
+        },
+        'basketball': {
+            'enabled': True,
+            'top_leagues': 5,
+            'output': 'oddsmagnet_basketball.json',
+            'markets': ['win market', 'over under betting'],
+        },
+        'tennis': {
+            'enabled': True,
+            'top_leagues': 10,
+            'output': 'oddsmagnet_tennis.json',
+            'markets': ['win market'],
+        }
+    }
+    
+    sport = sys.argv[1] if len(sys.argv) > 1 else 'football'
+    mode = sys.argv[2] if len(sys.argv) > 2 else 'local'
+    
+    if sport not in SPORTS_CONFIG:
+        print(f"Invalid sport: {sport}")
+        sys.exit(1)
+    
+    asyncio.run(main(sport, SPORTS_CONFIG[sport], mode))
