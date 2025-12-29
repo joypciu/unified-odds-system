@@ -68,6 +68,12 @@ SPORTS_CONFIG = {
         'top_leagues': 5,
         'output': 'oddsmagnet_boxing.json',
         'markets': ['win market'],
+    },
+    'baseball': {
+        'enabled': True,
+        'top_leagues': 5,
+        'output': 'oddsmagnet_baseball.json',
+        'markets': ['win market', 'over under betting'],
     }
 }
 
