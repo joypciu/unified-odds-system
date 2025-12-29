@@ -82,12 +82,8 @@ async def debug_chrome():
             print("   google-chrome --remote-debugging-port=9222 --headless=new")
             return
         
-        # Step 3: Create FRESH context (don't use existing)
+        # Step 3: Create FRESH context with stealth
         print("\n3️⃣  Creating fresh browser context with stealth...")
-        
-        # Close any existing contexts
-        for ctx in browser.contexts:
-            await ctx.close()
         
         # Stealth scripts to inject before page creation
         stealth_js = """
