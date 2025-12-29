@@ -243,20 +243,34 @@ class BaseSportScraper:
         except:
             return None
     
-    async def fetch_page_data(self, url: str, timeout: int = 20000) -> Optional[Dict]:
-        """Fetch SSR data from URL with timeout"""
+    async def fetch_page_data(self, url: str, timeout: int = 20000, retries: int = 2) -> Optional[Dict]:
+        """Fetch SSR data from URL with timeout and retry logic"""
         async with self.semaphore:
             page = await self.context.new_page()
-            try:
-                await page.goto(url, wait_until='domcontentloaded', timeout=timeout)
-                await asyncio.sleep(0.2)
-                ssr_data = await self.extract_ssr_data(page)
-                return ssr_data
-            except Exception as e:
-                logging.debug(f"{self.sport}: Failed to fetch {url}: {e}")
-                return None
-            finally:
-                await page.close()
+            
+            for attempt in range(retries):
+                try:
+                    await page.goto(url, wait_until='domcontentloaded', timeout=timeout)
+                    await asyncio.sleep(0.3)  # Give page time to render
+                    ssr_data = await self.extract_ssr_data(page)
+                    
+                    if ssr_data:
+                        return ssr_data
+                    
+                    # If no data on first attempt, retry
+                    if attempt < retries - 1:
+                        logging.debug(f"{self.sport}: No SSR data found, retrying ({attempt + 1}/{retries})...")
+                        await asyncio.sleep(0.5)
+                        
+                except Exception as e:
+                    if attempt < retries - 1:
+                        logging.debug(f"{self.sport}: Failed to fetch (attempt {attempt + 1}/{retries}): {e}")
+                        await asyncio.sleep(0.5)
+                    else:
+                        logging.warning(f"{self.sport}: Failed to fetch {url} after {retries} attempts: {e}")
+                        
+            await page.close()
+            return None
     
     async def get_leagues(self) -> List[Dict]:
         """Get leagues for sport"""
@@ -309,9 +323,10 @@ class BaseSportScraper:
     async def get_markets(self, match: Dict) -> Dict:
         """Get markets for match"""
         url = f"https://oddsmagnet.com/{match['match_url']}"
-        ssr_data = await self.fetch_page_data(url)
+        ssr_data = await self.fetch_page_data(url, retries=3)  # More retries for markets
         
         if not ssr_data:
+            logging.debug(f"{self.sport}: No SSR data for match: {match.get('name', 'unknown')}")
             return {}
         
         for key, value in ssr_data.items():
@@ -325,6 +340,10 @@ class BaseSportScraper:
                                 markets[category] = market_list
                     if markets:
                         return markets
+                    else:
+                        logging.debug(f"{self.sport}: Match has SSR data but no valid markets: {match.get('name', 'unknown')}")
+        
+        logging.debug(f"{self.sport}: No market structure found for: {match.get('name', 'unknown')}")
         return {}
     
     async def get_odds(self, market_url: str) -> Optional[Dict]:
@@ -447,6 +466,11 @@ class BaseSportScraper:
             market_tasks = [self.get_markets(match) for match in batch]
             markets_batch = await asyncio.gather(*market_tasks)
             all_markets.extend(markets_batch)
+        
+        # Count how many matches have markets
+        matches_with_markets = sum(1 for m in all_markets if m)
+        if matches_with_markets < len(all_matches):
+            logging.info(f"  ↳ {self.sport}: {matches_with_markets}/{len(all_matches)} matches have market data")
         
         # Extract odds from priority markets
         markets_to_fetch = self.config.get('markets', ['win market'])
