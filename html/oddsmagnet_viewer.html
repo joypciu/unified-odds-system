@@ -1826,10 +1826,14 @@
             } else {
                 // Store sport and match info with bookmark
                 const currentSport = window.currentSport || 'football';
+                // Build match name from home_team/away_team or use match_name
+                const matchName = match?.home_team && match?.away_team 
+                    ? `${match.home_team} vs ${match.away_team}`
+                    : (match?.match_name || '');
                 const matchData = {
                     sport: currentSport,
-                    matchName: match?.match_name || '',
-                    date: match?.match_date || '',
+                    matchName: matchName,
+                    date: match?.datetime || match?.match_date || '',
                     league: match?.league || ''
                 };
                 bookmarkedMatches.set(matchId, matchData);
@@ -2061,7 +2065,12 @@
         
         // Generate unique match ID - O(1)
         function getMatchId(match) {
-            return `${match.match_name}_${match.match_date || 'nodate'}`.replace(/[^a-zA-Z0-9]/g, '_');
+            // Use home_team + away_team for OddsMagnet data, fallback to match_name
+            const matchIdentifier = match.home_team && match.away_team 
+                ? `${match.home_team}_vs_${match.away_team}`
+                : match.match_name || 'unknown';
+            const dateIdentifier = match.datetime || match.match_date || 'nodate';
+            return `${matchIdentifier}_${dateIdentifier}`.replace(/[^a-zA-Z0-9]/g, '_');
         }
         
         // Clean team names by removing youth team indicators (like backend match_name_cleaner.py)
@@ -2565,7 +2574,19 @@
                 html += `<div style="padding: 12px 20px; background: var(--bg-tertiary); color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color);">${sportNames[sport] || sport} (${matches.length})</div>`;
                 
                 matches.forEach(match => {
-                    const date = match.date ? new Date(match.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : 'TBD';
+                    // Parse datetime or date field for proper display
+                    let displayDate = 'TBD';
+                    if (match.datetime) {
+                        const dt = new Date(match.datetime);
+                        displayDate = dt.toLocaleDateString('en-US', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+                    } else if (match.date) {
+                        const dt = new Date(match.date);
+                        displayDate = dt.toLocaleDateString('en-US', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+                    }
+                    
+                    // Build match name from team names
+                    const matchDisplayName = match.matchName || 
+                        (match.home_team && match.away_team ? `${match.home_team} vs ${match.away_team}` : 'Unknown Match');
                     
                     // Determine status indicator
                     let statusIcon = '';
@@ -2586,10 +2607,10 @@
                         <div class="dropdown-item bookmark-item" data-sport="${sport}" data-match-id="${match.matchId}" data-available="${match.isAvailable}" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; opacity: ${match.isAvailable === false ? '0.6' : '1'}; padding: 12px 20px;">
                             <div style="flex: 1; min-width: 0;" class="bookmark-item-content">
                                 <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px; display: flex; align-items: center; gap: 6px;">
-                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${match.matchName || 'Unknown Match'}</span>
+                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${matchDisplayName}</span>
                                     ${statusIcon ? `<span style="font-size: 10px; ${statusColor}" title="${statusText}">${statusIcon}</span>` : ''}
                                 </div>
-                                <div style="font-size: 11px; color: var(--text-muted);">${match.league || ''} • ${date}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${match.league || ''} • ${displayDate}</div>
                                 ${match.isAvailable === false ? '<div style="font-size: 10px; color: var(--red-light); margin-top: 2px;">Match not found in current data</div>' : ''}
                             </div>
                             <button class="remove-bookmark-btn" data-match-id="${match.matchId}" style="background: #dc2626; border: 1px solid #b91c1c; color: white; cursor: pointer !important; padding: 8px 12px; font-size: 14px; border-radius: 4px; flex-shrink: 0; min-width: 40px; height: 36px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Delete bookmark">
@@ -3767,9 +3788,20 @@
         }
 
         function renderMatchRow(match) {
-            const teams = match.match_name || 'Unknown Match';
-            const matchDate = match.match_date ? new Date(match.match_date) : null;
-            const timeStr = matchDate ?
+            // OddsMagnet uses home_team/away_team, not match_name
+            const homeTeam = match.home_team || match.home || 'Team 1';
+            const awayTeam = match.away_team || match.away || 'Team 2';
+            const teams = `${homeTeam} vs ${awayTeam}`;
+            
+            // Parse datetime field (format: "2026-01-02 20:00:00")
+            let matchDate = null;
+            if (match.datetime) {
+                matchDate = new Date(match.datetime);
+            } else if (match.match_date) {
+                matchDate = new Date(match.match_date);
+            }
+            
+            const timeStr = matchDate && !isNaN(matchDate.getTime()) ?
                 `${matchDate.getMonth() + 1}/${matchDate.getDate()} ${matchDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` :
                 'TBD';
 
@@ -3779,9 +3811,8 @@
             const bookmarkIcon = isBookmarked ? 'fas fa-bookmark' : 'far fa-bookmark';
             const bookmarkClass = isBookmarked ? 'bookmark-btn bookmarked' : 'bookmark-btn';
 
-            // Get team names for selection labels
-            const homeTeam = match.home_team || 'Home';
-            const awayTeam = match.away_team || 'Away';
+            // Get team names for selection labels (already defined above)
+            // const homeTeam and awayTeam already set when building teams string
 
             // Get odds map by selection (home/draw/away) for current market
             const { homeOdds, drawOdds, awayOdds } = getMatchOddsBySelection(match);

@@ -1,25 +1,46 @@
 # Parallel OddsMagnet Scraper
 
-## Overview
+## 🎉 FULLY OPERATIONAL (Dec 29, 2025)
 
-High-performance parallel scraper that runs **multiple sports simultaneously** using Python multiprocessing. This is **dramatically faster** than the old sequential approach.
+**Status:** ✅ Production-ready and running on VPS
 
-## ✅ FIXED: UI Data Structure Issue (Dec 29, 2025)
+The OddsMagnet parallel scraper successfully bypassed CloudFront WAF and is now collecting odds from all 5 sports simultaneously.
 
-**Problem:** The UI was loading matches but showing "0 bookmakers found" because the data structure didn't match what the UI expected.
+## Recent Fixes
 
-**Solution:** Added `transform_odds_to_ui_format()` function to convert Pandas DataFrame JSON format to UI-compatible format:
+### ✅ CloudFront Anti-Detection (Dec 29, 2025)
+
+**Problem:** CloudFront WAF was blocking headless Chrome with HTTP 403 "Request could not be satisfied" error.
+
+**Solution:** Implemented comprehensive anti-detection:
+
+- **JavaScript stealth:** Override navigator.webdriver, mock plugins/chrome object
+- **HTTP headers:** Sec-Ch-Ua brand hints, Accept-Language, Sec-Fetch-\* headers
+- **Browser fingerprinting:** Platform (Win32), vendor (Google Inc.), hardwareConcurrency (8)
+- **Result:** Status changed from 403 → 200, website loading successfully
+
+### ✅ UI Data Display (Dec 29, 2025)
+
+**Problem:** UI showing "Unknown Match" and "TBD" for all matches instead of actual team names and dates.
+
+**Solution:** Fixed data structure mapping:
+
+- **Team names:** Now correctly reads `home_team`/`away_team` fields
+- **Dates:** Parses `datetime` field (format: "2026-01-02 20:00:00")
+- **Display:** Shows "Team A vs Team B" with proper formatted date/time
+
+### ✅ Previous: UI Data Structure Issue
+
+**Problem:** UI showed "0 bookmakers found" due to data format mismatch.
+
+**Solution:** Added `transform_odds_to_ui_format()` function to convert Pandas DataFrame to UI-compatible format.
 
 - **Old format:** `{schema: {...}, data: [{bet_name, vb: {back_decimal: ...}}]}`
 - **New format:** `{odds: [{bookmaker_code, decimal_odds, bet_name, ...}]}`
 
-**Changes made:**
+## Overview
 
-- Updated `base_sport_scraper.py` to transform odds data
-- Market structure now: `markets[category][] = {name, url, odds: [...]}`
-- Each odd includes: `bookmaker_code`, `bookmaker_name`, `decimal_odds`, `bet_name`, `clickout_url`
-
-Now the UI correctly displays all bookmakers! 🎉
+High-performance parallel scraper that runs **multiple sports simultaneously** using Python multiprocessing. This is **dramatically faster** than the old sequential approach.
 
 ## Performance Comparison
 
