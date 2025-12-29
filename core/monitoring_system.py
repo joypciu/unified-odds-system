@@ -104,6 +104,11 @@ class EmailNotifier:
         self.last_alert_times = {}  # Track cooldown per alert type
         self.enabled = config.get('email.enabled', True)
         
+        # Batched notifications - collect failures and send once every 2 days
+        self.batched_failures = []
+        self.last_batch_send_time = datetime.now()
+        self.batch_interval_hours = 48  # 2 days
+        
         if not self.enabled:
             print("⚠ Email notifications are DISABLED in config")
         elif not config.get('email.sender_email') or not config.get('email.admin_email'):
@@ -172,6 +177,94 @@ To stop receiving alerts, set "enabled": false in config.json
         except Exception as e:
             print(f"❌ Failed to send email: {e}")
             return False
+    
+    def add_to_batch(self, category: str, message: str, severity: str = "warning"):
+        """Add a failure/issue to the batch for later sending"""
+        self.batched_failures.append({
+            'timestamp': datetime.now().isoformat(),
+            'category': category,
+            'severity': severity,
+            'message': message
+        })
+        print(f"📝 Batched {severity}: [{category}] {message}")
+    
+    def send_batched_report(self, force: bool = False) -> bool:
+        """Send batched failure report if interval has passed"""
+        now = datetime.now()
+        hours_since_last = (now - self.last_batch_send_time).total_seconds() / 3600
+        
+        # Check if we should send batch
+        if not force and hours_since_last < self.batch_interval_hours:
+            return False
+        
+        # No failures to report
+        if not self.batched_failures:
+            print(f"✓ No failures to report in the last {hours_since_last:.1f} hours")
+            self.last_batch_send_time = now
+            return True
+        
+        # Group failures by category and severity
+        critical_failures = [f for f in self.batched_failures if f['severity'] == 'critical']
+        warnings = [f for f in self.batched_failures if f['severity'] == 'warning']
+        errors = [f for f in self.batched_failures if f['severity'] == 'error']
+        
+        # Build consolidated report
+        subject = f"System Status Report - {len(self.batched_failures)} Issues"
+        
+        body = f"""
+{'='*80}
+ODDS MONITORING SYSTEM - CONSOLIDATED FAILURE REPORT
+{'='*80}
+Report Period: {self.last_batch_send_time.strftime('%Y-%m-%d %H:%M:%S')} to {now.strftime('%Y-%m-%d %H:%M:%S')}
+Duration: {hours_since_last:.1f} hours
+
+SUMMARY:
+  • Critical Failures: {len(critical_failures)}
+  • Errors: {len(errors)}
+  • Warnings: {len(warnings)}
+  • Total Issues: {len(self.batched_failures)}
+
+{'='*80}
+"""
+        
+        if critical_failures:
+            body += "\n🔴 CRITICAL FAILURES:\n" + "-" * 80 + "\n"
+            for f in critical_failures:
+                body += f"\n[{f['timestamp']}] [{f['category']}]\n{f['message']}\n"
+        
+        if errors:
+            body += "\n❌ ERRORS:\n" + "-" * 80 + "\n"
+            for f in errors:
+                body += f"\n[{f['timestamp']}] [{f['category']}]\n{f['message']}\n"
+        
+        if warnings:
+            body += "\n⚠️  WARNINGS:\n" + "-" * 80 + "\n"
+            for f in warnings:
+                body += f"\n[{f['timestamp']}] [{f['category']}]\n{f['message']}\n"
+        
+        body += f"""
+{'='*80}
+RECOMMENDATIONS:
+  • Review module logs for detailed error information
+  • Check VPN status if FanDuel modules are failing
+  • Verify system resources (CPU, memory, disk space)
+  • Ensure all scraper processes are running properly
+
+Next report will be sent in {self.batch_interval_hours} hours.
+{'='*80}
+"""
+        
+        # Send the consolidated report
+        success = self.send_alert(subject, body, "batched_report")
+        
+        if success:
+            # Clear the batch and update timestamp
+            failure_count = len(self.batched_failures)
+            self.batched_failures = []
+            self.last_batch_send_time = now
+            print(f"✅ Sent batched report with {failure_count} issues")
+        
+        return success
 
 
 class ModuleMonitor:
@@ -315,41 +408,10 @@ class OddsMonitoringSystem:
             self.unified_corruption_count += 1
             print(f"⚠ unified_odds.json is corrupted: {e}")
             
-            # Send alert on first corruption or every 5 times
+            # Add to batch on first corruption or every 5 times
             if self.unified_corruption_count == 1 or self.unified_corruption_count % 5 == 0:
-                alert_body = f"""
-[WARNING] Unified Odds File Corruption Detected
-
-File: unified_odds.json
-Corruption Count: {self.unified_corruption_count}
-Error: {str(e)[:200]}
-
-IMPACT:
-  • Web UI falling back to individual source files
-  • May cause slower data loading
-  • Data consistency may be affected
-
-CAUSE:
-  • Multiple processes writing simultaneously
-  • Write interrupted (crash/kill)
-  • Disk I/O issues
-
-AUTOMATIC RECOVERY:
-  • System has atomic write protection
-  • Backup file (.bak) available if needed
-  • Will auto-recover on next successful merge
-
-ACTION:
-  • Check if multiple unifi collectors are running
-  • Ensure disk has sufficient space
-  • Review system logs for crashes
-  • File will auto-recover on next merge
-"""
-                self.email.send_alert(
-                    f"[WARNING] Unified Odds File Corrupted ({self.unified_corruption_count}x)",
-                    alert_body,
-                    "unified_file_corruption"
-                )
+                message = f"unified_odds.json corrupted (count: {self.unified_corruption_count}): {str(e)[:100]}"
+                self.email.add_to_batch("Unified File Corruption", message, "error")
     
     def update_cache_from_all_sources(self):
         """Update cache from all data sources"""
@@ -406,15 +468,15 @@ ACTION:
             print(f"✓ {message}")
             
             # Only send email alert if significant updates (threshold: 10 new items)
-            if total_new_teams >= 10 or total_new_sports >= 2:
-                self.email.send_alert("Cache Updated", message, "cache_update")
+            # COMMENTED OUT: Reduced email notifications
+            # if total_new_teams >= 10 or total_new_sports >= 2:
+            #     self.email.send_alert("Cache Updated", message, "cache_update")
         
         if errors:
-            error_msg = "Cache update errors:\n" + "\n".join(errors)
+            error_msg = "Cache update errors: " + ", ".join(errors[:3])  # First 3 errors
             print(f"⚠ {error_msg}")
-            # Only send alert if there are unexpected errors
-            if len(errors) > 0:
-                self.email.send_alert("Cache Update Errors", error_msg, "cache_error")
+            # Add to batch instead of immediate alert
+            self.email.add_to_batch("Cache Update", error_msg, "warning")
     
     def monitoring_loop(self):
         """Main monitoring loop"""
@@ -447,91 +509,32 @@ ACTION:
                     print(f"✓ {module_name}: {result['data'].get('match_count', 0)} matches, "
                           f"age: {result['data'].get('file_age_minutes', 0):.1f} min")
             
-            # Send alerts for failures
+            # Add failures to batch for consolidated reporting every 2 days
             for module in failed_modules:
                 failure_count = self.monitor.failure_counts[module]
                 
-                # Send immediate alert on first failure for critical modules
-                # Or send after threshold is reached
-                should_alert = False
-                alert_urgency = "WARNING"
+                # Determine severity based on failure count
+                severity = "warning"
+                if failure_count >= failure_threshold:
+                    severity = "critical"
+                elif failure_count == 1:
+                    severity = "error"
                 
-                if failure_count == 1:
-                    # First failure - send immediate notification
-                    should_alert = True
-                    alert_urgency = "NOTICE"
-                elif failure_count >= failure_threshold:
-                    # Repeated failure - critical alert
-                    should_alert = True
-                    alert_urgency = "CRITICAL"
-                
-                if should_alert:
-                    issues_list = '\n  - '.join(results[module]['issues'])
-                    alert_body = f"""
-[{alert_urgency}] Module Health Alert
-
-Module: {module}
-Status: FAILED
-Failure Count: {failure_count} (Threshold: {failure_threshold})
-Consecutive Failures: {failure_count}
-
-Issues Detected:
-  - {issues_list}
-
-Possible Causes:
-  • Module scraper not running or crashed
-  • VPN blocking access (especially for FanDuel)
-  • Network connectivity issues
-  • API endpoint changes or rate limiting
-  • Authentication/session expired
-
-ACTION REQUIRED:
-1. Check if the scraper process is running
-2. Review module logs for detailed errors
-3. Verify network connectivity and VPN status
-4. Test API endpoints manually
-5. Restart the module if needed
-
-System will continue monitoring every {check_interval} seconds.
-"""
-                    self.email.send_alert(
-                        f"[{alert_urgency}] Module Failure: {module}",
-                        alert_body,
-                        f"module_failure_{module}"
-                    )
+                # Add to batch for consolidated reporting
+                issues_list = ', '.join(results[module]['issues'])
+                message = f"Module '{module}' failed (count: {failure_count}/{failure_threshold}): {issues_list}"
+                self.email.add_to_batch("Module Failure", message, severity)
             
-            # Send summary alert if multiple modules are failing
+            # Add system health summary to batch if multiple modules are failing
             if len(failed_modules) >= 2:
-                summary_body = f"""
-[SYSTEM ALERT] Multiple Module Failures Detected
-
-Failed Modules: {len(failed_modules)} / {len(results)}
-  ❌ {', '.join(failed_modules)}
-
-Healthy Modules: {len(ok_modules)}
-  ✓ {', '.join(ok_modules) if ok_modules else 'None'}
-
-Warnings: {len(warning_modules)}
-  ⚠ {', '.join(warning_modules) if warning_modules else 'None'}
-
-Common Issues:
-  • VPN may be blocking access (especially FanDuel)
-  • Multiple scrapers not running
-  • System-wide network issues
-  • Insufficient permissions or resources
-
-ACTION: Review individual module alerts for specific issues.
-
-Next check in {check_interval} seconds.
-"""
-                self.email.send_alert(
-                    f"[CRITICAL] {len(failed_modules)} Modules Failing",
-                    summary_body,
-                    "system_health_critical"
-                )
+                message = f"{len(failed_modules)} modules failing: {', '.join(failed_modules)}. Healthy: {len(ok_modules)}"
+                self.email.add_to_batch("System Health", message, "critical")
             
             # Check unified_odds.json for corruption
             self.check_unified_file_health()
+            
+            # Check and send batched report if needed (every 2 days)
+            self.email.send_batched_report()
             
             # Summary
             print(f"\n📊 Summary: ✓ {len(ok_modules)} OK, ⚠ {len(warning_modules)} Warnings, ❌ {len(failed_modules)} Errors")
@@ -574,24 +577,24 @@ Next check in {check_interval} seconds.
                             print(f"✓ {message}")
                             
                             # Alert if significant cleanup occurred
-                            if dedupe_report['duplicates_merged'] >= 5:
-                                self.email.send_alert(
-                                    "Cache Deduplication Report",
-                                    f"{message}\n\nTotal teams: {dedupe_report['total_teams']}\nTotal sports: {dedupe_report['total_sports']}",
-                                    "cache_dedupe"
-                                )
+                            # COMMENTED OUT: Reduced email notifications
+                            # if dedupe_report['duplicates_merged'] >= 5:
+                            #     self.email.send_alert(
+                            #         "Cache Deduplication Report",
+                            #         f"{message}\n\nTotal teams: {dedupe_report['total_teams']}\nTotal sports: {dedupe_report['total_sports']}",
+                            #         "cache_dedupe"
+                            #     )
                         
                         last_dedupe_time = current_time
                 
             except Exception as e:
                 print(f"❌ Error in cache update loop: {e}")
-                self.email.send_alert(
-                    "Cache Update Error",
-                    f"Error during automatic cache update:\n{str(e)}",
-                    "cache_error"
-                )
-            
-            time.sleep(update_interval)
+            # COMMENTED OUT: Reduced email notifications
+            # self.email.send_alert(
+            #     "Cache Update Error",
+            #     f"Error during automatic cache update:\n{str(e)}",
+            #     "cache_error"
+            # )
     
     def update_status_api(self, results: Dict, ok_modules: List, warning_modules: List, failed_modules: List):
         """Update monitoring status for web UI"""
@@ -690,11 +693,12 @@ Next check in {check_interval} seconds.
         print("✅ Monitoring system stopped")
         
         # Send shutdown notification
-        self.email.send_alert(
-            "Monitoring System Stopped",
-            "The odds monitoring system has been stopped.",
-            "system_shutdown"
-        )
+        # COMMENTED OUT: Reduced email notifications
+        # self.email.send_alert(
+        #     "Monitoring System Stopped",
+        #     "The odds monitoring system has been stopped.",
+        #     "system_shutdown"
+        # )
 
 
 if __name__ == "__main__":

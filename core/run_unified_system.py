@@ -448,22 +448,25 @@ Please check the system logs and restart if necessary.
                 return_code = proc.returncode
                 if return_code != 0:
                     # Process failed
-                    self.send_alert(
-                        module_name=name,
-                        error_type="PROCESS_CRASH",
-                        message=f"Scraper process crashed with code {return_code}",
-                        details=f"Process: {name}\nReturn Code: {return_code}\nPID: {proc.pid}"
-                    )
+                    # COMMENTED OUT: Reduced email notifications
+                    # self.send_alert(
+                    #     module_name=name,
+                    #     error_type="PROCESS_CRASH",
+                    #     message=f"Scraper process crashed with code {return_code}",
+                    #     details=f"Process: {name}\nReturn Code: {return_code}\nPID: {proc.pid}"
+                    # )
+                    pass
                 return False
 
             return True
 
         except Exception as e:
-            self.send_alert(
-                module_name=process_info.get('name', 'unknown'),
-                error_type="MONITOR_ERROR",
-                message=f"Process monitoring failed: {e}"
-            )
+            # COMMENTED OUT: Reduced email notifications
+            # self.send_alert(
+            #     module_name=process_info.get('name', 'unknown'),
+            #     error_type="MONITOR_ERROR",
+            #     message=f"Process monitoring failed: {e}"
+            # )
             return False
 
     def check_data_files(self):
@@ -487,26 +490,32 @@ Please check the system logs and restart if necessary.
                     age = current_time - mtime
 
                     if age > stale_threshold:
-                        self.send_alert(
-                            module_name=module,
-                            error_type="STALE_DATA",
-                            message=f"Data file not updated for {age/60:.1f} minutes",
-                            details=f"File: {filename}\nLast Modified: {datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')}"
-                        )
+                        # COMMENTED OUT: Reduced email notifications
+                        # self.send_alert(
+                        #     module_name=module,
+                        #     error_type="STALE_DATA",
+                        #     message=f"Data file not updated for {age/60:.1f} minutes",
+                        #     details=f"File: {filename}\nLast Modified: {datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')}"
+                        # )
+                        pass
                 else:
-                    self.send_alert(
-                        module_name=module,
-                        error_type="MISSING_FILE",
-                        message=f"Data file not found: {filename}",
-                        details=f"Expected path: {filepath}"
-                    )
+                    # COMMENTED OUT: Reduced email notifications
+                    # self.send_alert(
+                    #     module_name=module,
+                    #     error_type="MISSING_FILE",
+                    #     message=f"Data file not found: {filename}",
+                    #     details=f"Expected path: {filepath}"
+                    # )
+                    pass
 
         except Exception as e:
-            self.send_alert(
-                module_name="monitoring",
-                error_type="FILE_CHECK_ERROR",
-                message=f"Data file check failed: {e}"
-            )
+            # COMMENTED OUT: Reduced email notifications
+            # self.send_alert(
+            #     module_name="monitoring",
+            #     error_type="FILE_CHECK_ERROR",
+            #     message=f"Data file check failed: {e}"
+            # )
+            pass
 
     def check_memory_usage(self, processes_list):
         """Check memory usage of all scraper processes"""
@@ -540,23 +549,27 @@ Please check the system logs and restart if necessary.
 
                         # Check threshold
                         if memory_mb > self.memory_threshold_mb:
-                            self.send_alert(
-                                module_name=proc_info,
-                                error_type="HIGH_MEMORY",
-                                message=f"Process memory usage: {memory_mb:.1f} MB (threshold: {self.memory_threshold_mb} MB)",
-                                details=f"Process: {proc_info}\nPID: {proc.pid}\nMemory: {memory_mb:.1f} MB\nCPU: {proc.cpu_percent():.1f}%"
-                            )
+                            # COMMENTED OUT: Reduced email notifications
+                            # self.send_alert(
+                            #     module_name=proc_info,
+                            #     error_type="HIGH_MEMORY",
+                            #     message=f"Process memory usage: {memory_mb:.1f} MB (threshold: {self.memory_threshold_mb} MB)",
+                            #     details=f"Process: {proc_info}\nPID: {proc.pid}\nMemory: {memory_mb:.1f} MB\nCPU: {proc.cpu_percent():.1f}%"
+                            # )
+                            pass
 
                     except (psutil.NoSuchProcess, psutil.AccessDenied):
                         # Process might have died or we can't access it
                         pass
 
         except Exception as e:
-            self.send_alert(
-                module_name="memory_monitor",
-                error_type="MEMORY_CHECK_ERROR",
-                message=f"Memory monitoring failed: {e}"
-            )
+            # COMMENTED OUT: Reduced email notifications
+            # self.send_alert(
+            #     module_name="memory_monitor",
+            #     error_type="MEMORY_CHECK_ERROR",
+            #     message=f"Memory monitoring failed: {e}"
+            # )
+            pass
 
     def get_memory_report(self):
         """Generate memory usage report"""
@@ -684,11 +697,12 @@ class UnifiedSystemRunner:
                 time.sleep(10)  # Check every 10 seconds
 
             except Exception as e:
-                self.alert_system.send_alert(
-                    module_name="process_monitor",
-                    error_type="MONITOR_FAILED",
-                    message=f"Process health monitoring failed: {e}"
-                )
+                # COMMENTED OUT: Reduced email notifications
+                # self.alert_system.send_alert(
+                #     module_name="process_monitor",
+                #     error_type="MONITOR_FAILED",
+                #     message=f"Process health monitoring failed: {e}"
+                # )
                 time.sleep(30)  # Wait longer on error
     
     def log(self, message):
@@ -754,12 +768,13 @@ class UnifiedSystemRunner:
         except Exception as e:
             self.log(f" Failed to start {name}: {e}")
             # Send alert for startup failure
-            self.alert_system.send_alert(
-                module_name=name,
-                error_type="STARTUP_FAILED",
-                message=f"Failed to start scraper: {e}",
-                details=f"Script: {script_name}\nWorking Dir: {working_dir}\nArgs: {args}"
-            )
+            # COMMENTED OUT: Reduced email notifications
+            # self.alert_system.send_alert(
+            #     module_name=name,
+            #     error_type="STARTUP_FAILED",
+            #     message=f"Failed to start scraper: {e}",
+            #     details=f"Script: {script_name}\nWorking Dir: {working_dir}\nArgs: {args}"
+            # )
             return False
     
     def check_json_files(self):
@@ -888,12 +903,13 @@ class UnifiedSystemRunner:
         except Exception as e:
             self.log(f" Collector failed: {e}")
             # Send alert for collector failure
-            self.alert_system.send_alert(
-                module_name="unified_collector",
-                error_type="COLLECTOR_FAILED",
-                message=f"Unified odds collector failed: {e}",
-                details=f"Error: {e}\nTraceback: {traceback.format_exc()}"
-            )
+            # COMMENTED OUT: Reduced email notifications
+            # self.alert_system.send_alert(
+            #     module_name="unified_collector",
+            #     error_type="COLLECTOR_FAILED",
+            #     message=f"Unified odds collector failed: {e}",
+            #     details=f"Error: {e}\nTraceback: {traceback.format_exc()}"
+            # )
             return False
     
     def stop_all_scrapers(self):
@@ -922,23 +938,25 @@ class UnifiedSystemRunner:
                     return_code = proc.returncode
                     if return_code != 0:
                         failed_stops.append(proc_info)
-                        self.alert_system.send_alert(
-                            module_name=name,
-                            error_type="UNEXPECTED_STOP",
-                            message=f"Scraper stopped unexpectedly with code {return_code}",
-                            details=f"Process: {name}\nReturn Code: {return_code}\nRuntime: {time.time() - proc_info.get('start_time', time.time()):.1f}s"
-                        )
+                        # COMMENTED OUT: Reduced email notifications
+                        # self.alert_system.send_alert(
+                        #     module_name=name,
+                        #     error_type="UNEXPECTED_STOP",
+                        #     message=f"Scraper stopped unexpectedly with code {return_code}",
+                        #     details=f"Process: {name}\nReturn Code: {return_code}\nRuntime: {time.time() - proc_info.get('start_time', time.time()):.1f}s"
+                        # )
                     else:
                         self.log(f" {name} already stopped (normal)")
 
             except Exception as e:
                 failed_stops.append(proc_info)
-                self.alert_system.send_alert(
-                    module_name=proc_info.get('name', 'unknown'),
-                    error_type="STOP_FAILED",
-                    message=f"Failed to stop scraper: {e}",
-                    details=f"Process: {proc_info.get('name', 'unknown')}\nError: {e}"
-                )
+                # COMMENTED OUT: Reduced email notifications
+                # self.alert_system.send_alert(
+                #     module_name=proc_info.get('name', 'unknown'),
+                #     error_type="STOP_FAILED",
+                #     message=f"Failed to stop scraper: {e}",
+                #     details=f"Process: {proc_info.get('name', 'unknown')}\nError: {e}"
+                # )
 
         # Clean up isolated Chrome instances (but not user's Chrome)
         self.cleanup_chrome_instances()
@@ -1545,13 +1563,14 @@ def main():
     # Test alert system if requested
     if args.alert_test:
         print("Testing alert system...")
-        runner.alert_system.send_alert(
-            module_name="system_test",
-            error_type="TEST_ALERT",
-            message="This is a test alert to verify email configuration",
-            details="Alert system test initiated by --alert-test flag"
-        )
-        print("Test alert sent. Check email and logs.")
+        # COMMENTED OUT: Reduced email notifications
+        # runner.alert_system.send_alert(
+        #     module_name="system_test",
+        #     error_type="TEST_ALERT",
+        #     message="This is a test alert to verify email configuration",
+        #     details="Alert system test initiated by --alert-test flag"
+        # )
+        print("Test alert feature disabled. Email notifications are minimized.")
         return
 
     if args.mode == 'once':
