@@ -10,6 +10,9 @@ import asyncio
 import logging
 import subprocess
 import socket
+import os
+import signal
+import psutil
 from datetime import datetime
 from typing import Dict, List, Optional
 from pathlib import Path
@@ -19,6 +22,80 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
+# Lock file for single instance
+LOCK_FILE = Path('/tmp/oddsmagnet_scraper.lock')
+CHROME_USER_DATA_DIR = Path('/tmp/chrome_oddsmagnet')
+
+
+def cleanup_chrome_processes():
+    """Kill all Chrome processes related to oddsmagnet"""
+    try:
+        killed_count = 0
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                cmdline = ' '.join(proc.info['cmdline'] or [])
+                if 'chrome_oddsmagnet' in cmdline or 'chrome' in proc.info['name'].lower():
+                    # Kill Chrome process
+                    proc.kill()
+                    killed_count += 1
+            except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError):
+                pass
+        
+        if killed_count > 0:
+            logging.info(f"🧹 Killed {killed_count} Chrome processes")
+        
+        # Clean up Chrome user data directory
+        if CHROME_USER_DATA_DIR.exists():
+            try:
+                import shutil
+                shutil.rmtree(CHROME_USER_DATA_DIR, ignore_errors=True)
+                logging.info(f"🧹 Cleaned up Chrome user data directory")
+            except:
+                pass
+                
+    except Exception as e:
+        logging.warning(f"Error during Chrome cleanup: {e}")
+
+
+def acquire_lock() -> bool:
+    """Acquire lock file to prevent multiple instances"""
+    try:
+        if LOCK_FILE.exists():
+            # Check if process is still running
+            try:
+                with open(LOCK_FILE, 'r') as f:
+                    old_pid = int(f.read().strip())
+                
+                if psutil.pid_exists(old_pid):
+                    logging.error(f"Another instance is running (PID: {old_pid})")
+                    return False
+                else:
+                    logging.info(f"Removing stale lock file (PID {old_pid} no longer exists)")
+                    LOCK_FILE.unlink()
+            except:
+                LOCK_FILE.unlink()
+        
+        # Create lock file with current PID
+        with open(LOCK_FILE, 'w') as f:
+            f.write(str(os.getpid()))
+        
+        logging.info(f"✓ Acquired lock (PID: {os.getpid()})")
+        return True
+        
+    except Exception as e:
+        logging.error(f"Failed to acquire lock: {e}")
+        return False
+
+
+def release_lock():
+    """Release lock file"""
+    try:
+        if LOCK_FILE.exists():
+            LOCK_FILE.unlink()
+            logging.info("✓ Released lock")
+    except Exception as e:
+        logging.warning(f"Error releasing lock: {e}")
 
 
 class BaseSportScraper:
@@ -42,6 +119,7 @@ class BaseSportScraper:
         self.browser = None
         self.context = None
         self.semaphore = None
+        self.chrome_process = None
         self.output_file = Path(__file__).parent / config.get('output', f'oddsmagnet_{sport}.json')
         
         logging.info(f"🎯 Initialized {sport.upper()} scraper")
@@ -58,10 +136,13 @@ class BaseSportScraper:
             return False
     
     def _start_chrome_debug(self):
-        """Start Chrome with remote debugging if not already running"""
+        """Start Chrome with remote debugging if not already running (single instance only)"""
         if self._is_port_open(9222):
             logging.info(f"✓ Chrome already running on port 9222")
             return True
+        
+        # Check if there are any existing Chrome processes and kill them
+        cleanup_chrome_processes()
         
         try:
             logging.info(f"🚀 Starting Chrome with remote debugging on port 9222...")
@@ -84,11 +165,17 @@ class BaseSportScraper:
                 logging.warning("Chrome executable not found")
                 return False
             
+            # Ensure clean Chrome user data directory
+            if CHROME_USER_DATA_DIR.exists():
+                import shutil
+                shutil.rmtree(CHROME_USER_DATA_DIR, ignore_errors=True)
+            CHROME_USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+            
             # Start Chrome in background
             cmd = [
                 chrome_exe,
                 '--remote-debugging-port=9222',
-                '--user-data-dir=/tmp/chrome_oddsmagnet',
+                f'--user-data-dir={CHROME_USER_DATA_DIR}',
                 '--no-first-run',
                 '--disable-blink-features=AutomationControlled',
                 '--disable-dev-shm-usage',
@@ -98,7 +185,7 @@ class BaseSportScraper:
                 '--headless=new'
             ]
             
-            subprocess.Popen(
+            self.chrome_process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
@@ -109,7 +196,7 @@ class BaseSportScraper:
             for _ in range(10):
                 time.sleep(0.5)
                 if self._is_port_open(9222):
-                    logging.info(f"✓ Chrome started successfully on port 9222")
+                    logging.info(f"✓ Chrome started successfully on port 9222 (PID: {self.chrome_process.pid})")
                     return True
             
             logging.warning("Chrome started but port 9222 not accessible")
@@ -218,14 +305,23 @@ class BaseSportScraper:
         return True
     
     async def disconnect(self):
-        """Disconnect from browser"""
+        """Disconnect from browser and cleanup Chrome"""
         try:
             if self.mode == 'vps' and self.browser:
                 await self.browser.close()
             if self.playwright:
                 await self.playwright.stop()
-        except:
-            pass
+            
+            # Kill Chrome process if we started it
+            if self.chrome_process and self.chrome_process.poll() is None:
+                self.chrome_process.kill()
+                logging.info("✓ Killed Chrome debug process")
+                
+        except Exception as e:
+            logging.warning(f"Error during disconnect: {e}")
+        finally:
+            # Always cleanup Chrome processes to be safe
+            cleanup_chrome_processes()
     
     async def extract_ssr_data(self, page: Page) -> Optional[Dict]:
         """Extract SSR data from page"""

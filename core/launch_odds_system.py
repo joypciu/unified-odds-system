@@ -22,6 +22,30 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 processes = []
 shutdown_in_progress = False
 
+def cleanup_all_chrome_processes():
+    """Kill all Chrome/Playwright processes from all scrapers"""
+    try:
+        killed_count = 0
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                cmdline = ' '.join(proc.info['cmdline'] or [])
+                name = proc.info['name'].lower()
+                
+                # Kill Chrome, Chromium, and Playwright processes
+                if ('chrome' in name or 'chromium' in name or 
+                    'chrome' in cmdline or 'playwright' in cmdline or
+                    'fd_master_' in cmdline or 'chrome_oddsmagnet' in cmdline):
+                    proc.kill()
+                    killed_count += 1
+            except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError):
+                pass
+        
+        if killed_count > 0:
+            print(f"   🧹 Killed {killed_count} Chrome/Playwright processes")
+        
+    except Exception as e:
+        print(f"   Warning: Error during Chrome cleanup: {e}")
+
 def kill_process_tree(pid):
     """Kill a process and all its children"""
     try:
@@ -72,6 +96,9 @@ def cleanup_processes():
                 kill_process_tree(proc.pid)
         except Exception:
             pass
+    
+    # Clean up all Chrome/Playwright processes
+    cleanup_all_chrome_processes()
 
 def signal_handler(sig, frame):
     """Handle Ctrl+C gracefully"""

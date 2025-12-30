@@ -9,10 +9,13 @@ import time
 import asyncio
 import logging
 import multiprocessing as mp
+import signal
+import sys
+import atexit
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
-from base_sport_scraper import BaseSportScraper
+from base_sport_scraper import BaseSportScraper, cleanup_chrome_processes, acquire_lock, release_lock
 
 logging.basicConfig(
     level=logging.INFO,
@@ -237,6 +240,14 @@ class ParallelSportsScraper:
             time.sleep(interval)
 
 
+def signal_handler(signum, frame):
+    """Handle termination signals"""
+    logging.info(f"\n⚠️ Received signal {signum}, cleaning up...")
+    cleanup_chrome_processes()
+    release_lock()
+    sys.exit(0)
+
+
 def main():
     """Main entry point"""
     import argparse
@@ -254,18 +265,40 @@ def main():
     
     args = parser.parse_args()
     
-    # Filter sports if specified
-    config = SPORTS_CONFIG.copy()
-    if args.sports:
-        for sport in config:
-            config[sport]['enabled'] = sport in args.sports
+    # Clean up any zombie Chrome processes from previous runs
+    logging.info("🧹 Cleaning up any existing Chrome processes...")
+    cleanup_chrome_processes()
     
-    scraper = ParallelSportsScraper(mode=args.mode, sports_config=config)
+    # Acquire lock to prevent multiple instances
+    if not acquire_lock():
+        logging.error("❌ Another instance is already running. Exiting.")
+        sys.exit(1)
     
-    if args.continuous:
-        scraper.run_continuous(interval=args.interval)
-    else:
-        scraper.run_once()
+    # Register cleanup handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    atexit.register(lambda: (cleanup_chrome_processes(), release_lock()))
+    
+    try:
+        # Filter sports if specified
+        config = SPORTS_CONFIG.copy()
+        if args.sports:
+            for sport in config:
+                config[sport]['enabled'] = sport in args.sports
+        
+        scraper = ParallelSportsScraper(mode=args.mode, sports_config=config)
+        
+        if args.continuous:
+            scraper.run_continuous(interval=args.interval)
+        else:
+            scraper.run_once()
+    except KeyboardInterrupt:
+        logging.info("\n⚠️ Interrupted by user")
+    except Exception as e:
+        logging.error(f"❌ Fatal error: {e}")
+    finally:
+        cleanup_chrome_processes()
+        release_lock()
 
 
 if __name__ == "__main__":

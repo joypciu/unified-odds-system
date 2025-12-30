@@ -11,9 +11,76 @@ import os
 import subprocess
 import tempfile
 import logging
+import signal
+import atexit
+import psutil
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
+from pathlib import Path
 from playwright.async_api import async_playwright, Browser, Page, BrowserContext
+
+# Lock file for single instance
+LOCK_FILE = Path('/tmp/fanduel_collector.lock')
+
+def cleanup_chrome_processes():
+    """Kill all Chrome processes related to FanDuel collector"""
+    try:
+        killed_count = 0
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                cmdline = ' '.join(proc.info['cmdline'] or [])
+                # Kill Chrome processes with FanDuel profile
+                if 'fd_master_' in cmdline or ('chrome' in proc.info['name'].lower() and 'fanduel' in cmdline.lower()):
+                    proc.kill()
+                    killed_count += 1
+            except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError):
+                pass
+        
+        if killed_count > 0:
+            logging.info(f"🧹 Killed {killed_count} Chrome processes")
+        
+    except Exception as e:
+        logging.warning(f"Error during Chrome cleanup: {e}")
+
+
+def acquire_lock() -> bool:
+    """Acquire lock file to prevent multiple instances"""
+    try:
+        if LOCK_FILE.exists():
+            # Check if process is still running
+            try:
+                with open(LOCK_FILE, 'r') as f:
+                    old_pid = int(f.read().strip())
+                
+                if psutil.pid_exists(old_pid):
+                    logging.error(f"Another FanDuel instance is running (PID: {old_pid})")
+                    return False
+                else:
+                    logging.info(f"Removing stale lock file (PID {old_pid} no longer exists)")
+                    LOCK_FILE.unlink()
+            except:
+                LOCK_FILE.unlink()
+        
+        # Create lock file with current PID
+        with open(LOCK_FILE, 'w') as f:
+            f.write(str(os.getpid()))
+        
+        logging.info(f"✓ Acquired lock (PID: {os.getpid()})")
+        return True
+        
+    except Exception as e:
+        logging.error(f"Failed to acquire lock: {e}")
+        return False
+
+
+def release_lock():
+    """Release lock file"""
+    try:
+        if LOCK_FILE.exists():
+            LOCK_FILE.unlink()
+            logging.info("✓ Released lock")
+    except Exception as e:
+        logging.warning(f"Error releasing lock: {e}")
 
 class FanDuelMasterCollector:
     """Master collector with standardized schema for UI/database integration"""
@@ -1847,7 +1914,7 @@ class FanDuelMasterCollector:
             await self.cleanup()
 
     async def cleanup(self):
-        """Cleanup"""
+        """Cleanup browser and Chrome processes"""
         self.logger.info("Cleaning up...")
         
         for page in self.sport_pages.values():
@@ -1874,6 +1941,9 @@ class FanDuelMasterCollector:
                 self.chrome_process.wait(timeout=5)
         except:
             pass
+        
+        # Kill any remaining Chrome processes
+        cleanup_chrome_processes()
 
         self.logger.info("Cleanup complete")
 
@@ -1888,13 +1958,39 @@ async def main():
                        help='Run Chrome in headless mode')
 
     args = parser.parse_args()
+    
+    # Clean up any zombie Chrome processes from previous runs
+    logging.info("🧹 Cleaning up any existing Chrome processes...")
+    cleanup_chrome_processes()
+    
+    # Acquire lock to prevent multiple instances
+    if not acquire_lock():
+        logging.error("❌ Another instance is already running. Exiting.")
+        sys.exit(1)
+    
+    # Register cleanup handlers
+    def signal_handler(sig, frame):
+        logging.info(f"\n⚠️ Received signal {sig}, cleaning up...")
+        cleanup_chrome_processes()
+        release_lock()
+        sys.exit(0)
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    atexit.register(lambda: (cleanup_chrome_processes(), release_lock()))
 
     # Set headless mode if requested
     if args.headless:
         os.environ['PLAYWRIGHT_HEADLESS'] = '1'
 
-    collector = FanDuelMasterCollector()
-    await collector.run(monitoring_duration=args.duration)
+    try:
+        collector = FanDuelMasterCollector()
+        await collector.run(monitoring_duration=args.duration)
+    except Exception as e:
+        logging.error(f"❌ Fatal error: {e}")
+    finally:
+        cleanup_chrome_processes()
+        release_lock()
 
 if __name__ == "__main__":
     asyncio.run(main())
