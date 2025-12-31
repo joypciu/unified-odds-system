@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OddsFlow - Live Betting Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-base: #000000;
+            --bg-elevated: #0a0a0a;
+            --bg-card: #111111;
+            --bg-hover: #1a1a1a;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a8a8a8;
+            --text-tertiary: #6b6b6b;
+            --accent: #0ea5e9;
+            --accent-hover: #0284c7;
+            --green: #22c55e;
+            --red: #ef4444;
+            --yellow: #eab308;
+            --purple: #a855f7;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* App Container */
+        .app-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.2s;
+        }
+
+        .brand-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .brand-text {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-container {
+            position: relative;
+            width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            padding: 12px 16px 12px 44px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-button:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .ai-button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.3);
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-icon {
+            font-size: 16px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-medium);
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .stat-change {
+            font-size: 13px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.positive { color: var(--green); }
+        .stat-change.negative { color: var(--red); }
+
+        /* Filters */
+        .filters-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .filters-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 80px;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .chip.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* Match Cards */
+        .matches-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .match-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .match-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .match-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .match-league {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .match-time {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .live-badge {
+            padding: 4px 10px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: var(--red);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .match-teams {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .team-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .team-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .team-score {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .odds-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+        }
+
+        .odds-item {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .odds-item:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .odds-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .odds-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .odds-item:hover .odds-label,
+        .odds-item:hover .odds-value {
+            color: white;
+        }
+
+        .bookmaker-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 4px;
+            color: var(--purple);
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Loading State */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-medium);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-container {
+                width: 200px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filters-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-label {
+                min-width: auto;
+            }
+        }
+
+        /* Smooth Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-elevated);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-medium);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="brand">
+                    <div class="brand-icon">⚡</div>
+                    <div class="brand-text">OddsFlow</div>
+                </div>
+
+                <div class="header-actions">
+                    <div class="search-container">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                        </svg>
+                        <input type="text" class="search-input" placeholder="Search matches, teams, leagues..." id="searchInput">
+                    </div>
+
+                    <div class="status-pill">
+                        <div class="status-dot"></div>
+                        <span>Live</span>
+                    </div>
+
+                    <button class="icon-button" onclick="window.location.href='/oddsmagnet'" title="Switch View">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+                        </svg>
+                    </button>
+
+                    <button class="ai-button" onclick="window.location.href='/llm-analysis'">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                        </svg>
+                        AI Analysis
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <div class="nav-tab active">
+                    <span class="tab-icon">⚽</span>
+                    <span>Football</span>
+                </div>
+                <div class="nav-tab">
+                    <span class="tab-icon">🏀</span>
+                    <span>Basketball</span>
+                </div>
+                <div class="nav-tab">
+                    <span class="tab-icon">🎾</span>
+                    <span>Tennis</span>
+                </div>
+                <div class="nav-tab">
+                    <span class="tab-icon">🏈</span>
+                    <span>American Football</span>
+                </div>
+                <div class="nav-tab">
+                    <span class="tab-icon">🏓</span>
+                    <span>Table Tennis</span>
+                </div>
+                <div class="nav-tab">
+                    <span class="tab-icon">⭐</span>
+                    <span>Top Picks</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Live Matches</div>
+                    <div class="stat-value" id="liveMatches">0</div>
+                    <div class="stat-change positive">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>+12 in last hour</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Total Matches</div>
+                    <div class="stat-value" id="totalMatches">0</div>
+                    <div class="stat-change">
+                        <span style="color: var(--text-secondary)">Across 6 sports</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Best Odds</div>
+                    <div class="stat-value" style="font-size: 24px;">3.50</div>
+                    <div class="stat-change">
+                        <span style="color: var(--text-secondary)">Liverpool vs Arsenal</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Bookmakers</div>
+                    <div class="stat-value">15+</div>
+                    <div class="stat-change">
+                        <span style="color: var(--text-secondary)">Real-time data</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filters-row">
+                    <div class="filter-label">Market Type</div>
+                    <div class="filter-chips">
+                        <div class="chip active">All Markets</div>
+                        <div class="chip">1X2</div>
+                        <div class="chip">Over/Under</div>
+                        <div class="chip">Both Teams Score</div>
+                        <div class="chip">Asian Handicap</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matches Grid -->
+            <div class="matches-grid" id="matchesContainer">
+                <!-- Loading State -->
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <div>Loading live odds...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sample data - replace with API call
+        setTimeout(() => {
+            const container = document.getElementById('matchesContainer');
+            container.innerHTML = `
+                <!-- Sample Match Card -->
+                <div class="match-card">
+                    <div class="match-header">
+                        <div class="match-league">Premier League • England</div>
+                        <div class="match-time">
+                            <div class="live-badge">● Live 67'</div>
+                        </div>
+                    </div>
+
+                    <div class="match-teams">
+                        <div class="team-row">
+                            <div class="team-name">Manchester United</div>
+                            <div class="team-score">2</div>
+                        </div>
+                        <div class="team-row">
+                            <div class="team-name">Liverpool</div>
+                            <div class="team-score">1</div>
+                        </div>
+                    </div>
+
+                    <div class="odds-row">
+                        <div class="odds-item">
+                            <div class="odds-label">Home Win</div>
+                            <div class="odds-value">2.50</div>
+                            <div class="bookmaker-tag">Bet365</div>
+                        </div>
+                        <div class="odds-item">
+                            <div class="odds-label">Draw</div>
+                            <div class="odds-value">3.20</div>
+                            <div class="bookmaker-tag">1xBet</div>
+                        </div>
+                        <div class="odds-item">
+                            <div class="odds-label">Away Win</div>
+                            <div class="odds-value">2.90</div>
+                            <div class="bookmaker-tag">FanDuel</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="match-card">
+                    <div class="match-header">
+                        <div class="match-league">La Liga • Spain</div>
+                        <div class="match-time">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Today, 18:30</span>
+                        </div>
+                    </div>
+
+                    <div class="match-teams">
+                        <div class="team-row">
+                            <div class="team-name">Real Madrid</div>
+                        </div>
+                        <div class="team-row">
+                            <div class="team-name">Barcelona</div>
+                        </div>
+                    </div>
+
+                    <div class="odds-row">
+                        <div class="odds-item">
+                            <div class="odds-label">Home Win</div>
+                            <div class="odds-value">2.10</div>
+                            <div class="bookmaker-tag">Bet365</div>
+                        </div>
+                        <div class="odds-item">
+                            <div class="odds-label">Draw</div>
+                            <div class="odds-value">3.50</div>
+                            <div class="bookmaker-tag">1xBet</div>
+                        </div>
+                        <div class="odds-item">
+                            <div class="odds-label">Away Win</div>
+                            <div class="odds-value">3.20</div>
+                            <div class="bookmaker-tag">FanDuel</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }, 1000);
+
+        // Update stats
+        document.getElementById('liveMatches').textContent = '12';
+        document.getElementById('totalMatches').textContent = '359';
+    </script>
+</body>
+</html>

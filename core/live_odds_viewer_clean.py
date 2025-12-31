@@ -4,7 +4,7 @@ Live Odds Viewer - Modern Web UI with FastAPI
 Real-time monitoring of unified_odds.json and source files
 """
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -533,6 +533,32 @@ async def get_oddsmagnet_top10_redirect():
     return RedirectResponse(url="/oddsmagnet", status_code=301)
 
 
+@app.get("/llm-analysis", response_class=HTMLResponse)
+async def get_llm_analysis_page(response: Response):
+    """Serve the modern LLM analysis chat interface"""
+    template_path = BASE_DIR / 'html' / 'llm_analysis_v2.html'
+    if not template_path.exists():
+        return HTMLResponse(content="<h1>LLM Analysis page not found</h1>", status_code=404)
+    html_content = open(template_path, 'r', encoding='utf-8').read()
+    
+    # Add cache-busting headers
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
+    return HTMLResponse(content=html_content, headers=response.headers)
+
+
+@app.get("/modern", response_class=HTMLResponse)
+async def get_modern_viewer():
+    """Serve the modern redesigned odds viewer"""
+    template_path = BASE_DIR / 'html' / 'modern_odds_viewer.html'
+    if not template_path.exists():
+        return HTMLResponse(content="<h1>Modern viewer not found</h1>", status_code=404)
+    html_content = open(template_path, 'r', encoding='utf-8').read()
+    return HTMLResponse(content=html_content)
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates"""
@@ -877,6 +903,251 @@ async def get_monitoring_status():
             'summary': {'healthy': 0, 'warnings': 0, 'errors': 0, 'total': 0},
             'modules': {}
         }
+
+
+# ==================== LLM AGENT API ENDPOINTS ====================
+
+@app.get("/api/llm/status")
+async def get_llm_status():
+    """Get LLM Agent API status"""
+    try:
+        from core.llm_agent_api import get_llm_agent_api
+        llm_api = get_llm_agent_api(BASE_DIR)
+        return llm_api.get_status()
+    except Exception as e:
+        return {
+            "analyzer_ready": False,
+            "llm_ready": False,
+            "error": str(e)
+        }
+
+
+@app.get("/api/llm/quick-analysis")
+async def get_llm_quick_analysis(force: bool = False):
+    """Get quick correlation analysis (cached for 5 minutes)"""
+    try:
+        from core.llm_agent_api import get_llm_agent_api
+        llm_api = get_llm_agent_api(BASE_DIR)
+        return llm_api.get_quick_analysis(force_refresh=force)
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@app.get("/api/llm/full-analysis")
+async def get_llm_full_analysis(force: bool = False):
+    """Get comprehensive LLM-powered analysis"""
+    try:
+        from core.llm_agent_api import get_llm_agent_api
+        llm_api = get_llm_agent_api(BASE_DIR)
+        return llm_api.get_llm_analysis(force_refresh=force)
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@app.post("/api/llm/ask")
+async def ask_llm_question(request: Request):
+    """Ask the LLM a specific question about the data"""
+    try:
+        from core.llm_agent_api import get_llm_agent_api
+        from utils.chat_db import get_chat_db
+        
+        llm_api = get_llm_agent_api(BASE_DIR)
+        db = get_chat_db()
+        
+        body = await request.json()
+        question = body.get('question')
+        context = body.get('context')
+        session_id = body.get('session_id')
+        
+        if not question:
+            return {
+                "success": False,
+                "error": "Question is required"
+            }
+        
+        # Create new session if not provided
+        if not session_id:
+            title = db.generate_title_from_message(question)
+            session_id = db.create_session(title)
+        
+        # Save user message
+        db.add_message(session_id, 'user', question)
+        
+        # Get LLM response
+        result = llm_api.ask_llm_question(question, context)
+        
+        # Save assistant message if successful
+        if result.get('success'):
+            db.add_message(session_id, 'assistant', result['answer'], {
+                'used_real_data': result.get('used_real_data', False)
+            })
+        
+        # Add session_id to response
+        result['session_id'] = session_id
+        
+        return result
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+# ==================== CHAT SESSION MANAGEMENT API ====================
+
+@app.get("/api/chat/sessions")
+async def get_chat_sessions(limit: int = 50, offset: int = 0):
+    """Get list of chat sessions"""
+    try:
+        from utils.chat_db import get_chat_db
+        db = get_chat_db()
+        
+        sessions = db.list_sessions(limit, offset)
+        total = db.get_total_sessions()
+        
+        return {
+            "success": True,
+            "sessions": sessions,
+            "total": total,
+            "limit": limit,
+            "offset": offset
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@app.post("/api/chat/sessions")
+async def create_chat_session(request: Request):
+    """Create a new chat session"""
+    try:
+        from utils.chat_db import get_chat_db
+        db = get_chat_db()
+        
+        body = await request.json()
+        title = body.get('title', 'New Chat')
+        
+        session_id = db.create_session(title)
+        session = db.get_session(session_id)
+        
+        return {
+            "success": True,
+            "session": session
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@app.get("/api/chat/sessions/{session_id}")
+async def get_chat_session(session_id: int):
+    """Get a specific chat session with messages"""
+    try:
+        from utils.chat_db import get_chat_db
+        db = get_chat_db()
+        
+        session = db.get_session_with_messages(session_id)
+        
+        if not session:
+            return {
+                "success": False,
+                "error": "Session not found"
+            }
+        
+        return {
+            "success": True,
+            "session": session
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@app.put("/api/chat/sessions/{session_id}")
+async def update_chat_session(session_id: int, request: Request):
+    """Update a chat session (rename)"""
+    try:
+        from utils.chat_db import get_chat_db
+        db = get_chat_db()
+        
+        body = await request.json()
+        title = body.get('title')
+        
+        if not title:
+            return {
+                "success": False,
+                "error": "Title is required"
+            }
+        
+        success = db.update_session_title(session_id, title)
+        
+        return {
+            "success": success,
+            "session_id": session_id
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@app.delete("/api/chat/sessions/{session_id}")
+async def delete_chat_session(session_id: int):
+    """Delete a chat session"""
+    try:
+        from utils.chat_db import get_chat_db
+        db = get_chat_db()
+        
+        success = db.delete_session(session_id)
+        
+        return {
+            "success": success,
+            "session_id": session_id
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@app.get("/api/chat/search")
+async def search_chat_sessions(q: str = "", limit: int = 20):
+    """Search chat sessions by title"""
+    try:
+        from utils.chat_db import get_chat_db
+        db = get_chat_db()
+        
+        sessions = db.search_sessions(q, limit)
+        
+        return {
+            "success": True,
+            "sessions": sessions,
+            "query": q
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+# ==================== END CHAT SESSION MANAGEMENT API ====================
+
+# ==================== END LLM AGENT API ENDPOINTS ====================
 
 
 @app.get("/api/history")

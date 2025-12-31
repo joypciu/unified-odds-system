@@ -1,0 +1,19 @@
+# Agent-specific dependencies
+# These are optional and only needed for LLM functionality
+
+# LangChain framework - CORE ⭐
+langchain>=0.1.0
+langchain-core>=0.1.0
+
+# Google AI Studio support (Gemini) - RECOMMENDED ⭐
+langchain-google-genai>=1.0.0
+google-genai>=0.1.0
+
+# OpenAI support (GPT-3.5, GPT-4, etc.)
+# langchain-openai>=0.0.5
+
+# Anthropic support (Claude)
+# langchain-anthropic>=0.1.0
+
+# Environment variable management
+python-dotenv>=1.0.0
