@@ -7,6 +7,7 @@ patchright
 playwright
 psutil
 pydantic
+python-dotenv
 requests
 selenium
 uvicorn
