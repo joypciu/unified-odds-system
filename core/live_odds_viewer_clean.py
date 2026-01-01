@@ -955,15 +955,12 @@ async def ask_llm_question(request: Request):
     """Ask the LLM a specific question about the data"""
     try:
         from core.llm_agent_api import get_llm_agent_api
-        from utils.chat_db import get_chat_db
         
         llm_api = get_llm_agent_api(BASE_DIR)
-        db = get_chat_db()
         
         body = await request.json()
         question = body.get('question')
         context = body.get('context')
-        session_id = body.get('session_id')
         
         if not question:
             return {
@@ -971,25 +968,8 @@ async def ask_llm_question(request: Request):
                 "error": "Question is required"
             }
         
-        # Create new session if not provided
-        if not session_id:
-            title = db.generate_title_from_message(question)
-            session_id = db.create_session(title)
-        
-        # Save user message
-        db.add_message(session_id, 'user', question)
-        
         # Get LLM response
         result = llm_api.ask_llm_question(question, context)
-        
-        # Save assistant message if successful
-        if result.get('success'):
-            db.add_message(session_id, 'assistant', result['answer'], {
-                'used_real_data': result.get('used_real_data', False)
-            })
-        
-        # Add session_id to response
-        result['session_id'] = session_id
         
         return result
     except Exception as e:
@@ -998,154 +978,6 @@ async def ask_llm_question(request: Request):
             "error": str(e)
         }
 
-
-# ==================== CHAT SESSION MANAGEMENT API ====================
-
-@app.get("/api/chat/sessions")
-async def get_chat_sessions(limit: int = 50, offset: int = 0):
-    """Get list of chat sessions"""
-    try:
-        from utils.chat_db import get_chat_db
-        db = get_chat_db()
-        
-        sessions = db.list_sessions(limit, offset)
-        total = db.get_total_sessions()
-        
-        return {
-            "success": True,
-            "sessions": sessions,
-            "total": total,
-            "limit": limit,
-            "offset": offset
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-
-@app.post("/api/chat/sessions")
-async def create_chat_session(request: Request):
-    """Create a new chat session"""
-    try:
-        from utils.chat_db import get_chat_db
-        db = get_chat_db()
-        
-        body = await request.json()
-        title = body.get('title', 'New Chat')
-        
-        session_id = db.create_session(title)
-        session = db.get_session(session_id)
-        
-        return {
-            "success": True,
-            "session": session
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-
-@app.get("/api/chat/sessions/{session_id}")
-async def get_chat_session(session_id: int):
-    """Get a specific chat session with messages"""
-    try:
-        from utils.chat_db import get_chat_db
-        db = get_chat_db()
-        
-        session = db.get_session_with_messages(session_id)
-        
-        if not session:
-            return {
-                "success": False,
-                "error": "Session not found"
-            }
-        
-        return {
-            "success": True,
-            "session": session
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-
-@app.put("/api/chat/sessions/{session_id}")
-async def update_chat_session(session_id: int, request: Request):
-    """Update a chat session (rename)"""
-    try:
-        from utils.chat_db import get_chat_db
-        db = get_chat_db()
-        
-        body = await request.json()
-        title = body.get('title')
-        
-        if not title:
-            return {
-                "success": False,
-                "error": "Title is required"
-            }
-        
-        success = db.update_session_title(session_id, title)
-        
-        return {
-            "success": success,
-            "session_id": session_id
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-
-@app.delete("/api/chat/sessions/{session_id}")
-async def delete_chat_session(session_id: int):
-    """Delete a chat session"""
-    try:
-        from utils.chat_db import get_chat_db
-        db = get_chat_db()
-        
-        success = db.delete_session(session_id)
-        
-        return {
-            "success": success,
-            "session_id": session_id
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-
-@app.get("/api/chat/search")
-async def search_chat_sessions(q: str = "", limit: int = 20):
-    """Search chat sessions by title"""
-    try:
-        from utils.chat_db import get_chat_db
-        db = get_chat_db()
-        
-        sessions = db.search_sessions(q, limit)
-        
-        return {
-            "success": True,
-            "sessions": sessions,
-            "query": q
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-
-# ==================== END CHAT SESSION MANAGEMENT API ====================
 
 # ==================== END LLM AGENT API ENDPOINTS ====================
 
