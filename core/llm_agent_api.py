@@ -71,6 +71,70 @@ class LLMAgentAPI:
             self.analyzer = None
             self.llm_agent = None
     
+    def get_data_status(self) -> Dict:
+        """
+        Get current data availability status for UI display
+        
+        Returns:
+            {
+                'data_available': bool,
+                'unified_count': int,
+                'oddsmagnet_count': int,
+                'total_matches': int,
+                'last_updated': str,
+                'error': str (optional)
+            }
+        """
+        try:
+            if not self.analyzer:
+                return {
+                    'data_available': False,
+                    'error': 'Data analyzer not initialized',
+                    'unified_count': 0,
+                    'oddsmagnet_count': 0,
+                    'total_matches': 0
+                }
+            
+            # Use cached data if available
+            unified_data, oddsmagnet_data = self._get_cached_data()
+            
+            if not unified_data and not oddsmagnet_data:
+                return {
+                    'data_available': False,
+                    'error': 'No data files found',
+                    'unified_count': 0,
+                    'oddsmagnet_count': 0,
+                    'total_matches': 0
+                }
+            
+            # Calculate counts
+            unified_count = 0
+            if unified_data:
+                unified_count = len(unified_data.get('pregame_matches', [])) + len(unified_data.get('live_matches', []))
+            
+            oddsmagnet_count = 0
+            if oddsmagnet_data:
+                oddsmagnet_count = sum(
+                    data.get('matches_count', len(data.get('matches', []))) 
+                    for data in oddsmagnet_data.values()
+                )
+            
+            return {
+                'data_available': True,
+                'unified_count': unified_count,
+                'oddsmagnet_count': oddsmagnet_count,
+                'total_matches': unified_count + oddsmagnet_count,
+                'last_updated': datetime.now().isoformat()
+            }
+        except Exception as e:
+            return {
+                'data_available': False,
+                'error': str(e),
+                'unified_count': 0,
+                'oddsmagnet_count': 0,
+                'total_matches': 0
+            }
+    
     def load_data(self) -> Dict:
         """Load and analyze current data"""
         if not self.analyzer:
@@ -241,27 +305,85 @@ class LLMAgentAPI:
         
         return self._data_cache
     
-    def _create_smart_context(self, question: str, unified_data: Dict, oddsmagnet_data: Dict) -> Dict:
+    def _analyze_query_intent(self, question: str) -> Dict:
         """
-        Create optimized context with smart data sampling based on question
-        Reduces payload size by 90% while maintaining relevance
+        Analyze query to determine what data is needed and which model to use
+        
+        Returns:
+            {
+                'needs_full_data': bool,
+                'query_type': str (count/specific/comparison/general),
+                'mentioned_sports': list,
+                'use_reasoning': bool (use MiMo for complex queries)
+            }
         """
-        context = {}
         question_lower = question.lower()
         
-        # Detect if user wants specific sport or match details
-        needs_full_data = any(keyword in question_lower for keyword in [
+        # Detect query type
+        is_count_query = any(keyword in question_lower for keyword in [
+            'how many', 'count', 'number of', 'total', 'sum'
+        ])
+        
+        is_specific_query = any(keyword in question_lower for keyword in [
             'list all', 'show all', 'every match', 'each match', 'all matches',
-            'compare', 'which matches', 'what matches', 'find matches'
+            'which matches', 'what matches', 'find matches', 'show me matches',
+            'get all', 'display all'
+        ])
+        
+        is_comparison_query = any(keyword in question_lower for keyword in [
+            'compare', 'difference', 'versus', 'vs', 'better', 'best', 'highest', 'lowest'
+        ])
+        
+        is_analysis_query = any(keyword in question_lower for keyword in [
+            'analyze', 'insight', 'pattern', 'trend', 'correlation', 'why', 'explain'
         ])
         
         # Extract sport mentions
         mentioned_sports = []
         common_sports = ['football', 'soccer', 'basketball', 'tennis', 'hockey', 'baseball', 
-                        'cricket', 'volleyball', 'handball', 'rugby']
+                        'cricket', 'volleyball', 'handball', 'rugby', 'american-football',
+                        'table-tennis', 'boxing', 'mma', 'golf']
         for sport in common_sports:
-            if sport in question_lower:
+            if sport in question_lower or sport.replace('-', ' ') in question_lower:
                 mentioned_sports.append(sport)
+        
+        # Determine if full data is needed
+        needs_full_data = is_specific_query or (is_comparison_query and mentioned_sports)
+        
+        # Determine query type
+        if is_count_query:
+            query_type = 'count'
+        elif is_specific_query:
+            query_type = 'specific'
+        elif is_comparison_query:
+            query_type = 'comparison'
+        elif is_analysis_query:
+            query_type = 'analysis'
+        else:
+            query_type = 'general'
+        
+        # Use MiMo reasoning for complex queries requiring full data
+        use_reasoning = needs_full_data or is_analysis_query
+        
+        return {
+            'needs_full_data': needs_full_data,
+            'query_type': query_type,
+            'mentioned_sports': mentioned_sports,
+            'use_reasoning': use_reasoning
+        }
+    
+    def _create_smart_context(self, question: str, unified_data: Dict, oddsmagnet_data: Dict) -> Dict:
+        """
+        Create optimized context with intelligent data sampling based on query analysis
+        Reduces payload size by 85-95% while maintaining relevance
+        """
+        context = {}
+        
+        # Analyze query intent
+        intent = self._analyze_query_intent(question)
+        needs_full_data = intent['needs_full_data']
+        query_type = intent['query_type']
+        mentioned_sports = intent['mentioned_sports']
         
         if unified_data:
             pregame_matches = unified_data.get('pregame_matches', [])
@@ -282,38 +404,53 @@ class LLMAgentAPI:
                     live_by_sport[sport] = []
                 live_by_sport[sport].append(match)
             
-            # Smart sampling: send only relevant data
-            if needs_full_data or mentioned_sports:
-                # Send filtered data for mentioned sports
-                relevant_pregame = {}
-                relevant_live = {}
-                
-                if mentioned_sports:
-                    for sport in mentioned_sports:
-                        for key in pregame_by_sport:
-                            if sport.lower() in key.lower():
-                                relevant_pregame[key] = pregame_by_sport[key]
-                        for key in live_by_sport:
-                            if sport.lower() in key.lower():
-                                relevant_live[key] = live_by_sport[key]
-                else:
-                    relevant_pregame = pregame_by_sport
-                    relevant_live = live_by_sport
-                
+            # Smart data selection based on query type
+            if query_type == 'count':
+                # For count queries, send only summary statistics
                 context['unified'] = {
                     'summary': {
                         'total_pregame': len(pregame_matches),
                         'total_live': len(live_matches),
                         'total_matches': len(pregame_matches) + len(live_matches),
+                        'sports': list(set(pregame_by_sport.keys()) | set(live_by_sport.keys())),
+                        'sport_counts': {
+                            'pregame': {sport: len(matches) for sport, matches in pregame_by_sport.items()},
+                            'live': {sport: len(matches) for sport, matches in live_by_sport.items()}
+                        }
+                    }
+                }
+            elif needs_full_data:
+                # Send full data only for mentioned sports or all if no sport mentioned
+                relevant_pregame = {}
+                relevant_live = {}
+                
+                if mentioned_sports:
+                    # Filter by mentioned sports
+                    for sport in mentioned_sports:
+                        for key in pregame_by_sport:
+                            if sport.lower() in key.lower():
+                                relevant_pregame[key] = pregame_by_sport[key][:50]  # Limit to 50 matches per sport
+                        for key in live_by_sport:
+                            if sport.lower() in key.lower():
+                                relevant_live[key] = live_by_sport[key][:50]
+                else:
+                    # Send all sports but limit matches per sport
+                    relevant_pregame = {k: v[:30] for k, v in pregame_by_sport.items()}
+                    relevant_live = {k: v[:30] for k, v in live_by_sport.items()}
+                
+                context['unified'] = {
+                    'summary': {
+                        'total_pregame': len(pregame_matches),
+                        'total_live': len(live_matches),
                         'sports': list(set(pregame_by_sport.keys()) | set(live_by_sport.keys()))
                     },
                     'pregame_by_sport': relevant_pregame,
                     'live_by_sport': relevant_live
                 }
             else:
-                # Send only summary + samples for quick questions
-                pregame_samples = {sport: matches[:3] for sport, matches in list(pregame_by_sport.items())[:5]}
-                live_samples = {sport: matches[:3] for sport, matches in list(live_by_sport.items())[:5]}
+                # For general queries, send minimal samples
+                pregame_samples = {sport: matches[:2] for sport, matches in list(pregame_by_sport.items())[:3]}
+                live_samples = {sport: matches[:2] for sport, matches in list(live_by_sport.items())[:3]}
                 
                 context['unified'] = {
                     'summary': {
@@ -323,10 +460,8 @@ class LLMAgentAPI:
                         'sports': list(set(pregame_by_sport.keys()) | set(live_by_sport.keys())),
                         'sport_counts': {sport: len(matches) for sport, matches in pregame_by_sport.items()}
                     },
-                    'samples': {
-                        'pregame': pregame_samples,
-                        'live': live_samples
-                    }
+                    'sample_pregame': pregame_samples,
+                    'sample_live': live_samples
                 }
         
         if oddsmagnet_data:
@@ -338,17 +473,21 @@ class LLMAgentAPI:
                 match_count = len(matches)
                 total_matches += match_count
                 
-                # Smart sampling for oddsmagnet too
-                if needs_full_data or (mentioned_sports and any(s.lower() in sport.lower() for s in mentioned_sports)):
+                # Apply same smart sampling logic
+                if query_type == 'count':
+                    # Only counts for count queries
+                    all_matches_by_sport[sport] = {'count': match_count}
+                elif needs_full_data and (not mentioned_sports or any(s.lower() in sport.lower() for s in mentioned_sports)):
+                    # Full data for relevant sports (limited)
                     all_matches_by_sport[sport] = {
                         'count': match_count,
-                        'matches': matches
+                        'matches': matches[:50]  # Limit to 50 matches
                     }
                 else:
-                    # Send only samples for quick responses
+                    # Minimal samples for general queries
                     all_matches_by_sport[sport] = {
                         'count': match_count,
-                        'sample_matches': matches[:3]  # Just 3 examples
+                        'sample_matches': matches[:2] if query_type != 'count' else []
                     }
             
             context['oddsmagnet'] = {
@@ -360,16 +499,19 @@ class LLMAgentAPI:
                 'matches_by_sport': all_matches_by_sport
             }
         
+        # Add query intent to context for better LLM understanding
+        context['query_intent'] = intent
+        
         return context
     
-    def ask_llm_question(self, question: str, context: Optional[Dict] = None, enable_reasoning: bool = False) -> Dict:
+    def ask_llm_question(self, question: str, context: Optional[Dict] = None, enable_reasoning: bool = None) -> Dict:
         """
-        Ask the LLM a specific question about the data with optimized RAG support
+        Ask the LLM a specific question about the data with intelligent model selection
         
         Args:
             question: User's question
             context: Additional context (optional)
-            enable_reasoning: Enable deep reasoning mode (slower but more thorough)
+            enable_reasoning: Enable deep reasoning mode (auto-detected if None)
             
         Returns:
             Dictionary with LLM response
@@ -381,12 +523,6 @@ class LLMAgentAPI:
             }
         
         try:
-            # Reinitialize agent if reasoning mode differs
-            if self.llm_agent.enable_reasoning != enable_reasoning:
-                api_key = os.getenv('OPENROUTER_API_KEY')
-                from llm_agent import LLMAgent
-                self.llm_agent = LLMAgent(provider='openrouter', api_key=api_key, enable_reasoning=enable_reasoning)
-            
             # Load current data to provide real context
             if context is None:
                 # Use cached data to speed up responses
@@ -395,35 +531,68 @@ class LLMAgentAPI:
                 # Create optimized context with smart sampling
                 context = self._create_smart_context(question, unified_data, oddsmagnet_data)
             
-            # Enhanced RAG prompt with smart instructions
-            has_full_data = 'pregame_by_sport' in context.get('unified', {})
+            # Auto-detect reasoning mode if not specified
+            if enable_reasoning is None:
+                intent = context.get('query_intent', {})
+                enable_reasoning = intent.get('use_reasoning', False)
             
-            if has_full_data:
-                data_info = """You have access to FULL odds data for relevant sports.
-
-DATA STRUCTURE:
-- unified.summary = Total counts and sports list
-- unified.pregame_by_sport = Complete pregame matches by sport
-- unified.live_by_sport = Complete live matches by sport  
-- oddsmagnet.matches_by_sport = Complete OddsMagnet matches by sport"""
+            # Reinitialize agent if reasoning mode differs
+            current_reasoning = getattr(self.llm_agent, 'enable_reasoning', False)
+            if current_reasoning != enable_reasoning:
+                openrouter_key = os.getenv('OPENROUTER_API_KEY')
+                google_key = os.getenv('GOOGLE_API_KEY')
+                
+                if openrouter_key and openrouter_key.startswith('sk-or-v1-') and len(openrouter_key) > 20:
+                    from llm_agent import LLMAgent
+                    self.llm_agent = LLMAgent(provider='openrouter', api_key=openrouter_key, enable_reasoning=enable_reasoning)
+                    model_name = "MiMo-V2 (Deep Reasoning)" if enable_reasoning else "Mistral 7B (Fast)"
+                elif google_key:
+                    from llm_agent import LLMAgent
+                    self.llm_agent = LLMAgent(provider='google', api_key=google_key, enable_reasoning=False)
+                    model_name = "Google Gemini"
+                    enable_reasoning = False  # Google doesn't support reasoning mode
             else:
-                data_info = """You have access to SUMMARY statistics with sample matches.
+                model_name = self.llm_agent.model
+            
+            # Build enhanced prompt based on query type and available data
+            intent = context.get('query_intent', {})
+            query_type = intent.get('query_type', 'general')
+            
+            if query_type == 'count':
+                data_info = """You have access to SUMMARY STATISTICS with match counts.
 
-DATA STRUCTURE:
-- unified.summary = Total counts, sports list, and match counts per sport
-- unified.samples = Sample matches from top sports (for reference)
-- oddsmagnet.summary = Total OddsMagnet statistics
-- oddsmagnet.matches_by_sport = Match counts with samples"""
+DATA AVAILABLE:
+- unified.summary.sport_counts = Match counts per sport (pregame and live)
+- oddsmagnet.matches_by_sport = Match counts per sport in OddsMagnet
+
+INSTRUCTIONS: Answer count questions using the summary statistics provided."""
+            
+            elif intent.get('needs_full_data'):
+                data_info = """You have access to DETAILED MATCH DATA for relevant sports.
+
+DATA AVAILABLE:
+- unified.pregame_by_sport = Pregame matches organized by sport
+- unified.live_by_sport = Live matches organized by sport
+- oddsmagnet.matches_by_sport = OddsMagnet matches with full details
+
+INSTRUCTIONS: Analyze the provided matches and give specific, detailed answers."""
+            
+            else:
+                data_info = """You have access to SUMMARY STATISTICS with sample matches.
+
+DATA AVAILABLE:
+- unified.summary = Total counts and sport breakdown
+- unified.sample_pregame/sample_live = Sample matches for reference
+- oddsmagnet.summary = OddsMagnet statistics
+- oddsmagnet.matches_by_sport = Counts with sample matches
+
+INSTRUCTIONS: Use summary stats for counts. Reference samples for examples."""
             
             enhanced_question = f"""{data_info}
 
-INSTRUCTIONS:
-1. Use summary statistics for counts and totals
-2. Reference sample matches to provide specific examples
-3. Answer accurately based on the data provided
-4. If asked for specific details not in samples, use summary counts
+USER QUESTION: {question}
 
-USER QUESTION: {question}"""
+Provide a clear, concise answer based on the data available."""
 
             response = self.llm_agent.ask_question(enhanced_question, context)
             return {
@@ -431,7 +600,10 @@ USER QUESTION: {question}"""
                 "question": question,
                 "answer": response,
                 "timestamp": datetime.now().isoformat(),
-                "used_real_data": bool(context.get('unified_sample') or context.get('oddsmagnet_sample'))
+                "model_used": model_name,
+                "reasoning_enabled": enable_reasoning,
+                "query_type": query_type,
+                "data_scope": "full" if intent.get('needs_full_data') else "summary"
             }
         except Exception as e:
             return {

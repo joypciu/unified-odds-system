@@ -922,6 +922,23 @@ async def get_llm_status():
         }
 
 
+@app.get("/api/llm/data-status")
+async def get_llm_data_status():
+    """Get data availability status for LLM queries"""
+    try:
+        from core.llm_agent_api import get_llm_agent_api
+        llm_api = get_llm_agent_api(BASE_DIR)
+        return llm_api.get_data_status()
+    except Exception as e:
+        return {
+            "data_available": False,
+            "error": str(e),
+            "unified_count": 0,
+            "oddsmagnet_count": 0,
+            "total_matches": 0
+        }
+
+
 @app.get("/api/llm/quick-analysis")
 async def get_llm_quick_analysis(force: bool = False):
     """Get quick correlation analysis (cached for 5 minutes)"""

@@ -806,6 +806,10 @@
                     <span>🤖</span>
                     <span>Mistral 7B Instruct</span>
                 </div>
+                <div class="status-badge" id="dataStatusBadge" style="margin-right: 10px;">
+                    <div class="status-dot" style="background: var(--text-muted);"></div>
+                    <span>Loading Data...</span>
+                </div>
                 <div class="status-badge" id="statusBadge">
                     <div class="status-dot"></div>
                     <span>Ready</span>
@@ -1173,7 +1177,7 @@
             });
         }
         
-        // Delete message (and pair if it's user message)
+        // Delete message with smart pairing logic
         async function deleteMessage(messageId) {
             if (!confirm('Delete this message?')) return;
             
@@ -1182,15 +1186,36 @@
             
             const role = messageDiv.getAttribute('data-role');
             
-            // If deleting user message, also delete the next AI response
             if (role === 'user') {
+                // If deleting user message, also delete the next AI response
                 let nextMsg = messageDiv.nextElementSibling;
                 if (nextMsg && nextMsg.getAttribute('data-role') === 'ai') {
                     nextMsg.remove();
                 }
+                messageDiv.remove();
+            } else if (role === 'ai') {
+                // If deleting AI response, find and delete the previous user message too
+                let prevMsg = messageDiv.previousElementSibling;
+                if (prevMsg && prevMsg.getAttribute('data-role') === 'user') {
+                    if (confirm('This will also delete the user question. Continue?')) {
+                        prevMsg.remove();
+                        messageDiv.remove();
+                    } else {
+                        // Keep user message and allow retry
+                        messageDiv.remove();
+                        // Show retry button on user message
+                        if (prevMsg) {
+                            const retryBtn = prevMsg.querySelector('.msg-action-btn[title="Retry"]');
+                            if (retryBtn) {
+                                retryBtn.style.display = 'inline-flex';
+                            }
+                        }
+                        return;
+                    }
+                } else {
+                    messageDiv.remove();
+                }
             }
-            
-            messageDiv.remove();
             
             // Update conversation history
             conversationHistory = [];
@@ -1204,6 +1229,25 @@
                     conversationHistory.push({ role: 'assistant', content });
                 }
             });
+            
+            // Check if conversation is incomplete (orphaned user message)
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage && lastMessage.getAttribute('data-role') === 'user') {
+                // Disable input until orphan is resolved
+                const input = document.getElementById('messageInput');
+                const sendBtn = document.getElementById('sendBtn');
+                input.disabled = true;
+                input.placeholder = 'Please retry or delete the last question first...';
+                sendBtn.disabled = true;
+                updateStatus('Incomplete conversation - retry or delete last message', 'warning');
+            } else {
+                // Re-enable input
+                const input = document.getElementById('messageInput');
+                const sendBtn = document.getElementById('sendBtn');
+                input.disabled = false;
+                input.placeholder = 'Ask a question about your odds data...';
+                sendBtn.disabled = !input.value.trim();
+            }
         }
         
         // Clear current chat
@@ -1591,22 +1635,6 @@
             }
         }
         
-        // Send message (main entry point)
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
-            if (!message || isLoading) return;
-            
-            // Clear input
-            input.value = '';
-            input.style.height = 'auto';
-            document.getElementById('sendBtn').disabled = true;
-            
-            // Send message
-            await sendMessageWithText(message);
-        }
-
         // Load initial status
         async function loadStatus() {
             try {
@@ -1623,6 +1651,70 @@
             }
         }
 
+        // Check data availability status
+        async function checkDataStatus() {
+            const dataBadge = document.getElementById('dataStatusBadge');
+            const dataDot = dataBadge.querySelector('.status-dot');
+            const dataText = dataBadge.querySelector('span');
+            
+            try {
+                const response = await fetch('/api/llm/data-status');
+                const data = await response.json();
+                
+                if (data.data_available) {
+                    dataDot.style.background = 'var(--accent-primary)';
+                    dataText.textContent = `📊 ${data.total_matches.toLocaleString()} matches`;
+                    dataBadge.title = `Unified: ${data.unified_count.toLocaleString()} | OddsMagnet: ${data.oddsmagnet_count.toLocaleString()}`;
+                } else {
+                    dataDot.style.background = 'var(--error)';
+                    dataText.textContent = '⚠️ No Data';
+                    dataBadge.title = data.error || 'Data not available';
+                }
+            } catch (error) {
+                dataDot.style.background = 'var(--error)';
+                dataText.textContent = '❌ Data Error';
+                dataBadge.title = error.message;
+            }
+        }
+
+        // Send message with validation
+        async function sendMessage() {
+            // Check if data is available before sending
+            const dataBadge = document.getElementById('dataStatusBadge');
+            const dataText = dataBadge.querySelector('span').textContent;
+            
+            if (dataText.includes('No Data') || dataText.includes('Error')) {
+                updateStatus('Waiting for data to load...', 'warning');
+                return;
+            }
+            
+            // Check for orphaned user messages (incomplete conversation)
+            const messages = document.querySelectorAll('.message');
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage && lastMessage.getAttribute('data-role') === 'user') {
+                updateStatus('Please retry or delete the last unanswered question first', 'warning');
+                // Highlight the orphaned message
+                lastMessage.style.border = '2px solid var(--error)';
+                setTimeout(() => {
+                    lastMessage.style.border = '';
+                }, 2000);
+                return;
+            }
+            
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isLoading) return;
+            
+            // Clear input
+            input.value = '';
+            input.style.height = 'auto';
+            document.getElementById('sendBtn').disabled = true;
+            
+            // Send message
+            await sendMessageWithText(message);
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialize IndexedDB
@@ -1633,6 +1725,12 @@
             
             // Load server status
             loadStatus();
+            
+            // Check data availability
+            checkDataStatus();
+            
+            // Refresh data status every 30 seconds
+            setInterval(checkDataStatus, 30000);
             
             // Focus input
             const input = document.getElementById('messageInput');
