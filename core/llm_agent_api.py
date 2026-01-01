@@ -43,19 +43,28 @@ class LLMAgentAPI:
             self.analyzer = DataAnalyzer(str(self.base_dir))
             print("✅ LLM Agent API: Data analyzer initialized")
             
-            # Initialize LLM agent with OpenRouter API key from environment
-            api_key = os.getenv('OPENROUTER_API_KEY')
-            if api_key:
+            # Try OpenRouter first (MiMo/Mistral dual-model)
+            openrouter_key = os.getenv('OPENROUTER_API_KEY')
+            if openrouter_key and openrouter_key.startswith('sk-or-v1-') and len(openrouter_key) > 20:
                 try:
-                    # Use fast mode (no reasoning) for real-time web responses
-                    # Reasoning mode can be enabled for detailed analysis if needed
-                    self.llm_agent = LLMAgent(provider='openrouter', api_key=api_key, enable_reasoning=False)
-                    print("✅ LLM Agent API: LLM agent initialized with OpenRouter (MiMo-V2-Flash - Fast Mode)")
+                    self.llm_agent = LLMAgent(provider='openrouter', api_key=openrouter_key, enable_reasoning=False)
+                    print("✅ LLM Agent API: LLM agent initialized with OpenRouter (MiMo/Mistral dual-model)")
+                    return
                 except Exception as e:
-                    print(f"⚠️  LLM Agent API: Could not initialize LLM: {e}")
-                    self.llm_agent = None
-            else:
-                print("⚠️  LLM Agent API: No OPENROUTER_API_KEY found, LLM features disabled")
+                    print(f"⚠️  LLM Agent API: OpenRouter failed: {e}")
+            
+            # Fallback to Google Gemini if OpenRouter not available
+            google_key = os.getenv('GOOGLE_API_KEY')
+            if google_key:
+                try:
+                    self.llm_agent = LLMAgent(provider='google', api_key=google_key, enable_reasoning=False)
+                    print("✅ LLM Agent API: LLM agent initialized with Google Gemini (fallback)")
+                    return
+                except Exception as e:
+                    print(f"⚠️  LLM Agent API: Google Gemini failed: {e}")
+            
+            print("⚠️  LLM Agent API: No valid API keys found, LLM features disabled")
+            self.llm_agent = None
                 
         except Exception as e:
             print(f"❌ LLM Agent API: Initialization failed: {e}")
