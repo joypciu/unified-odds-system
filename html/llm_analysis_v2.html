@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -51,7 +51,7 @@
             width: 280px;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border-subtle);
-            display: none; /* Hide sidebar - no session management */
+            display: flex;
             flex-direction: column;
             transition: transform 0.3s ease;
         }
@@ -848,6 +848,8 @@
     <script>
         let conversationHistory = [];
         let isLoading = false;
+        let currentSessionId = null;
+        let allSessions = [];
 
         // Auto-resize textarea
         function autoResize(textarea) {
@@ -869,6 +871,11 @@
         // Start new chat
         async function startNewChat() {
             conversationHistory = [];
+            currentSessionId = null;
+            
+            // Update UI to show active state
+            const chatItems = document.querySelectorAll('.chat-item');
+            chatItems.forEach(item => item.classList.remove('active'));
             
             const messagesWrapper = document.getElementById('messagesWrapper');
             messagesWrapper.innerHTML = `
@@ -1011,6 +1018,171 @@
             `;
         }
 
+        // Load chat sessions from database
+        async function loadChatSessions() {
+            try {
+                const response = await fetch('/api/chat/sessions?limit=50');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allSessions = data.sessions;
+                    renderChatHistory();
+                    
+                    // Auto-load the most recent chat session if exists and no current session
+                    if (allSessions.length > 0 && !currentSessionId) {
+                        await loadChatSession(allSessions[0].id);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load chat sessions:', error);
+            }
+        }
+        
+        // Render chat history in sidebar
+        function renderChatHistory() {
+            const chatHistory = document.getElementById('chatHistory');
+            
+            if (allSessions.length === 0) {
+                chatHistory.innerHTML = '<div class="chat-item" style="color: var(--text-tertiary); text-align: center;">No chat history yet</div>';
+                return;
+            }
+            
+            chatHistory.innerHTML = allSessions.map(session => {
+                const isActive = session.id === currentSessionId;
+                const date = new Date(session.updated_at);
+                const timeAgo = formatTimeAgo(date);
+                
+                return `
+                    <div class="chat-item ${isActive ? 'active' : ''}" 
+                         onclick="loadChatSession(${session.id})"
+                         title="${session.title}">
+                        <div class="chat-item-title">${session.title}</div>
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
+                            ${timeAgo} ΓÇó ${session.message_count} msgs
+                        </div>
+                        <div class="chat-item-actions" onclick="event.stopPropagation()">
+                            <button class="chat-action-btn" onclick="renameSession(${session.id})" title="Rename">
+                                Γ£Å∩╕Å
+                            </button>
+                            <button class="chat-action-btn delete" onclick="deleteSession(${session.id})" title="Delete">
+                                ≡ƒùæ∩╕Å
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Format time ago
+        function formatTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+            
+            return date.toLocaleDateString();
+        }
+        
+        // Load a specific chat session
+        async function loadChatSession(sessionId) {
+            try {
+                const response = await fetch(`/api/chat/sessions/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSessionId = sessionId;
+                    conversationHistory = [];
+                    
+                    // Clear messages
+                    const messagesWrapper = document.getElementById('messagesWrapper');
+                    messagesWrapper.innerHTML = '';
+                    
+                    // Load all messages
+                    data.session.messages.forEach(msg => {
+                        addMessage(msg.role === 'user' ? 'user' : 'ai', msg.content);
+                        conversationHistory.push({ role: msg.role, content: msg.content });
+                    });
+                    
+                    // Update sidebar
+                    renderChatHistory();
+                    
+                    // Scroll to bottom
+                    scrollToBottom();
+                }
+            } catch (error) {
+                console.error('Failed to load chat session:', error);
+                updateStatus('Error loading chat', 'error');
+            }
+        }
+        
+        // Delete chat session
+        async function deleteSession(sessionId) {
+            if (!confirm('Delete this chat? This cannot be undone.')) return;
+            
+            try {
+                const response = await fetch(`/api/chat/sessions/${sessionId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // If deleted current session, start new chat
+                    if (sessionId === currentSessionId) {
+                        startNewChat();
+                    }
+                    
+                    // Reload sessions
+                    await loadChatSessions();
+                }
+            } catch (error) {
+                console.error('Failed to delete session:', error);
+            }
+        }
+        
+        // Rename chat session
+        async function renameSession(sessionId) {
+            const session = allSessions.find(s => s.id === sessionId);
+            if (!session) return;
+            
+            const newTitle = prompt('Enter new title:', session.title);
+            if (!newTitle || newTitle === session.title) return;
+            
+            try {
+                const response = await fetch(`/api/chat/sessions/${sessionId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title: newTitle })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await loadChatSessions();
+                }
+            } catch (error) {
+                console.error('Failed to rename session:', error);
+            }
+        }
+        
+        // Show context menu for session
+        function showSessionMenu(event, sessionId) {
+            event.preventDefault();
+            
+            // Simple context menu using confirm/prompt
+            const action = confirm('Delete this chat? (OK = Delete, Cancel = Rename)');
+            
+            if (action) {
+                deleteSession(sessionId);
+            } else {
+                renameSession(sessionId);
+            }
+        }
+        
         // Send message
         async function sendMessage() {
             const input = document.getElementById('messageInput');
@@ -1038,7 +1210,8 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ 
-                        question: message
+                        question: message,
+                        session_id: currentSessionId 
                     })
                 });
                 
@@ -1047,6 +1220,13 @@
                 hideTyping();
                 
                 if (data.success) {
+                    // Update current session ID if this was a new chat
+                    if (data.session_id && !currentSessionId) {
+                        currentSessionId = data.session_id;
+                        // Reload sessions to show the new chat
+                        await loadChatSessions();
+                    }
+                    
                     addMessage('ai', data.answer);
                     conversationHistory.push({ role: 'user', content: message });
                     conversationHistory.push({ role: 'assistant', content: data.answer });
