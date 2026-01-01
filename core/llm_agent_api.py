@@ -319,19 +319,25 @@ class LLMAgentAPI:
         """
         question_lower = question.lower()
         
+        # Detect odds-related queries that need actual odds data
+        is_odds_query = any(keyword in question_lower for keyword in [
+            'odds', 'highest odds', 'lowest odds', 'best odds', 'value', 'price'
+        ])
+        
         # Detect query type
         is_count_query = any(keyword in question_lower for keyword in [
             'how many', 'count', 'number of', 'total', 'sum'
-        ])
+        ]) and not is_odds_query  # Don't treat "how many matches with odds >2.0" as count query
         
         is_specific_query = any(keyword in question_lower for keyword in [
             'list all', 'show all', 'every match', 'each match', 'all matches',
             'which matches', 'what matches', 'find matches', 'show me matches',
-            'get all', 'display all'
-        ])
+            'get all', 'display all', 'show me', 'give me'
+        ]) or is_odds_query  # Odds queries need specific data
         
         is_comparison_query = any(keyword in question_lower for keyword in [
-            'compare', 'difference', 'versus', 'vs', 'better', 'best', 'highest', 'lowest'
+            'compare', 'difference', 'versus', 'vs', 'better', 'best', 'highest', 'lowest',
+            'greater', 'less', 'more', 'above', 'below', 'over', 'under'
         ])
         
         is_analysis_query = any(keyword in question_lower for keyword in [
@@ -384,22 +390,35 @@ class LLMAgentAPI:
         needs_full_data = intent['needs_full_data']
         query_type = intent['query_type']
         mentioned_sports = intent['mentioned_sports']
+        question_lower = question.lower()
+        
+        # Check if query is about odds values
+        needs_odds = any(word in question_lower for word in ['odds', 'price', 'value', 'highest', 'lowest', 'best'])
         
         # Helper function to strip unnecessary fields from match data
-        def compress_match(match):
+        def compress_match(match, include_full_odds=False):
             """Keep only essential fields to reduce token count by 90%"""
-            # Extract only the most critical odds (home/away/draw or over/under)
+            # Extract odds information
             odds = match.get('odds', {})
             compressed_odds = {}
             
-            # Keep only first bookmaker's main odds
-            for bookie, bookie_odds in list(odds.items())[:1]:  # Only first bookmaker
-                if isinstance(bookie_odds, dict):
-                    # Keep only home/away/draw or over/under
-                    for key in ['home', 'away', 'draw', 'over', 'under']:
-                        if key in bookie_odds:
-                            compressed_odds[key] = bookie_odds[key]
-                    break
+            if include_full_odds and odds:
+                # For odds queries, keep more bookmakers and odds types
+                for bookie, bookie_odds in list(odds.items())[:3]:  # Keep top 3 bookmakers
+                    if isinstance(bookie_odds, dict):
+                        compressed_odds[bookie] = {}
+                        # Keep all main odds types
+                        for key in ['home', 'away', 'draw', 'over', 'under', '1', 'X', '2']:
+                            if key in bookie_odds:
+                                compressed_odds[bookie][key] = bookie_odds[key]
+            elif odds:
+                # For non-odds queries, keep minimal odds
+                for bookie, bookie_odds in list(odds.items())[:1]:
+                    if isinstance(bookie_odds, dict):
+                        for key in ['home', 'away', 'draw']:
+                            if key in bookie_odds:
+                                compressed_odds[key] = bookie_odds[key]
+                        break
             
             return {
                 'teams': match.get('teams', match.get('home_team', '') + ' vs ' + match.get('away_team', '')),
@@ -451,16 +470,16 @@ class LLMAgentAPI:
                     for sport in mentioned_sports:
                         for key in pregame_by_sport:
                             if sport.lower() in key.lower():
-                                relevant_pregame[key] = [compress_match(m) for m in pregame_by_sport[key][:8]]
+                                relevant_pregame[key] = [compress_match(m, needs_odds) for m in pregame_by_sport[key][:8]]
                         for key in live_by_sport:
                             if sport.lower() in key.lower():
-                                relevant_live[key] = [compress_match(m) for m in live_by_sport[key][:8]]
+                                relevant_live[key] = [compress_match(m, needs_odds) for m in live_by_sport[key][:8]]
                 else:
                     # Send top 2 sports only, compressed, 5 matches each
                     for k, v in list(pregame_by_sport.items())[:2]:
-                        relevant_pregame[k] = [compress_match(m) for m in v[:5]]
+                        relevant_pregame[k] = [compress_match(m, needs_odds) for m in v[:5]]
                     for k, v in list(live_by_sport.items())[:2]:
-                        relevant_live[k] = [compress_match(m) for m in v[:5]]
+                        relevant_live[k] = [compress_match(m, needs_odds) for m in v[:5]]
                 
                 context['unified'] = {
                     'summary': {
@@ -473,8 +492,8 @@ class LLMAgentAPI:
                 }
             else:
                 # For general queries, send only 1 sample from top 2 sports
-                pregame_samples = {sport: [compress_match(matches[0])] for sport, matches in list(pregame_by_sport.items())[:2] if matches}
-                live_samples = {sport: [compress_match(matches[0])] for sport, matches in list(live_by_sport.items())[:2] if matches}
+                pregame_samples = {sport: [compress_match(matches[0], needs_odds)] for sport, matches in list(pregame_by_sport.items())[:2] if matches}
+                live_samples = {sport: [compress_match(matches[0], needs_odds)] for sport, matches in list(live_by_sport.items())[:2] if matches}
                 
                 context['unified'] = {
                     'summary': {
@@ -505,7 +524,7 @@ class LLMAgentAPI:
                     # Compressed data for relevant sports - limit to 5 matches
                     all_matches_by_sport[sport] = {
                         'count': match_count,
-                        'matches': [compress_match(m) for m in matches[:5]]
+                        'matches': [compress_match(m, needs_odds) for m in matches[:5]]
                     }
                 else:
                     # No samples for general queries to save tokens
