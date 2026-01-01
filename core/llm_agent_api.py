@@ -9,6 +9,10 @@ from pathlib import Path
 from typing import Dict, Optional, List
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from agent/.env
+load_dotenv(Path(__file__).parent.parent / "agent" / ".env")
 
 # Add agent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "agent"))
