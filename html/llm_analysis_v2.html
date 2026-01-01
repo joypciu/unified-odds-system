@@ -1210,8 +1210,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ 
-                        question: message,
-                        session_id: currentSessionId 
+                        question: message
                     })
                 });
                 
@@ -1220,13 +1219,6 @@
                 hideTyping();
                 
                 if (data.success) {
-                    // Update current session ID if this was a new chat
-                    if (data.session_id && !currentSessionId) {
-                        currentSessionId = data.session_id;
-                        // Reload sessions to show the new chat
-                        await loadChatSessions();
-                    }
-                    
                     addMessage('ai', data.answer);
                     conversationHistory.push({ role: 'user', content: message });
                     conversationHistory.push({ role: 'assistant', content: data.answer });
