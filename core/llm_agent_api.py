@@ -375,7 +375,7 @@ class LLMAgentAPI:
     def _create_smart_context(self, question: str, unified_data: Dict, oddsmagnet_data: Dict) -> Dict:
         """
         Create optimized context with intelligent data sampling based on query analysis
-        Reduces payload size by 85-95% while maintaining relevance
+        Reduces payload size by 95%+ while maintaining relevance
         """
         context = {}
         
@@ -384,6 +384,28 @@ class LLMAgentAPI:
         needs_full_data = intent['needs_full_data']
         query_type = intent['query_type']
         mentioned_sports = intent['mentioned_sports']
+        
+        # Helper function to strip unnecessary fields from match data
+        def compress_match(match):
+            """Keep only essential fields to reduce token count by 90%"""
+            # Extract only the most critical odds (home/away/draw or over/under)
+            odds = match.get('odds', {})
+            compressed_odds = {}
+            
+            # Keep only first bookmaker's main odds
+            for bookie, bookie_odds in list(odds.items())[:1]:  # Only first bookmaker
+                if isinstance(bookie_odds, dict):
+                    # Keep only home/away/draw or over/under
+                    for key in ['home', 'away', 'draw', 'over', 'under']:
+                        if key in bookie_odds:
+                            compressed_odds[key] = bookie_odds[key]
+                    break
+            
+            return {
+                'teams': match.get('teams', match.get('home_team', '') + ' vs ' + match.get('away_team', '')),
+                'sport': match.get('sport', ''),
+                'odds': compressed_odds if compressed_odds else 'N/A'
+            }
         
         if unified_data:
             pregame_matches = unified_data.get('pregame_matches', [])
@@ -420,23 +442,25 @@ class LLMAgentAPI:
                     }
                 }
             elif needs_full_data:
-                # Send full data only for mentioned sports or all if no sport mentioned
+                # Send compressed data only for mentioned sports
                 relevant_pregame = {}
                 relevant_live = {}
                 
                 if mentioned_sports:
-                    # Filter by mentioned sports
+                    # Filter by mentioned sports and compress - limit to 8 matches
                     for sport in mentioned_sports:
                         for key in pregame_by_sport:
                             if sport.lower() in key.lower():
-                                relevant_pregame[key] = pregame_by_sport[key][:50]  # Limit to 50 matches per sport
+                                relevant_pregame[key] = [compress_match(m) for m in pregame_by_sport[key][:8]]
                         for key in live_by_sport:
                             if sport.lower() in key.lower():
-                                relevant_live[key] = live_by_sport[key][:50]
+                                relevant_live[key] = [compress_match(m) for m in live_by_sport[key][:8]]
                 else:
-                    # Send all sports but limit matches per sport
-                    relevant_pregame = {k: v[:30] for k, v in pregame_by_sport.items()}
-                    relevant_live = {k: v[:30] for k, v in live_by_sport.items()}
+                    # Send top 2 sports only, compressed, 5 matches each
+                    for k, v in list(pregame_by_sport.items())[:2]:
+                        relevant_pregame[k] = [compress_match(m) for m in v[:5]]
+                    for k, v in list(live_by_sport.items())[:2]:
+                        relevant_live[k] = [compress_match(m) for m in v[:5]]
                 
                 context['unified'] = {
                     'summary': {
@@ -448,9 +472,9 @@ class LLMAgentAPI:
                     'live_by_sport': relevant_live
                 }
             else:
-                # For general queries, send minimal samples
-                pregame_samples = {sport: matches[:2] for sport, matches in list(pregame_by_sport.items())[:3]}
-                live_samples = {sport: matches[:2] for sport, matches in list(live_by_sport.items())[:3]}
+                # For general queries, send only 1 sample from top 2 sports
+                pregame_samples = {sport: [compress_match(matches[0])] for sport, matches in list(pregame_by_sport.items())[:2] if matches}
+                live_samples = {sport: [compress_match(matches[0])] for sport, matches in list(live_by_sport.items())[:2] if matches}
                 
                 context['unified'] = {
                     'summary': {
@@ -473,22 +497,19 @@ class LLMAgentAPI:
                 match_count = len(matches)
                 total_matches += match_count
                 
-                # Apply same smart sampling logic
+                # Apply same aggressive compression
                 if query_type == 'count':
                     # Only counts for count queries
                     all_matches_by_sport[sport] = {'count': match_count}
                 elif needs_full_data and (not mentioned_sports or any(s.lower() in sport.lower() for s in mentioned_sports)):
-                    # Full data for relevant sports (limited)
+                    # Compressed data for relevant sports - limit to 5 matches
                     all_matches_by_sport[sport] = {
                         'count': match_count,
-                        'matches': matches[:50]  # Limit to 50 matches
+                        'matches': [compress_match(m) for m in matches[:5]]
                     }
                 else:
-                    # Minimal samples for general queries
-                    all_matches_by_sport[sport] = {
-                        'count': match_count,
-                        'sample_matches': matches[:2] if query_type != 'count' else []
-                    }
+                    # No samples for general queries to save tokens
+                    all_matches_by_sport[sport] = {'count': match_count}
             
             context['oddsmagnet'] = {
                 'summary': {

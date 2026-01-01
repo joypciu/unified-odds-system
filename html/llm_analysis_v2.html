@@ -6,6 +6,11 @@
     <title>OddsFlow AI - Intelligent Odds Analysis</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -226,6 +231,13 @@
             top: 0;
             z-index: 10;
         }
+        
+        .status-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
 
         .model-selector {
             display: flex;
@@ -441,20 +453,73 @@
             border-radius: 4px;
             font-family: 'Monaco', 'Courier New', monospace;
             font-size: 13px;
+            color: #e6db74;
         }
 
         .message-content pre {
-            background: var(--bg-elevated);
+            background: #1e1e1e;
             border: 1px solid var(--border-medium);
             border-radius: 8px;
             padding: 16px;
             overflow-x: auto;
             margin-bottom: 12px;
+            position: relative;
         }
 
         .message-content pre code {
             background: none;
             padding: 0;
+            color: #f8f8f2;
+        }
+        
+        .message-content blockquote {
+            border-left: 3px solid var(--accent-primary);
+            padding-left: 16px;
+            margin: 12px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        .message-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+        
+        .message-content th,
+        .message-content td {
+            padding: 8px 12px;
+            border: 1px solid var(--border-medium);
+            text-align: left;
+        }
+        
+        .message-content th {
+            background: var(--bg-elevated);
+            font-weight: 600;
+        }
+        
+        .copy-code-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .message-content pre:hover .copy-code-btn {
+            opacity: 1;
+        }
+        
+        .copy-code-btn:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
         }
 
         .data-table {
@@ -806,13 +871,15 @@
                     <span>🤖</span>
                     <span>Mistral 7B Instruct</span>
                 </div>
-                <div class="status-badge" id="dataStatusBadge" style="margin-right: 10px;">
-                    <div class="status-dot" style="background: var(--text-muted);"></div>
-                    <span>Loading Data...</span>
-                </div>
-                <div class="status-badge" id="statusBadge">
-                    <div class="status-dot"></div>
-                    <span>Ready</span>
+                <div class="status-group">
+                    <div class="status-badge" id="dataStatusBadge">
+                        <div class="status-dot" style="background: var(--text-muted);"></div>
+                        <span>Loading Data...</span>
+                    </div>
+                    <div class="status-badge" id="statusBadge">
+                        <div class="status-dot"></div>
+                        <span>Ready</span>
+                    </div>
                 </div>
             </div>
 
@@ -1431,10 +1498,31 @@
             return messageId;
         }
 
-        // Format message content
+        // Format message content with markdown rendering
         function formatContent(content) {
             if (typeof content === 'string') {
-                // Convert markdown-style formatting
+                // Use marked.js for full markdown rendering
+                if (typeof marked !== 'undefined') {
+                    marked.setOptions({
+                        highlight: function(code, lang) {
+                            if (lang && hljs.getLanguage(lang)) {
+                                return hljs.highlight(code, { language: lang }).value;
+                            }
+                            return hljs.highlightAuto(code).value;
+                        },
+                        breaks: true,
+                        gfm: true
+                    });
+                    
+                    let html = marked.parse(content);
+                    
+                    // Add copy buttons to code blocks
+                    html = html.replace(/<pre><code/g, '<pre><button class="copy-code-btn" onclick="copyCodeBlock(this)">Copy</button><code');
+                    
+                    return html;
+                }
+                
+                // Fallback to simple formatting if marked.js not loaded
                 content = content
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -1444,6 +1532,20 @@
                 return content;
             }
             return content;
+        }
+        
+        // Copy code block content
+        function copyCodeBlock(button) {
+            const pre = button.parentElement;
+            const code = pre.querySelector('code');
+            const text = code.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
         }
 
         // Show typing indicator

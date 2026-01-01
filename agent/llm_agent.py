@@ -83,6 +83,9 @@ class LLMAgent:
                     # Enable reasoning mode for MiMo models (deep thinking)
                     model_kwargs["reasoning"] = {"enabled": True}
                 
+                # Enable middle-out transform for automatic context compression
+                model_kwargs["transforms"] = ["middle-out"]
+                
                 self.llm = ChatOpenAI(
                     model=self.model,
                     api_key=self.api_key,
