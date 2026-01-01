@@ -28,25 +28,32 @@ class LLMAgent:
     - Local models via LangChain
     """
     
-    def __init__(self, provider: str = "openrouter", model: str = None, api_key: str = None, enable_reasoning: bool = True):
+    def __init__(self, provider: str = "huggingface", model: str = None, api_key: str = None, enable_reasoning: bool = True):
         """
         Initialize LangChain agent with advanced features
         
         Args:
-            provider: "openrouter", "google", "openai", "anthropic", or "local"
-            model: Model name (e.g., "xiaomi/mimo-v2-flash:free", "gemini-pro", "gpt-4")
+            provider: "huggingface", "openrouter", "google", "openai", "anthropic", or "local"
+            model: Model name (e.g., "mistralai/Mistral-7B-Instruct-v0.3", "gemini-pro", "gpt-4")
             api_key: API key for the provider
-            enable_reasoning: Enable deep reasoning mode (uses MiMo, slower but thorough)
+            enable_reasoning: Enable deep reasoning mode (uses larger models, slower but thorough)
                             When False, uses fast model (Mistral 7B, quick responses)
         """
         self.provider = provider.lower()
         self.model = model
-        self.api_key = api_key or os.getenv(f"{provider.upper()}_API_KEY")
+        self.api_key = api_key or os.getenv(f"{provider.upper()}_API_KEY") or os.getenv("HF_TOKEN")
         self.enable_reasoning = enable_reasoning
         
         # Set default models based on reasoning mode
         if not self.model:
-            if self.provider == "openrouter":
+            if self.provider == "huggingface":
+                if enable_reasoning:
+                    # Deep reasoning: Use DeepSeek or Llama for thorough analysis
+                    self.model = "meta-llama/Llama-3.3-70B-Instruct"
+                else:
+                    # Fast mode: Use Mistral 7B for quick responses
+                    self.model = "mistralai/Mistral-7B-Instruct-v0.3"
+            elif self.provider == "openrouter":
                 if enable_reasoning:
                     # Deep reasoning: Use MiMo-V2-Flash with reasoning enabled
                     self.model = "xiaomi/mimo-v2-flash:free"
@@ -60,7 +67,7 @@ class LLMAgent:
             elif self.provider == "anthropic":
                 self.model = "claude-3-5-sonnet-20241022"
             else:
-                self.model = "mistralai/mistral-7b-instruct:free"
+                self.model = "mistralai/Mistral-7B-Instruct-v0.3"
         
         # Initialize components
         self.llm = None
@@ -74,7 +81,30 @@ class LLMAgent:
     def _initialize_llm(self):
         """Initialize the base LLM"""
         try:
-            if self.provider == "openrouter":
+            if self.provider == "huggingface":
+                from langchain_huggingface import ChatHuggingFace
+                from huggingface_hub import InferenceClient
+                
+                # Use Hugging Face Inference Providers (replaces OpenRouter)
+                client = InferenceClient(token=self.api_key)
+                
+                self.llm = ChatHuggingFace(
+                    llm=client,
+                    model_id=self.model,
+                    temperature=0.3,
+                )
+                
+                # Informative logging
+                if "llama" in self.model.lower() or "deepseek" in self.model.lower():
+                    mode_info = " (Deep Reasoning)"
+                elif "mistral-7b" in self.model.lower():
+                    mode_info = " (Ultra-Fast)"
+                else:
+                    mode_info = ""
+                
+                print(f"✅ Initialized LangChain with Hugging Face ({self.model}{mode_info} - FREE)")
+            
+            elif self.provider == "openrouter":
                 from langchain_openai import ChatOpenAI
                 
                 # Configure model-specific parameters
@@ -147,6 +177,7 @@ class LLMAgent:
         
         except ImportError as e:
             library_map = {
+                "huggingface": "langchain-huggingface huggingface-hub",
                 "openrouter": "langchain-openai",
                 "google": "langchain-google-genai",
                 "openai": "langchain-openai",
@@ -229,12 +260,48 @@ class LLMAgent:
             self.tools = []
     
     def _initialize_langchain_agent(self):
-        """Initialize LangChain agent with tools and middleware"""
+        """Initialize LangChain agent with tools and middleware with fallback support"""
         try:
-            # First, initialize the LLM
+            # Try primary provider first
             self._initialize_llm()
             
+            # If primary fails, try fallbacks in order: HuggingFace -> OpenRouter -> Google
             if not self.llm:
+                print(f"⚠️  Primary provider ({self.provider}) failed, trying fallbacks...")
+                fallback_providers = []
+                
+                # Define fallback chain based on what's configured
+                if self.provider != "huggingface" and os.getenv("HF_TOKEN"):
+                    fallback_providers.append(("huggingface", os.getenv("HF_TOKEN")))
+                if self.provider != "openrouter" and os.getenv("OPENROUTER_API_KEY"):
+                    fallback_providers.append(("openrouter", os.getenv("OPENROUTER_API_KEY")))
+                if self.provider != "google" and os.getenv("GOOGLE_API_KEY"):
+                    fallback_providers.append(("google", os.getenv("GOOGLE_API_KEY")))
+                
+                for fallback_provider, fallback_key in fallback_providers:
+                    try:
+                        print(f"🔄 Attempting fallback to {fallback_provider}...")
+                        original_provider = self.provider
+                        original_key = self.api_key
+                        
+                        self.provider = fallback_provider
+                        self.api_key = fallback_key
+                        self._initialize_llm()
+                        
+                        if self.llm:
+                            print(f"✅ Successfully switched to {fallback_provider} fallback")
+                            break
+                        else:
+                            # Restore original if fallback failed
+                            self.provider = original_provider
+                            self.api_key = original_key
+                    except Exception as fallback_error:
+                        print(f"⚠️  Fallback to {fallback_provider} failed: {fallback_error}")
+                        self.provider = original_provider
+                        self.api_key = original_key
+            
+            if not self.llm:
+                print("❌ All LLM providers failed. Agent will not be available.")
                 return
             
             # Define analysis tools for the agent

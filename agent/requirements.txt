@@ -5,14 +5,18 @@
 langchain>=0.1.0
 langchain-core>=0.1.0
 
-# Google AI Studio support (Gemini) - RECOMMENDED ⭐
+# Hugging Face Inference Providers - PRIMARY ⭐
+langchain-huggingface>=0.1.0
+huggingface-hub>=0.20.0
+
+# OpenRouter support (OpenAI-compatible) - FALLBACK #1
+langchain-openai>=0.0.5
+
+# Google AI Studio support (Gemini) - FALLBACK #2 ⭐
 langchain-google-genai>=1.0.0
 google-genai>=0.1.0
 
-# OpenAI support (GPT-3.5, GPT-4, etc.)
-# langchain-openai>=0.0.5
-
-# Anthropic support (Claude)
+# Anthropic support (Claude) - Optional
 # langchain-anthropic>=0.1.0
 
 # Environment variable management
