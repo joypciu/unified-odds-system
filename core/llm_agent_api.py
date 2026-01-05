@@ -420,8 +420,15 @@ class LLMAgentAPI:
                                 compressed_odds[key] = bookie_odds[key]
                         break
             
+            # Build teams string safely
+            teams = match.get('teams')
+            if not teams:
+                home_team = match.get('home_team') or ''
+                away_team = match.get('away_team') or ''
+                teams = f"{home_team} vs {away_team}" if home_team or away_team else 'Unknown'
+            
             return {
-                'teams': match.get('teams', match.get('home_team', '') + ' vs ' + match.get('away_team', '')),
+                'teams': teams,
                 'sport': match.get('sport', ''),
                 'odds': compressed_odds if compressed_odds else 'N/A'
             }
