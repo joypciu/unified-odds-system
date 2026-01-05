@@ -359,9 +359,24 @@ class LLMAgent:
                     content = response.content
                     # If content is a list (with reasoning details), extract text parts
                     if isinstance(content, list):
-                        text_parts = [item.get('text', '') for item in content if item.get('type') == 'text']
-                        return '\n'.join(text_parts) if text_parts else str(content)
-                    return content
+                        text_parts = []
+                        for item in content:
+                            if isinstance(item, dict):
+                                if item.get('type') == 'text':
+                                    text_parts.append(item.get('text', ''))
+                            elif isinstance(item, str):
+                                text_parts.append(item)
+                            else:
+                                # Convert non-dict, non-str items to string
+                                text_parts.append(str(item))
+                        
+                        result = '\n'.join(text_parts) if text_parts else ''
+                        # If still empty after extraction, convert entire response to JSON string
+                        if not result.strip():
+                            import json
+                            result = json.dumps(content, indent=2)
+                        return result
+                    return str(content) if not isinstance(content, str) else content
                 else:
                     return str(response)
             
@@ -536,7 +551,27 @@ Your analysis should be data-driven, specific, and practical."""),
             
             # Extract text from response
             if hasattr(response, 'content'):
-                return response.content
+                content = response.content
+                # If content is a list (with reasoning details), extract text parts
+                if isinstance(content, list):
+                    text_parts = []
+                    for item in content:
+                        if isinstance(item, dict):
+                            if item.get('type') == 'text':
+                                text_parts.append(item.get('text', ''))
+                        elif isinstance(item, str):
+                            text_parts.append(item)
+                        else:
+                            # Convert non-dict, non-str items to string
+                            text_parts.append(str(item))
+                    
+                    result = '\n'.join(text_parts) if text_parts else ''
+                    # If still empty after extraction, convert entire response to JSON string
+                    if not result.strip():
+                        import json
+                        result = json.dumps(content, indent=2)
+                    return result
+                return str(content) if not isinstance(content, str) else content
             else:
                 return str(response)
         
