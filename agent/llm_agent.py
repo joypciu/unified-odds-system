@@ -373,7 +373,6 @@ class LLMAgent:
                         result = '\n'.join(text_parts) if text_parts else ''
                         # If still empty after extraction, convert entire response to JSON string
                         if not result.strip():
-                            import json
                             result = json.dumps(content, indent=2)
                         return result
                     return str(content) if not isinstance(content, str) else content
@@ -568,7 +567,6 @@ Your analysis should be data-driven, specific, and practical."""),
                     result = '\n'.join(text_parts) if text_parts else ''
                     # If still empty after extraction, convert entire response to JSON string
                     if not result.strip():
-                        import json
                         result = json.dumps(content, indent=2)
                     return result
                 return str(content) if not isinstance(content, str) else content
