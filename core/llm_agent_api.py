@@ -420,13 +420,28 @@ class LLMAgentAPI:
             # Check for OddsMagnet data structure (markets)
             elif 'markets' in match:
                 markets = match.get('markets', {})
-                if include_full_odds:
-                    # For odds queries, include all markets
-                    compressed_odds['markets'] = markets
+                if include_full_odds and markets:
+                    # For odds queries, extract actual odds values from markets (simplified)
+                    simplified_markets = {}
+                    for market_type, market_list in list(markets.items())[:3]:  # Limit to 3 market types
+                        if isinstance(market_list, list):
+                            # Extract just the odds values from first 2 markets of each type
+                            odds_list = []
+                            for market in market_list[:2]:
+                                if isinstance(market, dict) and 'odds' in market:
+                                    odds_str = market.get('odds', '').strip()
+                                    if odds_str and odds_str != ' ':
+                                        odds_list.append({
+                                            'name': market.get('name', ''),
+                                            'odds': odds_str
+                                        })
+                            if odds_list:
+                                simplified_markets[market_type] = odds_list
+                    compressed_odds['markets'] = simplified_markets if simplified_markets else 'Available'
                 else:
                     # For non-odds queries, just indicate markets exist
                     market_count = sum(len(v) if isinstance(v, list) else 1 for v in markets.values())
-                    compressed_odds['markets'] = f"{market_count} markets available"
+                    compressed_odds['markets'] = f"{market_count} markets"
             
             # Check for standard odds structure (legacy/other formats)
             elif 'odds' in match:
@@ -503,20 +518,22 @@ class LLMAgentAPI:
                 relevant_live = {}
                 
                 if mentioned_sports:
-                    # Filter by mentioned sports and compress - limit to 8 matches
+                    # Filter by mentioned sports and compress - limit matches based on odds query
+                    match_limit = 5 if needs_odds else 8
                     for sport in mentioned_sports:
                         for key in pregame_by_sport:
                             if sport.lower() in key.lower():
-                                relevant_pregame[key] = [compress_match(m, needs_odds) for m in pregame_by_sport[key][:8]]
+                                relevant_pregame[key] = [compress_match(m, needs_odds) for m in pregame_by_sport[key][:match_limit]]
                         for key in live_by_sport:
                             if sport.lower() in key.lower():
-                                relevant_live[key] = [compress_match(m, needs_odds) for m in live_by_sport[key][:8]]
+                                relevant_live[key] = [compress_match(m, needs_odds) for m in live_by_sport[key][:match_limit]]
                 else:
-                    # Send top 2 sports only, compressed, 5 matches each
+                    # Send top 2 sports only, compressed - fewer matches for odds queries
+                    match_limit = 3 if needs_odds else 5
                     for k, v in list(pregame_by_sport.items())[:2]:
-                        relevant_pregame[k] = [compress_match(m, needs_odds) for m in v[:5]]
+                        relevant_pregame[k] = [compress_match(m, needs_odds) for m in v[:match_limit]]
                     for k, v in list(live_by_sport.items())[:2]:
-                        relevant_live[k] = [compress_match(m, needs_odds) for m in v[:5]]
+                        relevant_live[k] = [compress_match(m, needs_odds) for m in v[:match_limit]]
                 
                 context['unified'] = {
                     'summary': {
@@ -558,10 +575,11 @@ class LLMAgentAPI:
                     # Only counts for count queries
                     all_matches_by_sport[sport] = {'count': match_count}
                 elif needs_full_data and (not mentioned_sports or any(s.lower() in sport.lower() for s in mentioned_sports)):
-                    # Compressed data for relevant sports - limit to 5 matches
+                    # Compressed data for relevant sports - limit based on odds query (2 for odds, 5 for others)
+                    match_limit = 2 if needs_odds else 5
                     all_matches_by_sport[sport] = {
                         'count': match_count,
-                        'matches': [compress_match(m, needs_odds) for m in matches[:5]]
+                        'matches': [compress_match(m, needs_odds) for m in matches[:match_limit]]
                     }
                 else:
                     # No samples for general queries to save tokens
