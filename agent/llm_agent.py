@@ -108,9 +108,7 @@ class LLMAgent:
                 from langchain_openai import ChatOpenAI
                 
                 # Configure model-specific parameters
-                model_kwargs = {
-                    "transforms": ["middle-out"]  # Enable automatic context compression
-                }
+                model_kwargs = {}
                 if "mimo" in self.model.lower():
                     # Enable reasoning mode for MiMo models (deep thinking)
                     model_kwargs["reasoning"] = {"enabled": True}
