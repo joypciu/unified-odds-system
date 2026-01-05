@@ -429,7 +429,15 @@ class LLMAgentAPI:
                             odds_list = []
                             for market in market_list[:2]:
                                 if isinstance(market, dict) and 'odds' in market:
-                                    odds_str = market.get('odds', '').strip()
+                                    odds_value = market.get('odds', '')
+                                    # Handle odds being a list, string, or other type
+                                    if isinstance(odds_value, list):
+                                        odds_str = str(odds_value) if odds_value else ''
+                                    elif isinstance(odds_value, str):
+                                        odds_str = odds_value.strip()
+                                    else:
+                                        odds_str = str(odds_value) if odds_value else ''
+                                    
                                     if odds_str and odds_str != ' ':
                                         odds_list.append({
                                             'name': market.get('name', ''),
