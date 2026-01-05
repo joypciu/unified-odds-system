@@ -398,38 +398,68 @@ class LLMAgentAPI:
         # Helper function to strip unnecessary fields from match data
         def compress_match(match, include_full_odds=False):
             """Keep only essential fields to reduce token count by 90%"""
-            # Extract odds information
-            odds = match.get('odds', {})
+            # Extract odds information - handle different data structures
             compressed_odds = {}
             
-            if include_full_odds and odds:
-                # For odds queries, keep more bookmakers and odds types
-                for bookie, bookie_odds in list(odds.items())[:3]:  # Keep top 3 bookmakers
-                    if isinstance(bookie_odds, dict):
-                        compressed_odds[bookie] = {}
-                        # Keep all main odds types
-                        for key in ['home', 'away', 'draw', 'over', 'under', '1', 'X', '2']:
-                            if key in bookie_odds:
-                                compressed_odds[bookie][key] = bookie_odds[key]
-            elif odds:
-                # For non-odds queries, keep minimal odds
-                for bookie, bookie_odds in list(odds.items())[:1]:
-                    if isinstance(bookie_odds, dict):
-                        for key in ['home', 'away', 'draw']:
-                            if key in bookie_odds:
-                                compressed_odds[key] = bookie_odds[key]
-                        break
+            # Check for unified data structure (bookmakers as top-level keys)
+            if 'fanduel' in match or '1xbet' in match or 'bet365' in match:
+                # Unified data structure
+                bookmakers = ['fanduel', '1xbet', 'bet365']
+                for bookie in bookmakers[:3 if include_full_odds else 1]:
+                    if bookie in match and match[bookie].get('available'):
+                        bookie_odds = match[bookie].get('odds', {})
+                        if bookie_odds:
+                            if include_full_odds:
+                                compressed_odds[bookie] = bookie_odds
+                            else:
+                                # Keep minimal odds for non-odds queries
+                                compressed_odds[bookie] = {
+                                    k: v for k, v in list(bookie_odds.items())[:3]
+                                }
+            
+            # Check for OddsMagnet data structure (markets)
+            elif 'markets' in match:
+                markets = match.get('markets', {})
+                if include_full_odds:
+                    # For odds queries, include all markets
+                    compressed_odds['markets'] = markets
+                else:
+                    # For non-odds queries, just indicate markets exist
+                    market_count = sum(len(v) if isinstance(v, list) else 1 for v in markets.values())
+                    compressed_odds['markets'] = f"{market_count} markets available"
+            
+            # Check for standard odds structure (legacy/other formats)
+            elif 'odds' in match:
+                odds = match.get('odds', {})
+                if include_full_odds and odds:
+                    # For odds queries, keep more bookmakers and odds types
+                    for bookie, bookie_odds in list(odds.items())[:3]:
+                        if isinstance(bookie_odds, dict):
+                            compressed_odds[bookie] = {}
+                            # Keep all main odds types
+                            for key in ['home', 'away', 'draw', 'over', 'under', '1', 'X', '2']:
+                                if key in bookie_odds:
+                                    compressed_odds[bookie][key] = bookie_odds[key]
+                elif odds:
+                    # For non-odds queries, keep minimal odds
+                    for bookie, bookie_odds in list(odds.items())[:1]:
+                        if isinstance(bookie_odds, dict):
+                            for key in ['home', 'away', 'draw']:
+                                if key in bookie_odds:
+                                    compressed_odds[key] = bookie_odds[key]
+                            break
             
             # Build teams string safely
-            teams = match.get('teams')
+            teams = match.get('teams') or match.get('name')
             if not teams:
-                home_team = match.get('home_team') or ''
-                away_team = match.get('away_team') or ''
+                home_team = match.get('home_team') or match.get('home') or ''
+                away_team = match.get('away_team') or match.get('away') or ''
                 teams = f"{home_team} vs {away_team}" if home_team or away_team else 'Unknown'
             
             return {
                 'teams': teams,
                 'sport': match.get('sport', ''),
+                'league': match.get('league', ''),
                 'odds': compressed_odds if compressed_odds else 'N/A'
             }
         

@@ -1227,6 +1227,44 @@
             lastUserMessage = userMessageText;
             await sendMessageWithText(userMessageText);
         }
+
+        // Retry user message (for orphaned messages without AI response)
+        async function retryUserMessage(messageId) {
+            if (isLoading) return;
+            
+            const userMessageDiv = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (!userMessageDiv) return;
+            
+            const userMessageText = userMessageDiv.getAttribute('data-content');
+            if (!userMessageText) return;
+            
+            // Remove the orphaned user message
+            userMessageDiv.remove();
+            
+            // Update conversation history
+            conversationHistory = conversationHistory.filter(msg => msg.content !== userMessageText);
+            
+            // Resend the question
+            lastUserMessage = userMessageText;
+            await sendMessageWithText(userMessageText);
+        }
+
+        // Check for orphaned user messages and show retry button
+        function checkForOrphanedMessages() {
+            const messages = document.querySelectorAll('.message');
+            if (messages.length === 0) return;
+            
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage && lastMessage.getAttribute('data-role') === 'user') {
+                // Last message is a user message without AI response - show retry button
+                const retryBtn = lastMessage.querySelector('.retry-user-btn');
+                if (retryBtn) {
+                    retryBtn.style.display = 'inline-flex';
+                }
+                return true;
+            }
+            return false;
+        }
         
         // Copy message content
         function copyMessage(messageId) {
@@ -1476,8 +1514,10 @@
                     </div>
                 `;
             } else {
+                // User messages - add retry button (hidden by default, shown for orphaned messages)
                 actions = `
                     <div class="message-actions">
+                        <button class="msg-action-btn retry-user-btn" onclick="retryUserMessage('${messageId}')" title="Retry this question" style="display: none;">🔄</button>
                         <button class="msg-action-btn" onclick="copyMessage('${messageId}')" title="Copy">📋</button>
                         <button class="msg-action-btn" onclick="deleteMessage('${messageId}')" title="Delete">🗑️</button>
                     </div>
@@ -1679,6 +1719,9 @@
                 
                 // Update sidebar
                 renderChatHistory();
+                
+                // Check for orphaned messages and show retry button if needed
+                checkForOrphanedMessages();
                 
                 // Scroll to bottom
                 scrollToBottom();
