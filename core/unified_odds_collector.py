@@ -75,6 +75,9 @@ class UnifiedOddsCollector:
         self.xbet_pregame_file = os.path.join(self.base_dir, "bookmakers", "1xbet", "1xbet_pregame.json")
         self.xbet_live_file = os.path.join(self.base_dir, "bookmakers", "1xbet", "1xbet_live.json")
         
+        # OddPortal source
+        self.oddportal_file = os.path.join(self.base_dir, "bookmakers", "oddportal", "oddportal_unified.json")
+        
         # Cache file
         self.cache_file = os.path.join(self.base_dir, "data", "cache_data.json")
         
@@ -107,7 +110,8 @@ class UnifiedOddsCollector:
                     (Path(self.fanduel_pregame_file), 'fanduel'),
                     (Path(self.fanduel_live_file), 'fanduel'),
                     (Path(self.xbet_pregame_file), '1xbet'),
-                    (Path(self.xbet_live_file), '1xbet')
+                    (Path(self.xbet_live_file), '1xbet'),
+                    (Path(self.oddportal_file), 'oddportal')
                 ]
                 for p, src in srcs:
                     if p.exists():
@@ -836,6 +840,45 @@ class UnifiedOddsCollector:
             print(f"Error loading 1xBet live data: {e}")
             return []
     
+    def load_oddportal(self) -> List[Dict]:
+        """Load OddPortal unified data"""
+        try:
+            data = self.safe_load_json(self.oddportal_file)
+            if data is None:
+                print(f"Warning: OddPortal file not found: {self.oddportal_file}")
+                return []
+
+            matches = []
+            # Get matches from unified format
+            oddportal_matches = data.get('matches', [])
+
+            for match_data in oddportal_matches:
+                sport_name = match_data.get('sport', '')
+                normalized_sport = self.normalize_sport_name(sport_name)
+
+                match = {
+                    'sport': normalized_sport,
+                    'home_team': match_data.get('home_team', ''),
+                    'away_team': match_data.get('away_team', ''),
+                    'date': match_data.get('datetime', ''),
+                    'time': match_data.get('datetime', ''),
+                    'league': match_data.get('league', ''),
+                    'country': match_data.get('country', ''),
+                    'match_url': match_data.get('match_url', ''),
+                    'source': 'oddportal',
+                    'is_live': False,  # OddPortal data is typically pregame
+                    'markets': match_data.get('markets', {}),
+                    'raw_data': match_data
+                }
+                matches.append(match)
+
+            print(f"Loaded {len(matches)} matches from OddPortal")
+            return matches
+
+        except Exception as e:
+            print(f"Error loading OddPortal data: {e}")
+            return []
+    
     def extract_bet365_odds(self, match_data: Dict) -> Dict:
         """Extract odds from Bet365 match data"""
         # For live matches, odds are in 'markets' field
@@ -1560,6 +1603,7 @@ class UnifiedOddsCollector:
         fanduel_live = self.load_fanduel_live()
         xbet_pregame = self.load_1xbet_pregame()
         xbet_live = self.load_1xbet_live()
+        oddportal_data = self.load_oddportal()
 
         # Normalize team names using enhanced cache (auto-updates and deduplicates)
         if USE_ENHANCED_CACHE:
@@ -1571,7 +1615,8 @@ class UnifiedOddsCollector:
                 (fanduel_pregame, 'fanduel'),
                 (fanduel_live, 'fanduel'),
                 (xbet_pregame, '1xbet'),
-                (xbet_live, '1xbet')
+                (xbet_live, '1xbet'),
+                (oddportal_data, 'oddportal')
             ]
             
             normalized_count = 0

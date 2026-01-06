@@ -278,6 +278,34 @@ def main():
         print("⚠️  parallel_sports_scraper.py not found, skipping OddsMagnet")
         print()
     
+    # Start OddPortal Collector
+    print("📊 Starting OddPortal Collector...")
+    print("   - Scraping odds from OddPortal")
+    print("   - Multiple sports and leagues coverage")
+    print("   - Update interval: 300 seconds (5 minutes)")
+    print("   - Output: bookmakers/oddportal/oddportal_unified.json")
+    print()
+    
+    oddportal_script = base_dir / "bookmakers" / "oddportal" / "oddportal_collector.py"
+    if oddportal_script.exists():
+        try:
+            # Start OddPortal collector in background with continuous mode
+            oddportal_process = subprocess.Popen(
+                [sys.executable, str(oddportal_script), "--continuous", "--interval", "300"],
+                cwd=str(base_dir / "bookmakers" / "oddportal")
+            )
+            processes.append(oddportal_process)
+            print("✅ OddPortal collector started (PID: {})".format(oddportal_process.pid))
+            print()
+            
+        except Exception as e:
+            print(f"⚠️  Could not start OddPortal collector: {e}")
+            print("   Continuing without OddPortal...")
+            print()
+    else:
+        print("⚠️  oddportal_collector.py not found, skipping OddPortal")
+        print()
+    
     # Start the web viewer
     print("🌐 Starting Web Viewer UI...")
     print("   - Real-time monitoring dashboard")
@@ -322,7 +350,8 @@ def main():
         else:
             print("   2. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
         print("   3. OddsMagnet Parallel Scraper - 5 sports simultaneously, 60s cycle")
-        print("   4. Web Viewer - Real-time dashboard with monitoring")
+        print("   4. OddPortal Collector - Multiple sports, 5 min cycle")
+        print("   5. Web Viewer - Real-time dashboard with monitoring")
     else:
         if args.live_only:
             print("   1. Unified Odds Collector - LIVE ONLY fetching from all sources")
@@ -331,7 +360,8 @@ def main():
         else:
             print("   1. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
         print("   2. OddsMagnet Parallel Scraper - 5 sports simultaneously, 60s cycle")
-        print("   3. Web Viewer - Real-time dashboard")
+        print("   3. OddPortal Collector - Multiple sports, 5 min cycle")
+        print("   4. Web Viewer - Real-time dashboard")
     print()
     print("💡 Features Available:")
     if not args.no_monitoring:
@@ -346,6 +376,7 @@ def main():
         print("   • Real-time PREGAME odds updates (scraped continuously)")
         print("   • Real-time LIVE odds updates (scraped continuously)")
     print("   • OddsMagnet: 117+ leagues, 9 bookmakers, 69 markets per match")
+    print("   • OddPortal: Multi-sport coverage with comprehensive bookmaker odds")
     print("   • Advanced filtering and search")
     print("   • Pagination for large datasets")
     print("   • System health monitoring dashboard")

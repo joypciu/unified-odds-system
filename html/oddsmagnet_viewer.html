@@ -1522,6 +1522,15 @@
                 </button>
             </div>
 
+            <!-- OddPortal Sport Filter (shown only when viewing OddPortal) -->
+            <div class="filter-dropdown" id="oddportalSportFilterWrapper" style="display: none;">
+                <button class="filter-btn" id="oddportalSportBtn">
+                    <i class="fas fa-filter"></i>
+                    <span id="oddportalSportLabel">All Sports</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+
             <div class="filter-dropdown">
                 <button class="filter-btn" id="leagueBtn">
                     <i class="fas fa-trophy"></i>
@@ -1574,6 +1583,10 @@
                 <button class="sort-btn" id="showBookmarksBtn" title="Show bookmarked matches">
                     <i class="fas fa-bookmark"></i>
                     <span id="bookmarkCount">0</span>
+                </button>
+                <button class="sort-btn" id="oddportalBtn" title="View OddPortal Multi-Sport Coverage" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; color: white;">
+                    <i class="fas fa-star"></i>
+                    <span>OddPortal</span>
                 </button>
             </div>
         </div>
@@ -1629,6 +1642,24 @@
                 </button>
             </div>
             <div class="filter-modal-body" id="leagueMenu">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- OddPortal Sport Filter Modal -->
+    <div class="filter-modal" id="oddportalSportModal">
+        <div class="filter-modal-content">
+            <div class="filter-modal-header">
+                <div class="filter-modal-title">
+                    <i class="fas fa-filter" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                    Filter by Sport
+                </div>
+                <button class="filter-modal-close" id="oddportalSportModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-modal-body" id="oddportalSportMenu">
                 <!-- Populated dynamically -->
             </div>
         </div>
@@ -2144,7 +2175,8 @@
             tabletennis: ['home', 'away'],                // 2-way betting (no draws in table tennis)
             tennis: ['home', 'away'],                     // 2-way betting (no draws in tennis)
             boxing: ['home', 'away'],                     // 2-way betting (fighter1 vs fighter2)
-            volleyball: ['home', 'away']                  // 2-way betting (no draws in volleyball)
+            volleyball: ['home', 'away'],                 // 2-way betting (no draws in volleyball)
+            oddportal: ['home', 'draw', 'away']          // OddPortal multi-sport (default to 3-way)
         };
         
         // Update sport dropdown with match counts from all sports
@@ -2182,6 +2214,21 @@
                 } catch (err) {
                     console.warn(`Failed to fetch count for ${sport}:`, err);
                 }
+            }
+            
+            // Update OddPortal button with match count
+            try {
+                const response = await fetch(`${apiBase}oddportal`, { cache: 'no-store' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const matchCount = (data.matches || []).length;
+                    const oddportalBtn = document.getElementById('oddportalBtn');
+                    if (oddportalBtn && matchCount > 0) {
+                        oddportalBtn.innerHTML = `<i class="fas fa-star"></i><span>OddPortal (${matchCount})</span>`;
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed to fetch OddPortal count:', err);
             }
         }
 
@@ -2406,6 +2453,84 @@
                 }
             });
             
+            // NEW: OddPortal button - switch to OddPortal multi-sport view
+            document.getElementById('oddportalBtn').addEventListener('click', async () => {
+                if (isLoading) return;
+                
+                const newSport = 'oddportal';
+                if (newSport === window.currentSport) return;
+                
+                console.log(`🔄 Switching to OddPortal from ${window.currentSport}`);
+                
+                // Update UI for OddPortal
+                const sportBtnLabel = document.getElementById('sportBtnLabel');
+                const sportIcon = document.getElementById('sportIcon');
+                const sportLabel = document.getElementById('sportLabel');
+                
+                sportBtnLabel.textContent = 'OddPortal';
+                sportIcon.className = 'fas fa-star';
+                sportLabel.innerHTML = '⭐ OddPortal Multi-Sport Coverage <span style="color: #3b82f6; font-weight: 600;">(loading...)</span>';
+                
+                // Update current sport
+                window.currentSport = newSport;
+                expectedSport = newSport;
+                
+                // Reset filters including OddPortal sport filter
+                selectedLeague = 'all';
+                selectedDate = 'all';
+                searchQuery = '';
+                currentMarket = '';
+                showOnlyBookmarks = false;
+                window.selectedOddportalSport = 'all';
+                
+                // Show OddPortal sport filter
+                const oddportalSportFilterWrapper = document.getElementById('oddportalSportFilterWrapper');
+                if (oddportalSportFilterWrapper) {
+                    oddportalSportFilterWrapper.style.display = 'block';
+                }
+                document.getElementById('oddportalSportLabel').textContent = 'All Sports';
+                
+                const bookmarkBtn = document.getElementById('showBookmarksBtn');
+                if (bookmarkBtn) bookmarkBtn.classList.remove('active');
+                
+                // Clear cache
+                dataCache = null;
+                cachedSport = null;
+                lastETag = null;
+                lastDataTimestamp = null;
+                
+                // Update filter UI
+                document.getElementById('leagueLabel').textContent = 'All Leagues';
+                document.getElementById('dateLabel').textContent = 'All Dates';
+                document.getElementById('marketLabel').textContent = 'All Markets';
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = '';
+                
+                // Show loading state
+                updateStatus('Loading...');
+                allMatches = [];
+                filteredMatches = [];
+                const tableBody = document.getElementById('tableBody');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 40px; color: var(--text-secondary);">Loading OddPortal data...</td></tr>';
+                }
+                
+                // Load data
+                if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+                    wsConnection.send(JSON.stringify({ action: 'subscribe', sport: newSport }));
+                    setTimeout(() => {
+                        if (expectedSport === newSport && allMatches.length === 0) {
+                            loadData(true).catch(err => console.error('HTTP fallback failed:', err));
+                        }
+                    }, 2000);
+                } else {
+                    loadData(true).catch(err => {
+                        console.error('OddPortal load failed:', err);
+                        updateStatus('Error');
+                    });
+                }
+            });
+            
             // Close bookmarks modal
             const bookmarksModal = document.getElementById('bookmarksModal');
             const bookmarksModalClose = document.getElementById('bookmarksModalClose');
@@ -2466,6 +2591,9 @@
 
             // League modal
             setupLeagueModal();
+            
+            // OddPortal sport filter modal
+            setupOddportalSportFilter();
             
             // Market modal
             setupMarketModal();
@@ -2870,6 +2998,11 @@
                         icon: 'fas fa-volleyball-ball',
                         headerLabel: '🏐 Volleyball (International Leagues)'
                     },
+                    oddportal: {
+                        label: 'OddPortal',
+                        icon: 'fas fa-star',
+                        headerLabel: '⭐ OddPortal Multi-Sport Coverage'
+                    },
                     football: {
                         label: 'Football',
                         icon: 'fas fa-futbol',
@@ -2888,11 +3021,18 @@
                 window.currentSport = newSport;
                 expectedSport = newSport; // Track expected sport for data validation
                 
+                // Hide OddPortal sport filter for non-OddPortal sports
+                const oddportalSportFilterWrapper = document.getElementById('oddportalSportFilterWrapper');
+                if (oddportalSportFilterWrapper) {
+                    oddportalSportFilterWrapper.style.display = 'none';
+                }
+                
                 // Reset filters
                 selectedLeague = 'all';
                 selectedDate = 'all';
                 searchQuery = '';
                 currentMarket = '';
+                window.selectedOddportalSport = 'all';
                 
                 // CRITICAL: Reset bookmark filter to show all matches in new sport
                 showOnlyBookmarks = false;
@@ -2999,6 +3139,50 @@
                     document.getElementById('leagueLabel').textContent = value === 'all' ? 'All Leagues' : value;
                     
                     leagueModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    applyFilters();
+                }
+            });
+        }
+
+        function setupOddportalSportFilter() {
+            const oddportalSportBtn = document.getElementById('oddportalSportBtn');
+            const oddportalSportModal = document.getElementById('oddportalSportModal');
+            const oddportalSportModalClose = document.getElementById('oddportalSportModalClose');
+            const oddportalSportMenu = document.getElementById('oddportalSportMenu');
+
+            oddportalSportBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                oddportalSportModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            oddportalSportModalClose.addEventListener('click', () => {
+                oddportalSportModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            oddportalSportModal.addEventListener('click', (e) => {
+                if (e.target === oddportalSportModal) {
+                    oddportalSportModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            oddportalSportMenu.addEventListener('click', (e) => {
+                const item = e.target.closest('.dropdown-item');
+                if (item) {
+                    oddportalSportMenu.querySelectorAll('.dropdown-item').forEach(i => {
+                        i.classList.remove('selected');
+                    });
+                    item.classList.add('selected');
+                    
+                    const value = item.dataset.value;
+                    window.selectedOddportalSport = value;
+                    document.getElementById('oddportalSportLabel').textContent = value === 'all' ? 'All Sports' : value.charAt(0).toUpperCase() + value.slice(1);
+                    
+                    oddportalSportModal.classList.remove('active');
                     document.body.style.overflow = '';
                     applyFilters();
                 }
@@ -3187,6 +3371,11 @@
                     populateMarketTabs();
                     populateMarketMenu();
                     
+                    // Populate OddPortal sport filter if viewing OddPortal
+                    if (window.currentSport === 'oddportal') {
+                        populateOddportalSportDropdown();
+                    }
+                    
                     // Render table
                     applyFilters();
                     
@@ -3270,11 +3459,12 @@
                                 : currentSport === 'tennis' ? 'tennis'
                                 : currentSport === 'boxing' ? 'boxing'
                                 : currentSport === 'volleyball' ? 'volleyball'
+                                : currentSport === 'oddportal' ? 'oddportal'
                                 : 'football/top10';
                 
                 // Detect which API endpoint to use based on current URL and sport
-                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket or /om/baseball or /om/tabletennis
-                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket or /oddsmagnet/api/baseball or /oddsmagnet/api/tabletennis
+                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket or /om/baseball or /om/tabletennis or /om/oddportal
+                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket or /oddsmagnet/api/baseball or /oddsmagnet/api/tabletennis or /oddsmagnet/api/oddportal
                 const apiEndpoint = window.location.port === '9000' 
                     ? `/om/${sportPath}` 
                     : `/oddsmagnet/api/${sportPath}`;
@@ -3531,6 +3721,38 @@
             document.getElementById('totalLeagues').textContent = leagues.length;
         }
 
+        function populateOddportalSportDropdown() {
+            const sportSet = new Set();
+            for (const match of allMatches) {
+                if (match.sport) sportSet.add(match.sport);
+            }
+            
+            const sports = Array.from(sportSet).sort();
+            const menu = document.getElementById('oddportalSportMenu');
+            
+            // Sport icons mapping
+            const sportIcons = {
+                'football': 'fa-futbol',
+                'basketball': 'fa-basketball-ball',
+                'american-football': 'fa-football-ball',
+                'hockey': 'fa-hockey-puck',
+                'baseball': 'fa-baseball-ball',
+                'tennis': 'fa-table-tennis'
+            };
+            
+            // Build HTML with icons
+            const items = ['<div class="dropdown-item selected" data-value="all"><i class="fas fa-check"></i>All Sports</div>'];
+            for (const sport of sports) {
+                const icon = sportIcons[sport] || 'fa-star';
+                const displayName = sport.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                items.push(`<div class="dropdown-item" data-value="${sport}"><i class="fas fa-check"></i><i class="fas ${icon}" style="margin-right: 8px;"></i>${displayName}</div>`);
+            }
+            
+            menu.innerHTML = items.join('');
+            
+            // Click handlers are in setupOddportalSportFilter
+        }
+
         function populateMarketTabs() {
             const marketTabs = document.getElementById('marketTabs');
 
@@ -3589,6 +3811,11 @@
             const startTime = performance.now();
 
             let matches = allMatches;
+
+            // Apply OddPortal sport filter (only when viewing OddPortal)
+            if (window.currentSport === 'oddportal' && window.selectedOddportalSport && window.selectedOddportalSport !== 'all') {
+                matches = matches.filter(m => m.sport === window.selectedOddportalSport);
+            }
 
             // Apply filters with early returns for better performance
             if (selectedLeague !== 'all') {

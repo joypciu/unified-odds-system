@@ -3404,6 +3404,137 @@ async def get_bet365_eternity_format_legacy():
     return await get_bet365_eternity_format()
 
 
+# ==================== OddPortal API Endpoint ====================
+
+@app.get("/oddsmagnet/api/oddportal")
+@app.get("/oddportal/api/matches")
+async def get_oddportal_data(
+    request: Request,
+    page: int = 1,
+    page_size: int = 999,
+    sport: str = None,
+    league: str = None,
+    search: str = None
+):
+    """Get OddPortal odds data with pagination and filtering
+    
+    Accessible via:
+    - /oddsmagnet/api/oddportal (displays in oddsmagnet viewer)
+    - /oddportal/api/matches (standalone access)
+    
+    Query Parameters:
+    - page: Page number (default: 1)
+    - page_size: Items per page (default: 999 [all], max: 999)
+    - sport: Filter by sport (e.g., 'basketball', 'football')
+    - league: Filter by league (partial match)
+    - search: Search in match name (partial match, case-insensitive)
+    """
+    try:
+        # Validate pagination parameters
+        page = max(1, page)
+        page_size = min(max(1, page_size), 999)
+        
+        # Read OddPortal unified data
+        oddportal_file = BASE_DIR / "bookmakers" / "oddportal" / "oddportal_unified.json"
+        
+        if not oddportal_file.exists():
+            return JSONResponse(
+                content={
+                    'error': 'OddPortal data not available',
+                    'message': 'OddPortal collector not running. Start with: python bookmakers/oddportal/oddportal_collector.py --continuous',
+                    'matches': [],
+                    'sport': sport or 'all',
+                    'timestamp': datetime.now().isoformat(),
+                    'matches_count': 0,
+                    'total_pages': 0,
+                    'current_page': page
+                }
+            )
+        
+        # Check ETag for caching
+        file_stat = oddportal_file.stat()
+        file_mtime = file_stat.st_mtime
+        file_size = file_stat.st_size
+        etag_base = f"{file_mtime}-{file_size}"
+        etag = hashlib.md5(etag_base.encode()).hexdigest()
+        
+        # Check if client has cached version
+        if_none_match = request.headers.get('if-none-match')
+        if if_none_match == etag:
+            return Response(status_code=304)
+        
+        # Load data
+        async with aiofiles.open(oddportal_file, 'r', encoding='utf-8') as f:
+            content = await f.read()
+            data = json.loads(content)
+        
+        matches = data.get('matches', [])
+        
+        # Apply filters
+        filtered_matches = matches
+        
+        # Filter by sport if specified
+        if sport:
+            sport_lower = sport.lower()
+            filtered_matches = [
+                m for m in filtered_matches 
+                if m.get('sport', '').lower() == sport_lower
+            ]
+        
+        # Filter by league if specified
+        if league:
+            league_lower = league.lower()
+            filtered_matches = [
+                m for m in filtered_matches 
+                if league_lower in m.get('league', '').lower()
+            ]
+        
+        # Search filter
+        if search:
+            search_lower = search.lower()
+            filtered_matches = [
+                m for m in filtered_matches
+                if search_lower in m.get('name', '').lower() or
+                   search_lower in m.get('home_team', '').lower() or
+                   search_lower in m.get('away_team', '').lower()
+            ]
+        
+        # Calculate pagination
+        total_matches = len(filtered_matches)
+        total_pages = (total_matches + page_size - 1) // page_size
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_matches = filtered_matches[start_idx:end_idx]
+        
+        response_data = {
+            'sport': data.get('sport', 'multi'),
+            'timestamp': data.get('timestamp', datetime.now().isoformat()),
+            'source': 'oddportal',
+            'matches_count': len(paginated_matches),
+            'total_matches': total_matches,
+            'total_pages': total_pages,
+            'current_page': page,
+            'page_size': page_size,
+            'matches': paginated_matches
+        }
+        
+        return JSONResponse(
+            content=response_data,
+            headers={'ETag': etag, 'Cache-Control': 'public, max-age=30'}
+        )
+        
+    except Exception as e:
+        print(f"Error loading OddPortal data: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                'error': 'Failed to load OddPortal data',
+                'message': str(e),
+                'matches': []
+            }
+        )
+
+
 # ==================== History API Endpoint ====================
 
 @app.get("/history")
