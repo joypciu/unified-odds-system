@@ -639,6 +639,11 @@ class UnifiedSystemRunner:
         # Register signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
+        
+        # Register SIGCHLD handler to automatically reap zombie processes
+        # This prevents zombie processes when child processes exit
+        signal.signal(signal.SIGCHLD, self._sigchld_handler)
+        
         atexit.register(self._cleanup)
     
     def _load_config(self):
@@ -667,6 +672,25 @@ class UnifiedSystemRunner:
             print("   Stopping all modules gracefully...")
             self.stop_all_scrapers()
             sys.exit(0)
+    
+    def _sigchld_handler(self, signum, frame):
+        """
+        Handle SIGCHLD signal to automatically reap zombie processes.
+        This is called whenever a child process exits.
+        """
+        while True:
+            try:
+                # Reap all terminated child processes (non-blocking)
+                pid, status = os.waitpid(-1, os.WNOHANG)
+                if pid == 0:
+                    # No more zombie processes
+                    break
+            except ChildProcessError:
+                # No child processes
+                break
+            except Exception:
+                # Other error, stop trying
+                break
     
     def _cleanup(self):
         """Cleanup function called on exit"""
