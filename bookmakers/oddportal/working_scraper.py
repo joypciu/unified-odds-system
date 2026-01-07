@@ -222,16 +222,18 @@ class OddsPortalScraper:
                 # Launch isolated browser
                 print(f"[{sport.upper()}] Launching isolated browser...")
                 
-                # Use headed mode with xvfb on VPS (OddPortal blocks headless)
-                # The xvfb virtual display makes this work on headless servers
+                # Use new headless mode (harder to detect than old headless)
+                # This mode doesn't require X server/DISPLAY
                 browser = p.chromium.launch(
-                    headless=False,  # Use headed mode - works with xvfb on VPS
+                    headless=True,  # New headless mode (Chromium 112+)
                     args=[
                         '--disable-blink-features=AutomationControlled',
                         '--disable-dev-shm-usage',
                         '--no-sandbox',
                         '--disable-setuid-sandbox',
-                        '--disable-gpu'
+                        '--disable-gpu',
+                        '--window-size=1920,1080',
+                        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                     ]
                 )
                 context = browser.new_context(
