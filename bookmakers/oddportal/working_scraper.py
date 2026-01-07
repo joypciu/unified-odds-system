@@ -219,19 +219,19 @@ class OddsPortalScraper:
         # Create dedicated browser instance for this sport (isolated, no shared Chrome)
         with sync_playwright() as p:
             try:
-                # Launch isolated browser (headless shell for VPS compatibility)
+                # Launch isolated browser
                 print(f"[{sport.upper()}] Launching isolated browser...")
                 
-                # Use chromium headless shell for better VPS compatibility
+                # Use headed mode with xvfb on VPS (OddPortal blocks headless)
+                # The xvfb virtual display makes this work on headless servers
                 browser = p.chromium.launch(
-                    headless=True,  # Use headless mode for VPS compatibility
+                    headless=False,  # Use headed mode - works with xvfb on VPS
                     args=[
                         '--disable-blink-features=AutomationControlled',
                         '--disable-dev-shm-usage',
                         '--no-sandbox',
                         '--disable-setuid-sandbox',
-                        '--disable-gpu',
-                        '--disable-software-rasterizer'
+                        '--disable-gpu'
                     ]
                 )
                 context = browser.new_context(
