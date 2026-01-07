@@ -168,29 +168,25 @@ class OddsPortalScraper:
                 sport_tasks.append((sport, league_urls))
             
             print(f"\n{'='*80}")
-            print(f"STARTING PARALLEL SCRAPING OF {len(sport_tasks)} SPORTS")
-            print(f"Each sport gets its own isolated browser for maximum speed")
+            print(f"STARTING SEQUENTIAL SCRAPING OF {len(sport_tasks)} SPORTS")
+            print(f"Sequential mode prevents resource exhaustion")
             print(f"{'='*80}")
             
-            # Use ThreadPoolExecutor to scrape sports concurrently
-            # Each sport will create its own browser instance
-            with ThreadPoolExecutor(max_workers=len(sport_tasks)) as executor:
-                futures = {executor.submit(self.scrape_sport, sport, league_urls): sport for sport, league_urls in sport_tasks}
-                
-                for future in as_completed(futures):
-                    sport = futures[future]
-                    try:
-                        matches_count = future.result()
-                        print(f"\n✓ Completed {sport.upper()}: {matches_count} matches")
-                        
-                        # Trigger callback for progressive updates
-                        if self.sport_complete_callback:
-                            try:
-                                self.sport_complete_callback(sport, self.matches_data.copy())
-                            except Exception as cb_err:
-                                print(f"Warning: Callback error for {sport}: {cb_err}")
-                    except Exception as e:
-                        print(f"\n✗ Error scraping {sport.upper()}: {str(e)}")
+            # Scrape sports sequentially to avoid resource exhaustion
+            # Parallel scraping causes browser crashes on VPS
+            for sport, league_urls in sport_tasks:
+                try:
+                    matches_count = self.scrape_sport(sport, league_urls)
+                    print(f"\n✓ Completed {sport.upper()}: {matches_count} matches")
+                    
+                    # Trigger callback for progressive updates
+                    if self.sport_complete_callback:
+                        try:
+                            self.sport_complete_callback(sport, self.matches_data.copy())
+                        except Exception as cb_err:
+                            print(f"Warning: Callback error for {sport}: {cb_err}")
+                except Exception as e:
+                    print(f"\n✗ Error scraping {sport.upper()}: {str(e)}")
             
             print(f"\n{'='*80}")
             print(f"TOTAL MATCHES SCRAPED: {len(self.matches_data)}")
