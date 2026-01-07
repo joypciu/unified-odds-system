@@ -258,49 +258,6 @@ class OddsPortalScraper:
                     timezone_id='America/New_York'
                 )
                 
-                # Inject stealth JavaScript (same as oddsmagnet)
-                context.add_init_script("""
-                    // Override navigator.webdriver
-                    Object.defineProperty(navigator, 'webdriver', {
-                        get: () => undefined
-                    });
-                    
-                    // Mock navigator.plugins
-                    Object.defineProperty(navigator, 'plugins', {
-                        get: () => [1, 2, 3, 4, 5]
-                    });
-                    
-                    // Mock navigator.languages
-                    Object.defineProperty(navigator, 'languages', {
-                        get: () => ['en-US', 'en']
-                    });
-                    
-                    // Mock chrome object
-                    window.chrome = {
-                        runtime: {},
-                        loadTimes: function() {},
-                        csi: function() {},
-                        app: {}
-                    };
-                    
-                    // Mock navigator properties
-                    Object.defineProperty(navigator, 'platform', {
-                        get: () => 'Win32'
-                    });
-                    
-                    Object.defineProperty(navigator, 'vendor', {
-                        get: () => 'Google Inc.'
-                    });
-                    
-                    Object.defineProperty(navigator, 'hardwareConcurrency', {
-                        get: () => 8
-                    });
-                    
-                    Object.defineProperty(navigator, 'deviceMemory', {
-                        get: () => 8
-                    });
-                """)
-                
                 print(f"[{sport.upper()}] Browser context created with stealth mode")
                 
                 # Process leagues sequentially but matches in parallel
