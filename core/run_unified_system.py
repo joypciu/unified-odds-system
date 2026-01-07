@@ -444,7 +444,12 @@ Please check the system logs and restart if necessary.
 
             # Check if process is still running
             if proc.poll() is not None:
-                # Process has terminated
+                # Process has terminated - reap it to prevent zombie
+                try:
+                    proc.wait(timeout=1)  # Reap the zombie process
+                except:
+                    pass
+                
                 return_code = proc.returncode
                 if return_code != 0:
                     # Process failed

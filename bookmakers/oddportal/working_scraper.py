@@ -213,23 +213,25 @@ class OddsPortalScraper:
         print(f"{'#'*80}")
         
         matches_count = 0
+        browser = None
+        context = None
         
         # Create dedicated browser instance for this sport (isolated, no shared Chrome)
         with sync_playwright() as p:
             try:
-                # Launch isolated system Chrome browser (better anti-detection)
+                # Launch isolated browser (headless shell for VPS compatibility)
                 print(f"[{sport.upper()}] Launching isolated browser...")
                 
-                # Uses system Chrome installation for better anti-detection
+                # Use chromium headless shell for better VPS compatibility
                 browser = p.chromium.launch(
-                    headless=False,  # Use headed mode - OddPortal blocks headless
-                    channel='chrome',  # Use system Chrome
+                    headless=True,  # Use headless mode for VPS compatibility
                     args=[
                         '--disable-blink-features=AutomationControlled',
                         '--disable-dev-shm-usage',
                         '--no-sandbox',
-                        '--disable-infobars',
-                        '--window-position=-2400,-2400'  # Hide off-screen
+                        '--disable-setuid-sandbox',
+                        '--disable-gpu',
+                        '--disable-software-rasterizer'
                     ]
                 )
                 context = browser.new_context(
@@ -250,11 +252,23 @@ class OddsPortalScraper:
                     matches = self.scrape_league_parallel(context, league_url, sport)
                     matches_count += len(matches)
                 
-                context.close()
-                browser.close()
-                print(f"[{sport.upper()}] Browser closed")
             except Exception as e:
                 print(f"[{sport.upper()}] Browser error: {str(e)}")
+            finally:
+                # CRITICAL: Always close browser and context to prevent zombie processes
+                try:
+                    if context:
+                        context.close()
+                        print(f"[{sport.upper()}] Context closed")
+                except Exception as e:
+                    print(f"[{sport.upper()}] Error closing context: {e}")
+                
+                try:
+                    if browser:
+                        browser.close()
+                        print(f"[{sport.upper()}] Browser closed")
+                except Exception as e:
+                    print(f"[{sport.upper()}] Error closing browser: {e}")
         
         return matches_count
     
