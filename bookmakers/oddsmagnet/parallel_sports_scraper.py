@@ -96,7 +96,7 @@ def scrape_sport_worker(sport: str, config: Dict, mode: str = 'local') -> Dict:
     try:
         async def run_scraper():
             # Reduce concurrency for VPS to avoid overwhelming system
-            max_concurrent = 3 if mode == 'vps' else 15
+            max_concurrent = 2 if mode == 'vps' else 15
             scraper = BaseSportScraper(sport, config, mode, max_concurrent=max_concurrent)
             return await scraper.run()
         
@@ -144,9 +144,9 @@ class ParallelSportsScraper:
         logging.info(f"🚀 Starting parallel scrape for {len(enabled_sports)} sports...")
         logging.info(f"   Sports: {', '.join(s.upper() for s in enabled_sports.keys())}")
         
-        # Create process pool - limit to 3 processes in VPS mode to avoid memory/browser overload
+        # Create process pool - limit to 2 processes in VPS mode to avoid memory/browser overload
         if self.mode == 'vps':
-            num_processes = min(3, len(enabled_sports))
+            num_processes = min(2, len(enabled_sports))
         else:
             num_processes = min(len(enabled_sports), mp.cpu_count())
         
