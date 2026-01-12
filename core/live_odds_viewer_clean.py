@@ -692,9 +692,9 @@ async def push_oddsmagnet_updates():
         'football': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10.json",
         'basketball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_basketball.json",
         'cricket': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_cricket.json",
-        'americanfootball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_americanfootball.json",
+        'americanfootball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_american_football.json",
         'baseball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_baseball.json",
-        'tabletennis': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_tabletennis.json",
+        'tabletennis': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_table_tennis.json",
         'tennis': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_tennis.json",
         'boxing': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_boxing.json",
         'volleyball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_volleyball.json"
@@ -2169,7 +2169,7 @@ async def get_oddsmagnet_americanfootball(
         page_size = min(max(1, page_size), 999)
         
         # Read from American Football realtime collector
-        af_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_americanfootball.json"
+        af_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_american_football.json"
         
         if not af_file.exists():
             return JSONResponse(

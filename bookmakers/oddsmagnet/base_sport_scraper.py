@@ -984,6 +984,36 @@ if __name__ == "__main__":
             'top_leagues': 5,
             'output': 'oddsmagnet_table_tennis.json',
             'markets': ['win market'],
+        },
+        'american-football': {
+            'enabled': True,
+            'top_leagues': 5,
+            'output': 'oddsmagnet_american_football.json',
+            'markets': ['win market', 'over under betting'],
+        },
+        'cricket': {
+            'enabled': True,
+            'top_leagues': 5,
+            'output': 'oddsmagnet_cricket.json',
+            'markets': ['win market'],
+        },
+        'baseball': {
+            'enabled': True,
+            'top_leagues': 5,
+            'output': 'oddsmagnet_baseball.json',
+            'markets': ['win market', 'over under betting'],
+        },
+        'boxing': {
+            'enabled': True,
+            'top_leagues': 5,
+            'output': 'oddsmagnet_boxing.json',
+            'markets': ['win market'],
+        },
+        'volleyball': {
+            'enabled': True,
+            'top_leagues': 5,
+            'output': 'oddsmagnet_volleyball.json',
+            'markets': ['win market', 'over under betting'],
         }
     }
     
