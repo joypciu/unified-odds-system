@@ -75,7 +75,9 @@ class ConfigManager:
                 'modules': [
                     'bet365_pregame', 'bet365_live',
                     'fanduel_pregame', 'fanduel_live',
-                    '1xbet_pregame', '1xbet_live'
+                    '1xbet_pregame', '1xbet_live',
+                    'oddsmagnet_football', 'oddsmagnet_basketball',
+                    'oddsmagnet_tennis'
                 ]
             },
             'cache': {
@@ -278,7 +280,10 @@ class ModuleMonitor:
             'fanduel_pregame': base_dir / 'bookmakers' / 'fanduel' / 'fanduel_pregame.json',
             'fanduel_live': base_dir / 'bookmakers' / 'fanduel' / 'fanduel_live.json',
             '1xbet_pregame': base_dir / 'bookmakers' / '1xbet' / '1xbet_pregame.json',
-            '1xbet_live': base_dir / 'bookmakers' / '1xbet' / '1xbet_live.json'
+            '1xbet_live': base_dir / 'bookmakers' / '1xbet' / '1xbet_live.json',
+            'oddsmagnet_football': base_dir / 'bookmakers' / 'oddsmagnet' / 'oddsmagnet_top10.json',
+            'oddsmagnet_basketball': base_dir / 'bookmakers' / 'oddsmagnet' / 'oddsmagnet_basketball.json',
+            'oddsmagnet_tennis': base_dir / 'bookmakers' / 'oddsmagnet' / 'oddsmagnet_tennis.json'
         }
         self.failure_counts = {module: 0 for module in self.module_files}
         self.last_check_times = {}
