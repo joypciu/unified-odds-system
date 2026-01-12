@@ -262,8 +262,13 @@ def main():
     if oddsmagnet_script.exists():
         try:
             # Start OddsMagnet parallel scraper in background (all sports)
+            # Detect if running on VPS (Linux without display) vs local (Windows/Mac with Chrome debugging)
+            import platform
+            is_linux = platform.system() == 'Linux'
+            scraper_mode = "vps" if is_linux else "local"
+            
             oddsmagnet_process = subprocess.Popen(
-                [sys.executable, str(oddsmagnet_script), "--mode", "local", "--continuous", "--interval", "60"],
+                [sys.executable, str(oddsmagnet_script), "--mode", scraper_mode, "--continuous", "--interval", "60"],
                 cwd=str(base_dir / "bookmakers" / "oddsmagnet")
             )
             processes.append(oddsmagnet_process)
