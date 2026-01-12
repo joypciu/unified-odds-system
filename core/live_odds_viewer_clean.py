@@ -2678,7 +2678,7 @@ async def get_oddsmagnet_tabletennis(
         page_size = min(max(1, page_size), 999)
         
         # Read from Table Tennis realtime collector
-        tabletennis_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_tabletennis.json"
+        tabletennis_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_table_tennis.json"
         
         if not tabletennis_file.exists():
             return JSONResponse(
