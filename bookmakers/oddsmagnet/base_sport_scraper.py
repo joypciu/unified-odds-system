@@ -23,23 +23,46 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# Lock file for single instance
-LOCK_FILE = Path('/tmp/oddsmagnet_scraper.lock')
-CHROME_USER_DATA_DIR = Path('/tmp/chrome_oddsmagnet')
+# Lock file for single instance - use temp directory for cross-platform compatibility
+import tempfile
+import platform
+if platform.system() == 'Windows':
+    LOCK_FILE = Path(tempfile.gettempdir()) / 'oddsmagnet_scraper.lock'
+    CHROME_USER_DATA_DIR = Path(tempfile.gettempdir()) / 'chrome_oddsmagnet'
+else:
+    LOCK_FILE = Path('/tmp/oddsmagnet_scraper.lock')
+    CHROME_USER_DATA_DIR = Path('/tmp/chrome_oddsmagnet')
 
 
-def cleanup_chrome_processes():
-    """Kill all Chrome processes related to oddsmagnet"""
+def cleanup_chrome_processes(sport_name=None):
+    """Kill all Chrome processes related to oddsmagnet
+    
+    Args:
+        sport_name: If provided, only kill processes for this specific sport
+    """
     try:
         killed_count = 0
         for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
             try:
                 cmdline = ' '.join(proc.info['cmdline'] or [])
-                if 'chrome_oddsmagnet' in cmdline or 'chrome' in proc.info['name'].lower():
-                    # Kill Chrome process
-                    proc.kill()
-                    killed_count += 1
-            except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError):
+                proc_name = proc.info['name'].lower()
+                
+                # Check if this is a Chrome/Chromium process
+                is_chrome = 'chrome' in proc_name or 'chromium' in proc_name
+                
+                if is_chrome:
+                    # If sport_name provided, only kill that sport's processes
+                    if sport_name:
+                        if f'oddsmagnet_{sport_name}' in cmdline:
+                            proc.kill()
+                            proc.wait(timeout=2)
+                            killed_count += 1
+                    # Otherwise kill all oddsmagnet Chrome processes
+                    elif 'oddsmagnet' in cmdline or '--remote-debugging-port=9222' in cmdline:
+                        proc.kill()
+                        proc.wait(timeout=2)
+                        killed_count += 1
+            except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError, psutil.TimeoutExpired):
                 pass
         
         if killed_count > 0:
@@ -120,9 +143,15 @@ class BaseSportScraper:
         self.context = None
         self.semaphore = None
         self.chrome_process = None
+        self.browser_pid = None  # Track browser PID for cleanup
+        self.crashed_pages = 0  # Track page crashes for monitoring
         self.output_file = Path(__file__).parent / config.get('output', f'oddsmagnet_{sport}.json')
         
         logging.info(f"🎯 Initialized {sport.upper()} scraper")
+        
+        # Register emergency cleanup on exit
+        import atexit
+        atexit.register(self._emergency_cleanup)
     
     def _is_port_open(self, port: int, host: str = 'localhost') -> bool:
         """Check if a port is open"""
@@ -226,16 +255,31 @@ class BaseSportScraper:
                 self.mode = 'vps'
         
         if self.mode == 'vps':
-            # Launch headless Chrome
+            # Launch isolated headless Chrome - each instance gets isolated context
+            # Note: We don't use user-data-dir in args as Playwright manages isolation
             self.browser = await self.playwright.chromium.launch(
                 headless=True,
                 args=[
                     '--disable-blink-features=AutomationControlled',
                     '--disable-dev-shm-usage',
                     '--no-sandbox',
-                    '--disable-setuid-sandbox'
+                    '--disable-setuid-sandbox',
+                    '--disable-gpu',
+                    '--disable-software-rasterizer',
+                    '--disable-extensions',
+                    '--disable-background-timer-throttling',
+                    '--disable-backgrounding-occluded-windows',
+                    '--disable-renderer-backgrounding',
+                    '--js-flags=--max-old-space-size=1024'  # Limit memory per page
                 ]
             )
+            
+            # Track browser PID for forceful cleanup if needed
+            try:
+                self.browser_pid = self.browser._impl_obj._connection._transport._proc.pid
+                logging.info(f"✓ {self.sport}: Browser launched with PID {self.browser_pid}")
+            except:
+                pass
             
             # Create context with anti-detection headers
             self.context = await self.browser.new_context(
@@ -304,24 +348,152 @@ class BaseSportScraper:
         self.semaphore = asyncio.Semaphore(self.max_concurrent)
         return True
     
-    async def disconnect(self):
-        """Disconnect from browser and cleanup Chrome"""
+    async def _recreate_context(self):
+        """Recreate browser context after crashes"""
         try:
-            if self.mode == 'vps' and self.browser:
-                await self.browser.close()
-            if self.playwright:
-                await self.playwright.stop()
+            # Close old context
+            if self.context:
+                await self.context.close()
             
-            # Kill Chrome process if we started it
+            # Create new context
+            self.context = await self.browser.new_context(
+                viewport={'width': 1920, 'height': 1080},
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                extra_http_headers={
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                    'Sec-Ch-Ua-Mobile': '?0',
+                    'Sec-Ch-Ua-Platform': '"Windows"',
+                    'Sec-Fetch-Dest': 'document',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-Site': 'none',
+                    'Sec-Fetch-User': '?1',
+                    'Upgrade-Insecure-Requests': '1',
+                }
+            )
+            
+            # Reinject stealth scripts
+            await self.context.add_init_script("""
+                // Override navigator.webdriver
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                });
+                
+                // Mock navigator.plugins
+                Object.defineProperty(navigator, 'plugins', {
+                    get: () => [1, 2, 3, 4, 5]
+                });
+                
+                // Mock navigator.languages
+                Object.defineProperty(navigator, 'languages', {
+                    get: () => ['en-US', 'en']
+                });
+                
+                // Mock chrome object
+                window.chrome = {
+                    runtime: {},
+                    loadTimes: function() {},
+                    csi: function() {},
+                    app: {}
+                };
+                
+                // Mock navigator properties
+                Object.defineProperty(navigator, 'platform', {
+                    get: () => 'Win32'
+                });
+                
+                Object.defineProperty(navigator, 'vendor', {
+                    get: () => 'Google Inc.'
+                });
+                
+                Object.defineProperty(navigator, 'hardwareConcurrency', {
+                    get: () => 8
+                });
+                
+                Object.defineProperty(navigator, 'deviceMemory', {
+                    get: () => 8
+                });
+            """)
+            
+            logging.info(f"✓ {self.sport}: Browser context recreated")
+            
+        except Exception as e:
+            logging.error(f"{self.sport}: Failed to recreate context: {e}")
+            raise
+    
+    def _emergency_cleanup(self):
+        """Emergency cleanup called on script exit - kills all browser processes"""
+        try:
+            # Kill browser by PID if we have it
+            if self.browser_pid:
+                try:
+                    proc = psutil.Process(self.browser_pid)
+                    proc.kill()
+                    proc.wait(timeout=2)
+                except:
+                    pass
+            
+            # Cleanup sport-specific Chrome processes
+            cleanup_chrome_processes(self.sport)
+        except:
+            pass
+    
+    async def disconnect(self):
+        """Disconnect from browser and cleanup all Chrome processes"""
+        browser_closed = False
+        playwright_stopped = False
+        
+        try:
+            # Close browser context first
+            if self.context:
+                try:
+                    await asyncio.wait_for(self.context.close(), timeout=5)
+                except Exception as e:
+                    logging.warning(f"{self.sport}: Context close timeout: {e}")
+            
+            # Close browser gracefully
+            if self.browser:
+                try:
+                    await asyncio.wait_for(self.browser.close(), timeout=5)
+                    browser_closed = True
+                    logging.info(f"✓ {self.sport}: Browser closed")
+                except Exception as e:
+                    logging.warning(f"{self.sport}: Browser close timeout: {e}")
+            
+            # Stop playwright
+            if self.playwright:
+                try:
+                    await asyncio.wait_for(self.playwright.stop(), timeout=5)
+                    playwright_stopped = True
+                except Exception as e:
+                    logging.warning(f"{self.sport}: Playwright stop timeout: {e}")
+            
+            # Kill Chrome debug process if we started it
             if self.chrome_process and self.chrome_process.poll() is None:
-                self.chrome_process.kill()
-                logging.info("✓ Killed Chrome debug process")
+                try:
+                    self.chrome_process.kill()
+                    self.chrome_process.wait(timeout=2)
+                    logging.info(f"✓ {self.sport}: Killed Chrome debug process")
+                except:
+                    pass
                 
         except Exception as e:
-            logging.warning(f"Error during disconnect: {e}")
+            logging.error(f"{self.sport}: Error during disconnect: {e}")
         finally:
-            # Always cleanup Chrome processes to be safe
-            cleanup_chrome_processes()
+            # Force kill browser by PID if graceful close failed
+            if not browser_closed and self.browser_pid:
+                try:
+                    proc = psutil.Process(self.browser_pid)
+                    proc.kill()
+                    proc.wait(timeout=2)
+                    logging.info(f"✓ {self.sport}: Force killed browser (PID {self.browser_pid})")
+                except:
+                    pass
+            
+            # Always cleanup any remaining Chrome processes for this sport
+            cleanup_chrome_processes(self.sport)
     
     async def extract_ssr_data(self, page: Page) -> Optional[Dict]:
         """Extract SSR data from page"""
@@ -339,33 +511,70 @@ class BaseSportScraper:
         except:
             return None
     
-    async def fetch_page_data(self, url: str, timeout: int = 20000, retries: int = 2) -> Optional[Dict]:
+    async def fetch_page_data(self, url: str, timeout: int = 20000, retries: int = 3) -> Optional[Dict]:
         """Fetch SSR data from URL with timeout and retry logic"""
         async with self.semaphore:
-            page = await self.context.new_page()
+            page = None
             
             for attempt in range(retries):
                 try:
+                    # Create new page for each attempt (in case previous crashed)
+                    if page:
+                        try:
+                            await page.close()
+                        except:
+                            pass
+                    
+                    page = await self.context.new_page()
+                    
+                    # Set page timeout
+                    page.set_default_timeout(timeout)
+                    
                     await page.goto(url, wait_until='domcontentloaded', timeout=timeout)
-                    await asyncio.sleep(0.8)  # Give page time to render (increased for slow pages)
+                    await asyncio.sleep(1.0)  # Increased wait time for stability
                     ssr_data = await self.extract_ssr_data(page)
                     
                     if ssr_data:
+                        await page.close()
                         return ssr_data
                     
                     # If no data on first attempt, retry
                     if attempt < retries - 1:
                         logging.debug(f"{self.sport}: No SSR data found, retrying ({attempt + 1}/{retries})...")
-                        await asyncio.sleep(0.5)
+                        await asyncio.sleep(1.0 * (attempt + 1))  # Exponential backoff
                         
                 except Exception as e:
+                    error_msg = str(e)
+                    
+                    # Check if page crashed
+                    if 'crashed' in error_msg.lower():
+                        self.crashed_pages += 1
+                        logging.warning(f"{self.sport}: Page crashed (total crashes: {self.crashed_pages})")
+                        
+                        # If too many crashes, recreate context
+                        if self.crashed_pages >= 10:
+                            logging.warning(f"{self.sport}: Too many crashes, recreating browser context...")
+                            try:
+                                await self._recreate_context()
+                                self.crashed_pages = 0
+                            except Exception as ctx_err:
+                                logging.error(f"{self.sport}: Failed to recreate context: {ctx_err}")
+                    
                     if attempt < retries - 1:
-                        logging.debug(f"{self.sport}: Failed to fetch (attempt {attempt + 1}/{retries}): {e}")
-                        await asyncio.sleep(0.5)
+                        # Exponential backoff: 2s, 4s, 8s
+                        wait_time = 2 ** (attempt + 1)
+                        logging.debug(f"{self.sport}: Failed to fetch (attempt {attempt + 1}/{retries}), waiting {wait_time}s: {e}")
+                        await asyncio.sleep(wait_time)
                     else:
                         logging.warning(f"{self.sport}: Failed to fetch {url} after {retries} attempts: {e}")
-                        
-            await page.close()
+            
+            # Ensure page is closed
+            if page:
+                try:
+                    await page.close()
+                except:
+                    pass
+                    
             return None
     
     async def get_leagues(self) -> List[Dict]:
@@ -446,7 +655,8 @@ class BaseSportScraper:
         """Get odds from market"""
         url = f"https://oddsmagnet.com/{market_url}"
         # Longer timeout for odds pages (basketball/tennis can be slow)
-        ssr_data = await self.fetch_page_data(url, timeout=30000, retries=3)
+        # Increased from 30s to 45s with 4 retries to handle slow/crashing pages
+        ssr_data = await self.fetch_page_data(url, timeout=45000, retries=4)
         
         if not ssr_data:
             return None
@@ -577,13 +787,17 @@ class BaseSportScraper:
         logging.info(f"  ↳ {self.sport}: Found {len(all_matches)} matches")
         
         # Get markets (batched to avoid overwhelming)
-        batch_size = 30
+        batch_size = 20  # Reduced from 30
         all_markets = []
         for i in range(0, len(all_matches), batch_size):
             batch = all_matches[i:i+batch_size]
             market_tasks = [self.get_markets(match) for match in batch]
             markets_batch = await asyncio.gather(*market_tasks)
             all_markets.extend(markets_batch)
+            
+            # Add delay between batches to prevent overwhelming the browser
+            if i + batch_size < len(all_matches):
+                await asyncio.sleep(2.0)
         
         # Count how many matches have markets
         matches_with_markets = sum(1 for m in all_markets if m)
@@ -628,13 +842,21 @@ class BaseSportScraper:
         
         logging.info(f"  ↳ {self.sport}: Fetching odds for {len(odds_tasks)} markets...")
         
-        # Fetch all odds in parallel (batched)
-        batch_size = 40
+        # Fetch all odds in parallel (batched) - smaller batches to prevent crashes
+        batch_size = 15  # Reduced from 40 to 15
         all_odds = []
         for i in range(0, len(odds_tasks), batch_size):
             batch = odds_tasks[i:i+batch_size]
             odds_batch = await asyncio.gather(*batch)
             all_odds.extend(odds_batch)
+            
+            # Progress update and delay between batches
+            progress = min(i + batch_size, len(odds_tasks))
+            logging.info(f"  ↳ {self.sport}: Progress {progress}/{len(odds_tasks)} markets...")
+            
+            # Add delay between batches to give browser time to recover
+            if i + batch_size < len(odds_tasks):
+                await asyncio.sleep(3.0)
         
         # Build final structure with transformed odds
         # Group by match to combine multiple markets
@@ -692,10 +914,15 @@ class BaseSportScraper:
             'leagues_count': len(leagues),
             'matches_count': len(final_matches),
             'matches': final_matches,
-            'scrape_time_seconds': round(time.time() - start, 2)
+            'scrape_time_seconds': round(time.time() - start, 2),
+            'crashed_pages': self.crashed_pages  # Add crash statistics
         }
         
-        logging.info(f"✅ {self.sport.upper()}: Scraped {len(final_matches)} matches in {result['scrape_time_seconds']}s")
+        # Log summary with crash info
+        if self.crashed_pages > 0:
+            logging.info(f"✅ {self.sport.upper()}: Scraped {len(final_matches)} matches in {result['scrape_time_seconds']}s (⚠️  {self.crashed_pages} page crashes)")
+        else:
+            logging.info(f"✅ {self.sport.upper()}: Scraped {len(final_matches)} matches in {result['scrape_time_seconds']}s")
         
         # Save to file
         with open(self.output_file, 'w', encoding='utf-8') as f:
@@ -704,13 +931,22 @@ class BaseSportScraper:
         return result
     
     async def run(self):
-        """Run scraper once"""
-        await self.connect()
+        """Run scraper once with robust cleanup"""
         try:
+            await self.connect()
             result = await self.scrape_once()
             return result
+        except Exception as e:
+            logging.error(f"{self.sport}: Scraper error: {e}")
+            raise
         finally:
-            await self.disconnect()
+            # Always disconnect and cleanup, even on crash
+            try:
+                await self.disconnect()
+            except Exception as cleanup_error:
+                logging.error(f"{self.sport}: Cleanup error: {cleanup_error}")
+                # Force cleanup as last resort
+                self._emergency_cleanup()
 
 
 async def main(sport: str, config: Dict, mode: str = 'local'):
@@ -742,14 +978,106 @@ if __name__ == "__main__":
             'top_leagues': 10,
             'output': 'oddsmagnet_tennis.json',
             'markets': ['win market'],
+        },
+        'table-tennis': {
+            'enabled': True,
+            'top_leagues': 5,
+            'output': 'oddsmagnet_table_tennis.json',
+            'markets': ['win market'],
         }
     }
     
-    sport = sys.argv[1] if len(sys.argv) > 1 else 'football'
-    mode = sys.argv[2] if len(sys.argv) > 2 else 'local'
+    async def run_all_sports(mode: str, parallel: bool = True, continuous: bool = False, interval: int = 1):
+        """Run all enabled sports either sequentially or in parallel
+        
+        Args:
+            mode: 'local' or 'vps'
+            parallel: Run 2 sports in parallel if True, else sequential
+            continuous: If True, run continuously with interval delay
+            interval: Seconds to wait between runs (only if continuous=True)
+        """
+        enabled_sports = [(sport, config) for sport, config in SPORTS_CONFIG.items() if config.get('enabled', True)]
+        
+        run_count = 0
+        while True:
+            run_count += 1
+            start_time = time.time()
+            
+            if continuous:
+                logging.info(f"🔄 Run #{run_count} - Starting real-time monitoring at {datetime.now().strftime('%H:%M:%S')}")
+            
+            if parallel:
+                # Run 2 sports in parallel at a time
+                if not continuous or run_count == 1:
+                    logging.info(f"🚀 Running {len(enabled_sports)} sports in batches of 2 (parallel mode)")
+                batch_size = 2
+                for i in range(0, len(enabled_sports), batch_size):
+                    batch = enabled_sports[i:i+batch_size]
+                    tasks = [main(sport, config, mode) for sport, config in batch]
+                    results = await asyncio.gather(*tasks, return_exceptions=True)
+                    
+                    # Log any errors
+                    for (sport, _), result in zip(batch, results):
+                        if isinstance(result, Exception):
+                            logging.error(f"❌ {sport.upper()} failed: {result}")
+            else:
+                # Run sequentially
+                if not continuous or run_count == 1:
+                    logging.info(f"🚀 Running {len(enabled_sports)} sports sequentially")
+                for sport, config in enabled_sports:
+                    try:
+                        await main(sport, config, mode)
+                    except Exception as e:
+                        logging.error(f"❌ {sport.upper()} failed: {e}")
+            
+            # If not continuous mode, exit after one run
+            if not continuous:
+                break
+            
+            # Calculate time taken and wait for next interval
+            elapsed = time.time() - start_time
+            logging.info(f"✅ Run #{run_count} completed in {elapsed:.2f}s - Next update in {interval}s...")
+            await asyncio.sleep(interval)
     
-    if sport not in SPORTS_CONFIG:
-        print(f"Invalid sport: {sport}")
-        sys.exit(1)
+    # Parse command line arguments
+    continuous_mode = '--live' in sys.argv or '--continuous' in sys.argv
+    interval = 1  # Default 1 second interval
     
-    asyncio.run(main(sport, SPORTS_CONFIG[sport], mode))
+    # Remove flags from argv for normal parsing
+    args = [arg for arg in sys.argv if not arg.startswith('--')]
+    
+    if len(args) > 1:
+        sport = args[1]
+        mode = args[2] if len(args) > 2 else 'vps'
+        
+        if sport not in SPORTS_CONFIG:
+            print(f"Invalid sport: {sport}")
+            print(f"Available sports: {', '.join(SPORTS_CONFIG.keys())}")
+            sys.exit(1)
+        
+        # Run single sport
+        if continuous_mode:
+            async def run_single_sport_continuous():
+                run_count = 0
+                while True:
+                    run_count += 1
+                    start_time = time.time()
+                    logging.info(f"🔄 Run #{run_count} - {sport.upper()} real-time update at {datetime.now().strftime('%H:%M:%S')}")
+                    try:
+                        await main(sport, SPORTS_CONFIG[sport], mode)
+                    except Exception as e:
+                        logging.error(f"❌ {sport.upper()} failed: {e}")
+                    elapsed = time.time() - start_time
+                    logging.info(f"✅ {sport.upper()} update #{run_count} completed in {elapsed:.2f}s - Next in {interval}s...")
+                    await asyncio.sleep(interval)
+            
+            logging.info(f"🎬 Starting real-time monitoring for {sport.upper()} (1s interval) - Press Ctrl+C to stop")
+            asyncio.run(run_single_sport_continuous())
+        else:
+            asyncio.run(main(sport, SPORTS_CONFIG[sport], mode))
+    else:
+        # No sport specified - run all enabled sports in parallel (2 at a time)
+        mode = 'vps'  # Default to vps mode for all sports
+        if continuous_mode:
+            logging.info(f"🎬 Starting real-time monitoring for ALL sports (1s interval) - Press Ctrl+C to stop")
+        asyncio.run(run_all_sports(mode, parallel=True, continuous=continuous_mode, interval=interval))

@@ -96,7 +96,8 @@ def scrape_sport_worker(sport: str, config: Dict, mode: str = 'local') -> Dict:
     try:
         async def run_scraper():
             # Reduce concurrency for VPS to avoid overwhelming system
-            max_concurrent = 2 if mode == 'vps' else 15
+            # VPS sequential mode can handle more concurrent browsers per sport
+            max_concurrent = 3 if mode == 'vps' else 15
             scraper = BaseSportScraper(sport, config, mode, max_concurrent=max_concurrent)
             return await scraper.run()
         
@@ -144,21 +145,27 @@ class ParallelSportsScraper:
         logging.info(f"🚀 Starting parallel scrape for {len(enabled_sports)} sports...")
         logging.info(f"   Sports: {', '.join(s.upper() for s in enabled_sports.keys())}")
         
-        # Create process pool - limit to 2 processes in VPS mode to avoid memory/browser overload
+        # VPS Mode: Run sequentially to avoid browser crashes
+        # Local Mode: Run in parallel for speed
         if self.mode == 'vps':
-            num_processes = min(2, len(enabled_sports))
+            logging.info("🔄 VPS Mode: Running sports sequentially to prevent browser crashes")
+            results = []
+            for sport, config in enabled_sports.items():
+                logging.info(f"   → Starting {sport.upper()}...")
+                result = scrape_sport_worker(sport, config, self.mode)
+                results.append(result)
         else:
+            # Local mode - use parallel processing for speed
             num_processes = min(len(enabled_sports), mp.cpu_count())
-        
-        with mp.Pool(processes=num_processes) as pool:
-            # Launch all sport scrapers in parallel
-            tasks = [
-                pool.apply_async(scrape_sport_worker, (sport, config, self.mode))
-                for sport, config in enabled_sports.items()
-            ]
-            
-            # Wait for all to complete
-            results = [task.get() for task in tasks]
+            with mp.Pool(processes=num_processes) as pool:
+                # Launch all sport scrapers in parallel
+                tasks = [
+                    pool.apply_async(scrape_sport_worker, (sport, config, self.mode))
+                    for sport, config in enabled_sports.items()
+                ]
+                
+                # Wait for all to complete
+                results = [task.get() for task in tasks]
         
         # Process results
         successful = [r for r in results if r.get('success')]

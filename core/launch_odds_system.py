@@ -249,30 +249,30 @@ def main():
         print(f"❌ Error starting unified system: {e}")
         sys.exit(1)
     
-    # Start OddsMagnet Parallel Scraper (Playwright-based, all sports in parallel)
-    print("⚽ Starting OddsMagnet Parallel Scraper (5x Faster)...")
+    # Start OddsMagnet Base Sport Scraper (Playwright-based, continuous real-time monitoring)
+    print("⚽ Starting OddsMagnet Real-Time Scraper...")
     print("   - Browser automation bypassing CloudFront WAF")
-    print("   - Parallel scraping: football, basketball, tennis, american-football, table-tennis")
-    print("   - 5 sports scraped simultaneously using multiprocessing")
-    print("   - Update interval: 60 seconds (completes in ~3 minutes)")
+    print("   - Continuous monitoring: football, basketball, tennis, table-tennis")
+    print("   - 2 sports scraped in parallel at a time")
+    print("   - Real-time updates with 1 second interval")
     print("   - Output: bookmakers/oddsmagnet/oddsmagnet_*.json")
     print()
     
-    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "parallel_sports_scraper.py"
+    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "base_sport_scraper.py"
     if oddsmagnet_script.exists():
         try:
-            # Start OddsMagnet parallel scraper in background (all sports)
+            # Start OddsMagnet scraper in continuous mode (all sports, 2 parallel)
             # Detect if running on VPS (Linux without display) vs local (Windows/Mac with Chrome debugging)
             import platform
             is_linux = platform.system() == 'Linux'
-            scraper_mode = "vps" if is_linux else "local"
+            scraper_mode = "vps" if is_linux else "vps"  # Always use vps mode for stability
             
             oddsmagnet_process = subprocess.Popen(
-                [sys.executable, str(oddsmagnet_script), "--mode", scraper_mode, "--continuous", "--interval", "60"],
+                [sys.executable, str(oddsmagnet_script), "--continuous"],
                 cwd=str(base_dir / "bookmakers" / "oddsmagnet")
             )
             processes.append(oddsmagnet_process)
-            print("✅ OddsMagnet parallel scraper started (PID: {})".format(oddsmagnet_process.pid))
+            print("✅ OddsMagnet real-time scraper started (PID: {})".format(oddsmagnet_process.pid))
             print()
             
         except Exception as e:
@@ -280,7 +280,7 @@ def main():
             print("   Continuing without OddsMagnet...")
             print()
     else:
-        print("⚠️  parallel_sports_scraper.py not found, skipping OddsMagnet")
+        print("⚠️  base_sport_scraper.py not found, skipping OddsMagnet")
         print()
     
     # Start OddPortal Collector
