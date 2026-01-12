@@ -50,11 +50,17 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 BASE_DIR = Path(__file__).parent.parent
 
 # In-memory cache for OddsMagnet data to avoid slow disk reads
+# Changed to per-sport caching for real-time updates
 oddsmagnet_cache = {
-    'data': None,
-    'timestamp': None,
-    'file_mtime': None,
-    'etag_base': None
+    'football': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
+    'basketball': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
+    'tennis': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
+    'cricket': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
+    'americanfootball': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
+    'baseball': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
+    'tabletennis': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
+    'boxing': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
+    'volleyball': {'data': None, 'timestamp': None, 'file_mtime': None, 'cache_key': None},
 }
 
 # Initialize history manager
@@ -757,10 +763,11 @@ async def push_oddsmagnet_updates():
                     if disconnected:
                         print(f"🧹 Cleaned {len(disconnected)} disconnected clients from {sport}")
                     
-                    # Invalidate cache for this sport so API serves fresh data
-                    if sport == 'football':
-                        oddsmagnet_cache['data'] = None
-                        oddsmagnet_cache['file_mtime'] = None
+                    # Invalidate cache for this sport so API serves fresh data immediately
+                    if sport in oddsmagnet_cache:
+                        oddsmagnet_cache[sport]['data'] = None
+                        oddsmagnet_cache[sport]['file_mtime'] = None
+                        print(f"🔄 Invalidated cache for {sport}")
             
             # OPTIMIZATION: Reduced from 2s to 5s - less CPU usage, still responsive
             await asyncio.sleep(5)
@@ -1454,13 +1461,16 @@ async def get_oddsmagnet_top10(
         current_mtime = data_file.stat().st_mtime
         cache_key = str(data_file)
         
+        # Use per-sport cache for real-time updates
+        sport_cache = oddsmagnet_cache.get('football', {})
+        
         # Use cache if file hasn't changed
-        if (oddsmagnet_cache['data'] is not None and 
-            oddsmagnet_cache['file_mtime'] == current_mtime and
-            cache_key == oddsmagnet_cache.get('cache_key')):
+        if (sport_cache.get('data') is not None and 
+            sport_cache.get('file_mtime') == current_mtime and
+            cache_key == sport_cache.get('cache_key')):
             
-            data = oddsmagnet_cache['data']
-            print(f"⚡ Using cached data (mtime: {current_mtime})")
+            data = sport_cache['data']
+            print(f"⚡ Using cached football data (mtime: {current_mtime})")
         else:
             # Read data asynchronously for better performance
             try:
@@ -1468,13 +1478,14 @@ async def get_oddsmagnet_top10(
                     content = await f.read()
                     data = json.loads(content)
                 
-                # Update cache
-                oddsmagnet_cache['data'] = data
-                oddsmagnet_cache['file_mtime'] = current_mtime
-                oddsmagnet_cache['cache_key'] = cache_key
-                oddsmagnet_cache['timestamp'] = time.time()
+                # Update per-sport cache
+                sport_cache['data'] = data
+                sport_cache['file_mtime'] = current_mtime
+                sport_cache['cache_key'] = cache_key
+                sport_cache['timestamp'] = time.time()
+                oddsmagnet_cache['football'] = sport_cache
                 
-                print(f"📁 Loaded fresh data from {data_file.name} (mtime: {current_mtime})")
+                print(f"📁 Loaded fresh football data from {data_file.name} (mtime: {current_mtime})")
                 
             except Exception as read_error:
                 print(f"❌ Error reading {data_file}: {read_error}")
