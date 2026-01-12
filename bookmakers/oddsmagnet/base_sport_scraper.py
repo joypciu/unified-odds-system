@@ -511,7 +511,7 @@ class BaseSportScraper:
         except:
             return None
     
-    async def fetch_page_data(self, url: str, timeout: int = 20000, retries: int = 3) -> Optional[Dict]:
+    async def fetch_page_data(self, url: str, timeout: int = 45000, retries: int = 4) -> Optional[Dict]:
         """Fetch SSR data from URL with timeout and retry logic"""
         async with self.semaphore:
             page = None
@@ -628,7 +628,7 @@ class BaseSportScraper:
     async def get_markets(self, match: Dict) -> Dict:
         """Get markets for match"""
         url = f"https://oddsmagnet.com/{match['match_url']}"
-        ssr_data = await self.fetch_page_data(url, retries=3)  # More retries for markets
+        ssr_data = await self.fetch_page_data(url)  # Use default timeout=45s, retries=4
         
         if not ssr_data:
             logging.debug(f"{self.sport}: No SSR data for match: {match.get('name', 'unknown')}")
