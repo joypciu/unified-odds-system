@@ -95,7 +95,9 @@ def scrape_sport_worker(sport: str, config: Dict, mode: str = 'local') -> Dict:
     """
     try:
         async def run_scraper():
-            scraper = BaseSportScraper(sport, config, mode, max_concurrent=15)
+            # Reduce concurrency for VPS to avoid overwhelming system
+            max_concurrent = 3 if mode == 'vps' else 15
+            scraper = BaseSportScraper(sport, config, mode, max_concurrent=max_concurrent)
             return await scraper.run()
         
         result = asyncio.run(run_scraper())
@@ -142,8 +144,11 @@ class ParallelSportsScraper:
         logging.info(f"🚀 Starting parallel scrape for {len(enabled_sports)} sports...")
         logging.info(f"   Sports: {', '.join(s.upper() for s in enabled_sports.keys())}")
         
-        # Create process pool (one process per sport for true parallelism)
-        num_processes = min(len(enabled_sports), mp.cpu_count())
+        # Create process pool - limit to 3 processes in VPS mode to avoid memory/browser overload
+        if self.mode == 'vps':
+            num_processes = min(3, len(enabled_sports))
+        else:
+            num_processes = min(len(enabled_sports), mp.cpu_count())
         
         with mp.Pool(processes=num_processes) as pool:
             # Launch all sport scrapers in parallel
