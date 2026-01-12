@@ -1018,11 +1018,11 @@ if __name__ == "__main__":
     }
     
     async def run_all_sports(mode: str, parallel: bool = True, continuous: bool = False, interval: int = 1):
-        """Run all enabled sports either sequentially or in parallel
+        """Run all enabled sports either sequentially or in parallel with dynamic worker pool
         
         Args:
             mode: 'local' or 'vps'
-            parallel: Run 2 sports in parallel if True, else sequential
+            parallel: Run 2 sports in parallel if True, else sequential (uses worker pool)
             continuous: If True, run continuously with interval delay
             interval: Seconds to wait between runs (only if continuous=True)
         """
@@ -1037,19 +1037,42 @@ if __name__ == "__main__":
                 logging.info(f"🔄 Run #{run_count} - Starting real-time monitoring at {datetime.now().strftime('%H:%M:%S')}")
             
             if parallel:
-                # Run 2 sports in parallel at a time
+                # Dynamic worker pool: always keep 2 sports running, start next sport as soon as one finishes
                 if not continuous or run_count == 1:
-                    logging.info(f"🚀 Running {len(enabled_sports)} sports in batches of 2 (parallel mode)")
-                batch_size = 2
-                for i in range(0, len(enabled_sports), batch_size):
-                    batch = enabled_sports[i:i+batch_size]
-                    tasks = [main(sport, config, mode) for sport, config in batch]
-                    results = await asyncio.gather(*tasks, return_exceptions=True)
+                    logging.info(f"🚀 Running {len(enabled_sports)} sports with 2 parallel workers (dynamic pool)")
+                
+                # Create a queue of sports to process
+                sports_queue = list(enabled_sports)
+                active_tasks = {}
+                sport_index = 0
+                max_workers = 2
+                
+                # Start initial batch of workers
+                while sport_index < len(sports_queue) and len(active_tasks) < max_workers:
+                    sport, config = sports_queue[sport_index]
+                    task = asyncio.create_task(main(sport, config, mode))
+                    active_tasks[task] = sport
+                    sport_index += 1
+                
+                # Process remaining sports dynamically
+                while active_tasks:
+                    # Wait for any task to complete
+                    done, pending = await asyncio.wait(active_tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
                     
-                    # Log any errors
-                    for (sport, _), result in zip(batch, results):
-                        if isinstance(result, Exception):
-                            logging.error(f"❌ {sport.upper()} failed: {result}")
+                    # Handle completed tasks
+                    for task in done:
+                        sport = active_tasks.pop(task)
+                        try:
+                            result = task.result()
+                        except Exception as e:
+                            logging.error(f"❌ {sport.upper()} failed: {e}")
+                        
+                        # Start next sport if any remain
+                        if sport_index < len(sports_queue):
+                            next_sport, next_config = sports_queue[sport_index]
+                            new_task = asyncio.create_task(main(next_sport, next_config, mode))
+                            active_tasks[new_task] = next_sport
+                            sport_index += 1
             else:
                 # Run sequentially
                 if not continuous or run_count == 1:
