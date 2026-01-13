@@ -1532,6 +1532,14 @@
                     <i class="fas fa-chevron-down"></i>
                 </button>
             </div>
+            
+            <!-- OddPortal Toggle Button -->
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="oddportalToggleBtn" title="Switch to OddPortal" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border: 1px solid #667eea;">
+                    <i class="fas fa-star" style="color: #a78bfa;"></i>
+                    <span style="color: #a78bfa; font-weight: 600;">OddPortal</span>
+                </button>
+            </div>
 
             <!-- OddPortal Sport Filter (shown only when viewing OddPortal) -->
             <div class="filter-dropdown" id="oddportalSportFilterWrapper" style="display: none;">
@@ -1741,6 +1749,12 @@
                     <i class="fas fa-check"></i>
                     <i class="fas fa-volleyball-ball" style="margin-right: 8px;"></i>
                     <span class="sport-name">Volleyball</span>
+                    <span class="match-count"></span>
+                </div>
+                <div class="dropdown-item" data-sport="oddportal" data-count="0" style="border-top: 2px solid #667eea; margin-top: 10px; padding-top: 10px;">
+                    <i class="fas fa-check"></i>
+                    <i class="fas fa-star" style="margin-right: 8px; color: #a78bfa;"></i>
+                    <span class="sport-name" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">OddPortal Multi-Sport</span>
                     <span class="match-count"></span>
                 </div>
             </div>
@@ -2933,6 +2947,8 @@
             
             // Initialize current sport
             window.currentSport = 'football';
+            window.lastOddsmagnetSport = 'football'; // Remember last OddsMagnet sport for toggle
+            window.lastOddsmagnetSport = 'football'; // Remember last OddsMagnet sport for toggle
             
             // Open sport modal when button clicked
             sportBtn.addEventListener('click', (e) => {
@@ -2972,6 +2988,11 @@
                 }
                 
                 console.log(`🔄 Switching sport: ${window.currentSport} → ${newSport}`);
+                
+                // Remember last OddsMagnet sport (not OddPortal) for toggle functionality
+                if (window.currentSport !== 'oddportal') {
+                    window.lastOddsmagnetSport = window.currentSport;
+                }
                 
                 // Update selected state in menu
                 sportMenu.querySelectorAll('.dropdown-item').forEach(menuItem => {
@@ -3130,6 +3151,49 @@
                         sportLabel.innerHTML = prevConfig.headerLabel;
                         updateStatus('Error');
                     });
+                }
+            });
+            
+            // OddPortal Toggle Button
+            const oddportalToggleBtn = document.getElementById('oddportalToggleBtn');
+            oddportalToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (isLoading) return;
+                
+                // Toggle between current sport and OddPortal
+                if (window.currentSport === 'oddportal') {
+                    // Switch back to last OddsMagnet sport
+                    const lastSport = window.lastOddsmagnetSport || 'football';
+                    
+                    // Trigger sport selection as if user clicked the sport in modal
+                    const sportItem = document.querySelector(`.dropdown-item[data-sport=\"${lastSport}\"]`);
+                    if (sportItem) {
+                        sportItem.click();
+                    }
+                    
+                    // Update toggle button appearance
+                    oddportalToggleBtn.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)';
+                    oddportalToggleBtn.style.border = '1px solid #667eea';
+                    oddportalToggleBtn.title = 'Switch to OddPortal';
+                    oddportalToggleBtn.querySelector('span').textContent = 'OddPortal';
+                } else {
+                    // Remember current sport and switch to OddPortal
+                    window.lastOddsmagnetSport = window.currentSport;
+                    
+                    // Trigger OddPortal selection as if user clicked it in modal
+                    const oddportalItem = document.querySelector('.dropdown-item[data-sport=\"oddportal\"]');
+                    if (oddportalItem) {
+                        oddportalItem.click();
+                    }
+                    
+                    // Update toggle button appearance to show active state
+                    oddportalToggleBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    oddportalToggleBtn.style.border = '1px solid #a78bfa';
+                    const sportLabel = window.lastOddsmagnetSport.charAt(0).toUpperCase() + window.lastOddsmagnetSport.slice(1);
+                    oddportalToggleBtn.title = 'Switch back to ' + sportLabel;
+                    oddportalToggleBtn.querySelector('span').textContent = 'Back to ' + sportLabel;
                 }
             });
         }
