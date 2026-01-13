@@ -3221,7 +3221,17 @@
                     // Update toggle button appearance to show active state
                     oddportalToggleBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                     oddportalToggleBtn.style.border = '1px solid #a78bfa';
-                    const sportLabel = window.lastOddsmagnetSport.charAt(0).toUpperCase() + window.lastOddsmagnetSport.slice(1);
+                    
+                    // Format sport name for display
+                    let sportLabel = window.lastOddsmagnetSport || 'football';
+                    if (sportLabel === 'americanfootball') {
+                        sportLabel = 'American Football';
+                    } else if (sportLabel === 'tabletennis') {
+                        sportLabel = 'Table Tennis';
+                    } else {
+                        sportLabel = sportLabel.charAt(0).toUpperCase() + sportLabel.slice(1);
+                    }
+                    
                     oddportalToggleBtn.title = 'Switch back to ' + sportLabel;
                     oddportalToggleBtn.querySelector('span').textContent = 'Back to ' + sportLabel;
                 }
