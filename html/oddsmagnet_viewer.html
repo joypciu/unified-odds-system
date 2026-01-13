@@ -3060,6 +3060,25 @@
                 sportIcon.className = config.icon;
                 sportLabel.innerHTML = `${config.headerLabel} <span style="color: #3b82f6; font-weight: 600;">(${matchCount} matches)</span>`;
                 
+                // Update OddPortal toggle button based on current sport
+                const oddportalToggleBtn = document.getElementById('oddportalToggleBtn');
+                if (oddportalToggleBtn) {
+                    if (newSport === 'oddportal') {
+                        // Viewing OddPortal - show "Back to X" 
+                        oddportalToggleBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        oddportalToggleBtn.style.border = '1px solid #a78bfa';
+                        const lastSportLabel = (window.lastOddsmagnetSport || 'football').charAt(0).toUpperCase() + (window.lastOddsmagnetSport || 'football').slice(1).replace('americanfootball', 'American Football');
+                        oddportalToggleBtn.title = 'Switch back to ' + lastSportLabel;
+                        oddportalToggleBtn.querySelector('span').textContent = 'Back to ' + lastSportLabel;
+                    } else {
+                        // Viewing OddsMagnet sport - show "OddPortal"
+                        oddportalToggleBtn.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)';
+                        oddportalToggleBtn.style.border = '1px solid #667eea';
+                        oddportalToggleBtn.title = 'Switch to OddPortal';
+                        oddportalToggleBtn.querySelector('span').textContent = 'OddPortal';
+                    }
+                }
+                
                 // Update current sport BEFORE any async operations
                 const previousSport = window.currentSport;
                 window.currentSport = newSport;
