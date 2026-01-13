@@ -3552,7 +3552,7 @@ async def get_oddportal_data(
         
         return JSONResponse(
             content=response_data,
-            headers={'ETag': etag, 'Cache-Control': 'public, max-age=30'}
+            headers={'ETag': etag, 'Cache-Control': 'no-cache, must-revalidate'}
         )
         
     except Exception as e:
