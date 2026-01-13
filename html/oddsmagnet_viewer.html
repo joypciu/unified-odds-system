@@ -3235,31 +3235,6 @@
                     oddportalToggleBtn.title = 'Switch back to ' + sportLabel;
                     oddportalToggleBtn.querySelector('span').textContent = 'Back to ' + sportLabel;
                 }
-            
-            // OddPortal Toggle Button
-            const oddportalToggleBtn = document.getElementById('oddportalToggleBtn');
-            oddportalToggleBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                if (isLoading) return;
-                
-                // Toggle between current sport and OddPortal
-                if (window.currentSport === 'oddportal') {
-                    // Switch back to last OddsMagnet sport
-                    const lastSport = window.lastOddsmagnetSport || 'football';
-                    const sportItem = document.querySelector(`.dropdown-item[data-sport="${lastSport}"]`);
-                    if (sportItem) {
-                        sportItem.click(); // This will trigger the sport change which updates the button
-                    }
-                } else {
-                    // Remember current sport and switch to OddPortal
-                    window.lastOddsmagnetSport = window.currentSport;
-                    const oddportalItem = document.querySelector('.dropdown-item[data-sport="oddportal"]');
-                    if (oddportalItem) {
-                        oddportalItem.click(); // This will trigger the sport change which updates the button
-                    }
-                }
             });
         }
 
