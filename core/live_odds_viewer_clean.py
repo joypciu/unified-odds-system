@@ -3475,9 +3475,30 @@ async def get_oddportal_data(
             return Response(status_code=304)
         
         # Load data
-        async with aiofiles.open(oddportal_file, 'r', encoding='utf-8') as f:
-            content = await f.read()
-            data = json.loads(content)
+        try:
+            async with aiofiles.open(oddportal_file, 'r', encoding='utf-8') as f:
+                content = await f.read()
+                data = json.loads(content)
+        except json.JSONDecodeError as je:
+            print(f"❌ JSON decode error in OddPortal file: {je}")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    'error': 'Invalid JSON in OddPortal data file',
+                    'message': f'JSON parse error: {str(je)}',
+                    'matches': []
+                }
+            )
+        except Exception as file_error:
+            print(f"❌ Error reading OddPortal file: {file_error}")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    'error': 'Failed to read OddPortal data file',
+                    'message': str(file_error),
+                    'matches': []
+                }
+            )
         
         matches = data.get('matches', [])
         
@@ -3535,12 +3556,16 @@ async def get_oddportal_data(
         )
         
     except Exception as e:
-        print(f"Error loading OddPortal data: {e}")
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"❌ Error loading OddPortal data: {e}")
+        print(f"Stack trace:\n{error_details}")
         return JSONResponse(
             status_code=500,
             content={
                 'error': 'Failed to load OddPortal data',
                 'message': str(e),
+                'details': error_details if app.debug else None,
                 'matches': []
             }
         )
