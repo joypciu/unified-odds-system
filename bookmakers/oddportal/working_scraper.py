@@ -172,7 +172,7 @@ class OddsPortalScraper:
         # Start auto-save background thread
         auto_save_thread = threading.Thread(target=self.auto_save_worker, daemon=True)
         auto_save_thread.start()
-        print("\n✓ Auto-save enabled (updates every 2 seconds)\n")
+        print("\nAuto-save enabled (updates every 2 seconds)\n")
         
         try:
             # Prepare sport tasks for parallel execution
@@ -198,7 +198,7 @@ class OddsPortalScraper:
                     sport = futures[future]
                     try:
                         matches_count = future.result()
-                        print(f"\n✓ Completed {sport.upper()}: {matches_count} matches")
+                        print(f"\nCompleted {sport.upper()}: {matches_count} matches")
                         
                         # Trigger callback for progressive updates
                         if self.sport_complete_callback:
@@ -207,7 +207,7 @@ class OddsPortalScraper:
                             except Exception as cb_err:
                                 print(f"Warning: Callback error for {sport}: {cb_err}")
                     except Exception as e:
-                        print(f"\n✗ Error scraping {sport.upper()}: {str(e)}")
+                        print(f"\nError scraping {sport.upper()}: {str(e)}")
             
             print(f"\n{'='*80}")
             print(f"TOTAL MATCHES SCRAPED: {len(self.matches_data)}")
@@ -279,7 +279,7 @@ class OddsPortalScraper:
                 
                 # Process leagues sequentially but matches in parallel
                 for league_url in league_urls:
-                    matches = self.scrape_league_parallel(context, league_url, sport)
+                    matches, context = self.scrape_league_parallel(browser, context, league_url, sport)
                     matches_count += len(matches)
                 
             except Exception as e:
@@ -302,8 +302,8 @@ class OddsPortalScraper:
         
         return matches_count
     
-    def scrape_league_parallel(self, context, league_url: str, sport: str) -> List[Dict]:
-        """Scrape a league with parallel match processing."""
+    def scrape_league_parallel(self, browser, context, league_url: str, sport: str):
+        """Scrape a league with parallel match processing. Returns (matches, updated_context)."""
         league_name = league_url.strip('/').split('/')[-1]
         country = league_url.strip('/').split('/')[-2]
         
@@ -320,7 +320,7 @@ class OddsPortalScraper:
             
             # Try to wait for match links to appear
             try:
-                page.wait_for_selector('a[href*="/football/"], a[href*="/basketball/"], a[href*="/tennis/"], a[href*="/hockey/"], a[href*="/baseball/"]', timeout=3000)
+                page.wait_for_selector('a[href*="/football/"], a[href*="/basketball/"], a[href*="/hockey/"], a[href*="/baseball/"], a[href*="/american-football/"], a[href*="/mma/"], a[href*="/boxing/"], a[href*="/cricket/"]', timeout=3000)
             except:
                 print(f"  ⚠️  No match links found with selector, trying all links...")
             
@@ -429,7 +429,7 @@ class OddsPortalScraper:
                     print(f"  [{i}/{len(match_links)}] ✗ Error: {str(e)[:50]}")
         
         print(f"\n  ✓ Scraped {len(league_matches)} matches from {league_name}")
-        return league_matches
+        return league_matches, context
     
     def scrape_match_standalone(self, match_url: str, sport: str, country: str, league: str, retry: bool = False, final_attempt: bool = False) -> Dict:
         """Scrape a single match with its own browser connection."""
@@ -676,7 +676,7 @@ class OddsPortalScraper:
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(self.matches_data, f, indent=2, ensure_ascii=False)
         if not silent:
-            print(f"\n✓ Saved to {filename}")
+            print(f"\nSaved to {filename}")
     
     def save_to_csv(self, filename='matches_odds_data.csv', silent=False):
         """Save to CSV."""
@@ -731,7 +731,7 @@ class OddsPortalScraper:
                 writer.writerows(rows)
         
         if not silent:
-            print(f"✓ Saved to {filename}")
+            print(f"Saved to {filename}")
     
     def print_summary(self):
         """Print summary."""
