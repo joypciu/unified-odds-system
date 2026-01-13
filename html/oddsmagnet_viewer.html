@@ -3067,7 +3067,17 @@
                         // Viewing OddPortal - show "Back to X" 
                         oddportalToggleBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                         oddportalToggleBtn.style.border = '1px solid #a78bfa';
-                        const lastSportLabel = (window.lastOddsmagnetSport || 'football').charAt(0).toUpperCase() + (window.lastOddsmagnetSport || 'football').slice(1).replace('americanfootball', 'American Football');
+                        
+                        // Format sport name for display
+                        let lastSportLabel = window.lastOddsmagnetSport || 'football';
+                        if (lastSportLabel === 'americanfootball') {
+                            lastSportLabel = 'American Football';
+                        } else if (lastSportLabel === 'tabletennis') {
+                            lastSportLabel = 'Table Tennis';
+                        } else {
+                            lastSportLabel = lastSportLabel.charAt(0).toUpperCase() + lastSportLabel.slice(1);
+                        }
+                        
                         oddportalToggleBtn.title = 'Switch back to ' + lastSportLabel;
                         oddportalToggleBtn.querySelector('span').textContent = 'Back to ' + lastSportLabel;
                     } else {
