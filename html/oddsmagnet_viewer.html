@@ -538,6 +538,17 @@
             background: var(--bg-secondary);
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
+        
+        /* OddPortal specific styling */
+        .odds-table.oddportal-mode thead {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .odds-table.oddportal-mode th {
+            color: #a78bfa;
+            font-weight: 700;
+        }
 
         .odds-table th {
             padding: 10px 8px;
@@ -2469,11 +2480,17 @@
                 
                 sportBtnLabel.textContent = 'OddPortal';
                 sportIcon.className = 'fas fa-star';
-                sportLabel.innerHTML = '⭐ OddPortal Multi-Sport Coverage <span style="color: #3b82f6; font-weight: 600;">(loading...)</span>';
+                sportLabel.innerHTML = '⭐ <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">OddPortal</span> Multi-Sport Coverage <span style="color: #3b82f6; font-weight: 600;">(loading...)</span>';
                 
                 // Update current sport
                 window.currentSport = newSport;
                 expectedSport = newSport;
+                
+                // Add OddPortal styling
+                const oddsTable = document.querySelector('.odds-table');
+                if (oddsTable) {
+                    oddsTable.classList.add('oddportal-mode');
+                }
                 
                 // Reset filters including OddPortal sport filter
                 selectedLeague = 'all';
@@ -2673,9 +2690,15 @@
                 </div>
             `;
             
+            // Filter matches by OddPortal sport if applicable
+            let matchesToConsider = allMatches;
+            if (window.currentSport === 'oddportal' && window.selectedOddportalSport && window.selectedOddportalSport !== 'all') {
+                matchesToConsider = allMatches.filter(m => m.sport === window.selectedOddportalSport);
+            }
+            
             // Count how many matches have each market
             const marketCounts = new Map();
-            for (const match of allMatches) {
+            for (const match of matchesToConsider) {
                 if (match.markets) {
                     for (const category of Object.keys(match.markets)) {
                         marketCounts.set(category, (marketCounts.get(category) || 0) + 1);
@@ -2687,7 +2710,7 @@
             marketCategories.forEach(market => {
                 const isActive = market === currentMarket;
                 const matchCount = marketCounts.get(market) || 0;
-                const totalMatches = allMatches.length;
+                const totalMatches = matchesToConsider.length;
                 const coverage = totalMatches > 0 ? Math.round((matchCount / totalMatches) * 100) : 0;
                 
                 // Icon based on coverage
@@ -3001,7 +3024,7 @@
                     oddportal: {
                         label: 'OddPortal',
                         icon: 'fas fa-star',
-                        headerLabel: '⭐ OddPortal Multi-Sport Coverage'
+                        headerLabel: '⭐ <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">OddPortal</span> Multi-Sport Coverage'
                     },
                     football: {
                         label: 'Football',
@@ -3020,6 +3043,16 @@
                 const previousSport = window.currentSport;
                 window.currentSport = newSport;
                 expectedSport = newSport; // Track expected sport for data validation
+                
+                // Add/remove OddPortal styling
+                const oddsTable = document.querySelector('.odds-table');
+                if (oddsTable) {
+                    if (newSport === 'oddportal') {
+                        oddsTable.classList.add('oddportal-mode');
+                    } else {
+                        oddsTable.classList.remove('oddportal-mode');
+                    }
+                }
                 
                 // Hide OddPortal sport filter for non-OddPortal sports
                 const oddportalSportFilterWrapper = document.getElementById('oddportalSportFilterWrapper');
@@ -3180,7 +3213,20 @@
                     
                     const value = item.dataset.value;
                     window.selectedOddportalSport = value;
-                    document.getElementById('oddportalSportLabel').textContent = value === 'all' ? 'All Sports' : value.charAt(0).toUpperCase() + value.slice(1);
+                    
+                    // Update label with proper formatting
+                    const displayName = value === 'all' ? 'All Sports' : value.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                    document.getElementById('oddportalSportLabel').textContent = displayName;
+                    
+                    // Reset league and market filters when sport changes
+                    selectedLeague = 'all';
+                    currentMarket = '';
+                    document.getElementById('leagueLabel').textContent = 'All Leagues';
+                    document.getElementById('marketLabel').textContent = 'All Markets';
+                    
+                    // Refresh filter dropdowns to show only relevant options
+                    populateLeagueDropdown();
+                    populateMarketMenu();
                     
                     oddportalSportModal.classList.remove('active');
                     document.body.style.overflow = '';
@@ -3685,7 +3731,14 @@
 
         function populateLeagueDropdown() {
             const leagueSet = new Set();
-            for (const match of allMatches) {
+            
+            // Filter matches by OddPortal sport if applicable
+            let matchesToConsider = allMatches;
+            if (window.currentSport === 'oddportal' && window.selectedOddportalSport && window.selectedOddportalSport !== 'all') {
+                matchesToConsider = allMatches.filter(m => m.sport === window.selectedOddportalSport);
+            }
+            
+            for (const match of matchesToConsider) {
                 if (match.league) leagueSet.add(match.league);
             }
             
