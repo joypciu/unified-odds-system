@@ -29,15 +29,18 @@ class OddsPortalScraper:
         self.save_interval = 2  # Save every 2 seconds
         self.auto_save_active = True
         self.sport_complete_callback = None  # Callback when sport completes
-        self.max_matches_per_league = 15  # Limit to recent matches for faster loading
+        self.max_matches_per_league = 50  # Increased from 15 to get more matches
+        self.max_parallel_sports = 2  # Process 2 sports in parallel for faster collection
         
-        # Popular leagues that are active
+        # Popular leagues that are active - expanded coverage
         self.leagues = {
             'football': [
                 'https://www.oddsportal.com/football/england/premier-league/',
                 'https://www.oddsportal.com/football/spain/laliga/',
                 'https://www.oddsportal.com/football/germany/bundesliga/',
                 'https://www.oddsportal.com/football/italy/serie-a/',
+                'https://www.oddsportal.com/football/france/ligue-1/',
+                'https://www.oddsportal.com/football/europe/champions-league/',
             ],
             'american-football': [
                 'https://www.oddsportal.com/american-football/usa/nfl/',
@@ -46,12 +49,22 @@ class OddsPortalScraper:
             'basketball': [
                 'https://www.oddsportal.com/basketball/usa/nba/',
                 'https://www.oddsportal.com/basketball/europe/euroleague/',
+                'https://www.oddsportal.com/basketball/usa/ncaa/',
             ],
             'hockey': [
                 'https://www.oddsportal.com/hockey/usa/nhl/',
             ],
             'baseball': [
                 'https://www.oddsportal.com/baseball/usa/mlb/',
+            ],
+            'mma': [
+                'https://www.oddsportal.com/mma/',
+            ],
+            'boxing': [
+                'https://www.oddsportal.com/boxing/',
+            ],
+            'cricket': [
+                'https://www.oddsportal.com/cricket/',
             ],
         }
     
@@ -155,7 +168,7 @@ class OddsPortalScraper:
                 self.browser_process.kill()
     
     def scrape_all(self):
-        """Scrape all configured leagues in parallel."""
+        """Scrape all configured leagues with parallel sport processing."""
         # Start auto-save background thread
         auto_save_thread = threading.Thread(target=self.auto_save_worker, daemon=True)
         auto_save_thread.start()
@@ -168,25 +181,33 @@ class OddsPortalScraper:
                 sport_tasks.append((sport, league_urls))
             
             print(f"\n{'='*80}")
-            print(f"STARTING SEQUENTIAL SCRAPING OF {len(sport_tasks)} SPORTS")
-            print(f"Sequential mode prevents resource exhaustion")
+            print(f"STARTING PARALLEL SCRAPING OF {len(sport_tasks)} SPORTS")
+            print(f"Processing {self.max_parallel_sports} sports simultaneously")
             print(f"{'='*80}")
             
-            # Scrape sports sequentially to avoid resource exhaustion
-            # Parallel scraping causes browser crashes on VPS
-            for sport, league_urls in sport_tasks:
-                try:
-                    matches_count = self.scrape_sport(sport, league_urls)
-                    print(f"\n✓ Completed {sport.upper()}: {matches_count} matches")
-                    
-                    # Trigger callback for progressive updates
-                    if self.sport_complete_callback:
-                        try:
-                            self.sport_complete_callback(sport, self.matches_data.copy())
-                        except Exception as cb_err:
-                            print(f"Warning: Callback error for {sport}: {cb_err}")
-                except Exception as e:
-                    print(f"\n✗ Error scraping {sport.upper()}: {str(e)}")
+            # Scrape sports in parallel batches to balance speed and resource usage
+            # Process max_parallel_sports at a time to avoid browser crashes
+            with ThreadPoolExecutor(max_workers=self.max_parallel_sports) as executor:
+                futures = {}
+                for sport, league_urls in sport_tasks:
+                    future = executor.submit(self.scrape_sport, sport, league_urls)
+                    futures[future] = sport
+                
+                # Process results as they complete
+                for future in as_completed(futures):
+                    sport = futures[future]
+                    try:
+                        matches_count = future.result()
+                        print(f"\n✓ Completed {sport.upper()}: {matches_count} matches")
+                        
+                        # Trigger callback for progressive updates
+                        if self.sport_complete_callback:
+                            try:
+                                self.sport_complete_callback(sport, self.matches_data.copy())
+                            except Exception as cb_err:
+                                print(f"Warning: Callback error for {sport}: {cb_err}")
+                    except Exception as e:
+                        print(f"\n✗ Error scraping {sport.upper()}: {str(e)}")
             
             print(f"\n{'='*80}")
             print(f"TOTAL MATCHES SCRAPED: {len(self.matches_data)}")
