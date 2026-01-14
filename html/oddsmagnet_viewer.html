@@ -1326,16 +1326,18 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 10000;
             display: none;
             align-items: flex-start;
             justify-content: center;
             padding-top: 100px;
+            pointer-events: none;
         }
 
         .date-calendar-modal.active {
             display: flex;
+            pointer-events: auto;
         }
 
         .date-calendar {
@@ -1343,30 +1345,45 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             min-width: 320px;
             animation: slideDown 0.2s ease-out;
             will-change: transform, opacity;
+            pointer-events: auto;
+            position: relative;
+            z-index: 10001;
         }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            font-weight: 600;
+            margin-bottom: 16px;
+            font-weight: 700;
+            font-size: 16px;
             color: var(--text-primary);
         }
 
         .calendar-nav {
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: background 0.2s;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            user-select: none;
+            font-size: 14px;
+            font-weight: 600;
         }
 
         .calendar-nav:hover {
-            background: var(--bg-tertiary);
+            background: var(--accent-primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .calendar-nav:active {
+            transform: scale(0.95);
         }
 
         .calendar-grid {
@@ -1414,7 +1431,9 @@
         }
 
         .calendar-day.other-month {
-            opacity: 0.4;
+            opacity: 0.3;
+            pointer-events: none;
+            cursor: default;
         }
 
         .calendar-day.has-matches {
@@ -1422,20 +1441,31 @@
             font-weight: 600;
         }
 
+        .calendar-day.has-matches {
+            background: rgba(96, 165, 250, 0.15);
+            color: var(--accent-primary);
+        }
+
         .calendar-day.has-matches::after {
             content: '';
             position: absolute;
-            bottom: 4px;
+            bottom: 2px;
             left: 50%;
             transform: translateX(-50%);
-            width: 4px;
-            height: 4px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: var(--accent-primary);
         }
 
+        .calendar-day.has-matches:hover {
+            background: rgba(96, 165, 250, 0.25);
+        }
+
         .calendar-day.has-matches:hover::after {
             background: var(--text-primary);
+            width: 8px;
+            height: 8px;
         }
 
         .calendar-day.selected.has-matches::after {
@@ -1452,19 +1482,29 @@
 
         .calendar-btn {
             flex: 1;
-            padding: 6px;
+            padding: 8px 12px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-secondary);
-            font-size: 12px;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
+            user-select: none;
         }
 
         .calendar-btn:hover {
             background: var(--accent-primary);
             color: white;
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .calendar-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         /* Back to Top Button */
@@ -3330,12 +3370,20 @@
                 // Build set of dates that have matches for highlighting (from both current and other sources)
                 const datesWithMatches = new Set();
                 
-                // Add dates from current view (allMatches)
-                for (const match of allMatches) {
-                    if (match.match_date) {
-                        const matchDate = new Date(match.match_date);
-                        matchDate.setHours(0, 0, 0, 0);
-                        datesWithMatches.add(matchDate.toDateString());
+                // Add dates from current view (allMatches) - ALWAYS include these
+                if (allMatches && allMatches.length > 0) {
+                    for (const match of allMatches) {
+                        if (match.match_date) {
+                            try {
+                                const matchDate = new Date(match.match_date);
+                                if (!isNaN(matchDate.getTime())) {
+                                    matchDate.setHours(0, 0, 0, 0);
+                                    datesWithMatches.add(matchDate.toDateString());
+                                }
+                            } catch (e) {
+                                console.warn('Invalid date:', match.match_date);
+                            }
+                        }
                     }
                 }
                 
@@ -3361,6 +3409,8 @@
                                         })
                                 );
                                 window.calendarDatesCacheTime = Date.now();
+                                // Re-render calendar with the updated data
+                                renderCalendar();
                             }
                         })
                         .catch(() => {}); // Silently fail - calendar still works with current data
