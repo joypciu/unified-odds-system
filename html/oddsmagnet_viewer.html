@@ -1444,40 +1444,50 @@
         }
 
         .calendar-day.has-matches {
-            background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%);
-            color: #60a5fa;
-            font-weight: 600;
-            border: 1px solid rgba(96, 165, 250, 0.3);
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.4) 0%, rgba(59, 130, 246, 0.3) 100%) !important;
+            color: #3b82f6 !important;
+            font-weight: 700 !important;
+            border: 2px solid rgba(96, 165, 250, 0.6) !important;
+            box-shadow: 0 0 8px rgba(96, 165, 250, 0.4), inset 0 0 8px rgba(96, 165, 250, 0.2) !important;
         }
 
         .calendar-day.has-matches::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #60a5fa;
-            box-shadow: 0 0 4px rgba(96, 165, 250, 0.8);
+            content: '●' !important;
+            position: absolute !important;
+            bottom: 3px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: auto !important;
+            height: auto !important;
+            font-size: 10px !important;
+            color: #3b82f6 !important;
+            text-shadow: 0 0 4px rgba(59, 130, 246, 0.8) !important;
+            border-radius: 0 !important;
+            background: none !important;
         }
 
         .calendar-day.has-matches:hover {
-            background: linear-gradient(135deg, rgba(96, 165, 250, 0.35) 0%, rgba(59, 130, 246, 0.25) 100%);
-            border-color: rgba(96, 165, 250, 0.5);
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.6) 0%, rgba(59, 130, 246, 0.5) 100%) !important;
+            border-color: rgba(96, 165, 250, 0.9) !important;
+            box-shadow: 0 0 12px rgba(96, 165, 250, 0.6), inset 0 0 10px rgba(96, 165, 250, 0.3) !important;
+            transform: scale(1.05) !important;
         }
 
         .calendar-day.has-matches:hover::after {
-            background: #3b82f6;
-            width: 8px;
-            height: 8px;
-            box-shadow: 0 0 6px rgba(59, 130, 246, 1);
+            color: #2563eb !important;
+            font-size: 12px !important;
+            text-shadow: 0 0 6px rgba(37, 99, 235, 1) !important;
+        }
+
+        .calendar-day.selected.has-matches {
+            background: var(--accent-primary) !important;
+            color: white !important;
+            border-color: var(--accent-primary) !important;
         }
 
         .calendar-day.selected.has-matches::after {
-            background: white;
-            box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+            color: white !important;
+            text-shadow: 0 0 4px rgba(255, 255, 255, 0.8) !important;
         }
 
         .calendar-footer {
@@ -3527,6 +3537,10 @@
                     if (datesWithMatches.has(dayDateStr)) {
                         day.classList.add('has-matches');
                         day.title = 'Has matches';
+                        // Debug: confirm the class is being applied
+                        if (i <= 3) { // Only log first few to avoid spam
+                            console.log(`[Calendar] Applied has-matches to day ${i}: ${dayDateStr}`);
+                        }
                     }
                     
                     day.addEventListener('click', () => {
@@ -4037,8 +4051,18 @@
 
             if (selectedDate !== 'all') {
                 matches = matches.filter(m => {
-                    if (!m.match_date) return false;
-                    return new Date(m.match_date).toDateString() === selectedDate;
+                    // Try multiple date field names
+                    const dateValue = m.datetime || m.match_date || m.date;
+                    if (!dateValue) return false;
+                    
+                    try {
+                        const matchDate = new Date(dateValue);
+                        matchDate.setHours(0, 0, 0, 0);
+                        return matchDate.toDateString() === selectedDate;
+                    } catch (e) {
+                        console.warn('[Filter] Invalid date:', dateValue);
+                        return false;
+                    }
                 });
             }
 
@@ -4788,8 +4812,17 @@
 
                     if (selectedDate !== 'all') {
                         filtered = filtered.filter(m => {
-                            if (!m.match_date) return false;
-                            return new Date(m.match_date).toDateString() === selectedDate;
+                            // Try multiple date field names
+                            const dateValue = m.datetime || m.match_date || m.date;
+                            if (!dateValue) return false;
+                            
+                            try {
+                                const matchDate = new Date(dateValue);
+                                matchDate.setHours(0, 0, 0, 0);
+                                return matchDate.toDateString() === selectedDate;
+                            } catch (e) {
+                                return false;
+                            }
                         });
                     }
 
