@@ -167,7 +167,22 @@ class OddPortalCollector:
                 print("Scraping OddPortal data...")
                 print("Progressive updates enabled - data will appear as each sport completes\n")
 
-                scraper.scrape_all()
+                # Add timeout for scrape_all to prevent hanging
+                import signal
+                
+                def timeout_handler(signum, frame):
+                    raise TimeoutError("Scraping took too long (>1800s)")
+                
+                # Set 30-minute timeout for the entire scraping process
+                if hasattr(signal, 'SIGALRM'):  # Unix only
+                    signal.signal(signal.SIGALRM, timeout_handler)
+                    signal.alarm(1800)  # 30 minutes
+                
+                try:
+                    scraper.scrape_all()
+                finally:
+                    if hasattr(signal, 'SIGALRM'):
+                        signal.alarm(0)  # Cancel alarm
 
                 # Final raw save
                 scraper.save_to_json(filename=str(self.raw_data_file))
@@ -187,7 +202,7 @@ class OddPortalCollector:
                 with open(self.output_file, 'w', encoding='utf-8') as f:
                     json.dump(final_data, f, indent=2, ensure_ascii=False)
 
-                print(f"Saved {len(scraper.matches_data)} matches to {self.output_file}")
+                print(f"✓ Saved {len(scraper.matches_data)} matches to {self.output_file}")
                 print()
 
                 scraper.print_summary()
@@ -198,11 +213,42 @@ class OddPortalCollector:
                 print(f"\nWaiting {interval} seconds before next collection...")
                 time.sleep(interval)
 
+            except TimeoutError as te:
+                print(f"\n⚠️ Scraping timeout: {te}")
+                print(f"Saving partial data ({len(getattr(scraper, 'matches_data', []))} matches)...")
+                
+                # Save what we have
+                if hasattr(scraper, 'matches_data') and scraper.matches_data:
+                    scraper.save_to_json(filename=str(self.raw_data_file))
+                    
+                    partial_data = {
+                        'sport': 'multi',
+                        'timestamp': datetime.now().isoformat(),
+                        'source': 'oddportal',
+                        'matches_count': len(scraper.matches_data),
+                        'sports_completed': sorted(self.sports_completed),
+                        'is_partial': True,
+                        'matches': self.convert_to_unified_format(scraper.matches_data)
+                    }
+                    
+                    with open(self.output_file, 'w', encoding='utf-8') as f:
+                        json.dump(partial_data, f, indent=2, ensure_ascii=False)
+                    
+                    print(f"✓ Saved partial data: {len(scraper.matches_data)} matches")
+                
+                if not continuous:
+                    break
+                print(f"Retrying in {interval} seconds...")
+                time.sleep(interval)
+                
             except KeyboardInterrupt:
                 print("\nCollection stopped by user")
                 break
             except Exception as e:
                 print(f"\nError during collection: {e}")
+                import traceback
+                traceback.print_exc()
+                
                 if not continuous:
                     raise
                 print(f"Retrying in {interval} seconds...")
