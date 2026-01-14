@@ -1408,6 +1408,8 @@
             font-size: 13px;
             transition: all 0.2s;
             color: var(--text-secondary);
+            position: relative;
+            user-select: none;
         }
 
         .calendar-day:hover {
@@ -1442,8 +1444,10 @@
         }
 
         .calendar-day.has-matches {
-            background: rgba(96, 165, 250, 0.15);
-            color: var(--accent-primary);
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%);
+            color: #60a5fa;
+            font-weight: 600;
+            border: 1px solid rgba(96, 165, 250, 0.3);
         }
 
         .calendar-day.has-matches::after {
@@ -1455,21 +1459,25 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--accent-primary);
+            background: #60a5fa;
+            box-shadow: 0 0 4px rgba(96, 165, 250, 0.8);
         }
 
         .calendar-day.has-matches:hover {
-            background: rgba(96, 165, 250, 0.25);
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.35) 0%, rgba(59, 130, 246, 0.25) 100%);
+            border-color: rgba(96, 165, 250, 0.5);
         }
 
         .calendar-day.has-matches:hover::after {
-            background: var(--text-primary);
+            background: #3b82f6;
             width: 8px;
             height: 8px;
+            box-shadow: 0 0 6px rgba(59, 130, 246, 1);
         }
 
         .calendar-day.selected.has-matches::after {
             background: white;
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
         }
 
         .calendar-footer {
@@ -3321,8 +3329,18 @@
 
             dateModal.addEventListener('click', (e) => {
                 if (e.target === dateModal) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     dateModal.classList.remove('active');
                     document.body.style.overflow = '';
+                }
+            });
+            
+            // Prevent any clicks from passing through the modal
+            dateModal.addEventListener('mousedown', (e) => {
+                if (e.target === dateModal) {
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
             });
             
@@ -3367,53 +3385,75 @@
                 const grid = document.getElementById('calendarGrid');
                 grid.innerHTML = '';
                 
-                // Build set of dates that have matches for highlighting (from both current and other sources)
+                // Build set of dates that have matches for highlighting
                 const datesWithMatches = new Set();
                 
-                // Add dates from current view (allMatches) - ALWAYS include these
-                if (allMatches && allMatches.length > 0) {
-                    for (const match of allMatches) {
+                // Use both allMatches and filteredMatches to ensure we get all dates
+                const matchesToCheck = allMatches && allMatches.length > 0 ? allMatches : [];
+                
+                console.log(`[Calendar] Checking ${matchesToCheck.length} matches for date highlighting`);
+                
+                // Add dates from current matches
+                if (matchesToCheck.length > 0) {
+                    for (const match of matchesToCheck) {
                         if (match.match_date) {
                             try {
                                 const matchDate = new Date(match.match_date);
                                 if (!isNaN(matchDate.getTime())) {
                                     matchDate.setHours(0, 0, 0, 0);
-                                    datesWithMatches.add(matchDate.toDateString());
+                                    const dateStr = matchDate.toDateString();
+                                    datesWithMatches.add(dateStr);
                                 }
                             } catch (e) {
-                                console.warn('Invalid date:', match.match_date);
+                                console.warn('[Calendar] Invalid date:', match.match_date, e);
                             }
                         }
                     }
                 }
                 
+                console.log(`[Calendar] Found ${datesWithMatches.size} unique dates with matches`);
+                
                 // Also check other data source for comprehensive highlighting
                 const currentSport = window.currentSport || 'football';
                 const isOddportal = currentSport === 'oddportal';
                 
-                // Fetch dates from the other source asynchronously (non-blocking)
-                if (!window.calendarDatesCache || Date.now() - (window.calendarDatesCacheTime || 0) > 60000) {
-                    // Cache for 60 seconds to avoid excessive requests
-                    const otherEndpoint = isOddportal ? '/oddsmagnet/api/football/top10' : '/oddsmagnet/api/oddportal';
-                    fetch(otherEndpoint, { cache: 'no-store' })
-                        .then(r => r.ok ? r.json() : null)
-                        .then(data => {
-                            if (data && data.matches) {
-                                window.calendarDatesCache = new Set(
-                                    data.matches
-                                        .filter(m => m.match_date)
-                                        .map(m => {
-                                            const d = new Date(m.match_date);
-                                            d.setHours(0, 0, 0, 0);
-                                            return d.toDateString();
-                                        })
-                                );
-                                window.calendarDatesCacheTime = Date.now();
-                                // Re-render calendar with the updated data
-                                renderCalendar();
-                            }
-                        })
-                        .catch(() => {}); // Silently fail - calendar still works with current data
+                // Prevent infinite re-render loop
+                if (window.isRenderingCalendar) {
+                    console.log('[Calendar] Already rendering, skipping duplicate render');
+                } else {
+                    // Fetch dates from the other source asynchronously (non-blocking)
+                    if (!window.calendarDatesCache || Date.now() - (window.calendarDatesCacheTime || 0) > 60000) {
+                        // Cache for 60 seconds to avoid excessive requests
+                        const otherEndpoint = isOddportal ? '/oddsmagnet/api/football/top10' : '/oddsmagnet/api/oddportal';
+                        window.isRenderingCalendar = true;
+                        fetch(otherEndpoint, { cache: 'no-store' })
+                            .then(r => r.ok ? r.json() : null)
+                            .then(data => {
+                                if (data && data.matches) {
+                                    window.calendarDatesCache = new Set(
+                                        data.matches
+                                            .filter(m => m.match_date)
+                                            .map(m => {
+                                                const d = new Date(m.match_date);
+                                                d.setHours(0, 0, 0, 0);
+                                                return d.toDateString();
+                                            })
+                                    );
+                                    window.calendarDatesCacheTime = Date.now();
+                                    console.log(`[Calendar] Fetched ${window.calendarDatesCache.size} dates from other source`);
+                                    // Re-render calendar with the updated data
+                                    setTimeout(() => {
+                                        window.isRenderingCalendar = false;
+                                        renderCalendar();
+                                    }, 50);
+                                } else {
+                                    window.isRenderingCalendar = false;
+                                }
+                            })
+                            .catch(() => {
+                                window.isRenderingCalendar = false;
+                            });
+                    }
                 }
                 
                 // Add cached dates from other source if available
@@ -3421,6 +3461,7 @@
                     for (const dateStr of window.calendarDatesCache) {
                         datesWithMatches.add(dateStr);
                     }
+                    console.log(`[Calendar] Total dates after adding cache: ${datesWithMatches.size}`);
                 }
                 
                 // Add day headers
@@ -3469,7 +3510,8 @@
                     }
                     
                     // Highlight dates with matches
-                    if (datesWithMatches.has(dayDate.toDateString())) {
+                    const dayDateStr = dayDate.toDateString();
+                    if (datesWithMatches.has(dayDateStr)) {
                         day.classList.add('has-matches');
                         day.title = 'Has matches';
                     }
