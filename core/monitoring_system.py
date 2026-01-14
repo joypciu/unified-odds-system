@@ -281,7 +281,7 @@ class ModuleMonitor:
             'fanduel_live': base_dir / 'bookmakers' / 'fanduel' / 'fanduel_live.json',
             '1xbet_pregame': base_dir / 'bookmakers' / '1xbet' / '1xbet_pregame.json',
             '1xbet_live': base_dir / 'bookmakers' / '1xbet' / '1xbet_live.json',
-            'oddsmagnet_football': base_dir / 'bookmakers' / 'oddsmagnet' / 'oddsmagnet_top10.json',
+            'oddsmagnet_football': base_dir / 'bookmakers' / 'oddsmagnet' / 'oddsmagnet_football.json',
             'oddsmagnet_basketball': base_dir / 'bookmakers' / 'oddsmagnet' / 'oddsmagnet_basketball.json',
             'oddsmagnet_tennis': base_dir / 'bookmakers' / 'oddsmagnet' / 'oddsmagnet_tennis.json'
         }

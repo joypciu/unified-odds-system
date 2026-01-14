@@ -18,7 +18,7 @@
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     
     <!-- Prefetch likely API endpoint for instant navigation -->
-    <link rel="prefetch" href="/oddsmagnet/api/football/top10">
+    <link rel="prefetch" href="/oddsmagnet/api/football">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚡</text></svg>">
     
@@ -27,7 +27,7 @@
         // Start data fetch immediately with timeout fallback
         window.earlyDataFetch = (function() {
             const currentSport = 'football';
-            const sportPath = 'football/top10';
+            const sportPath = 'football';
             const apiEndpoint = window.location.port === '9000' 
                 ? `/om/${sportPath}` 
                 : `/oddsmagnet/api/${sportPath}`;
@@ -2262,7 +2262,7 @@
         // Update sport dropdown with match counts from all sports
         async function updateSportCounts() {
             const sportEndpoints = {
-                'football': 'football/top10',
+                'football': 'football',
                 'basketball': 'basketball',
                 'americanfootball': 'americanfootball',
                 'cricket': 'cricket',
@@ -3127,7 +3127,8 @@
                 }
                 
                 // If WebSocket is active, send subscription change AND set HTTP fallback timer
-                if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+                // NOTE: OddPortal doesn't use WebSocket (different API endpoint), so skip WebSocket for it
+                if (wsConnection && wsConnection.readyState === WebSocket.OPEN && newSport !== 'oddportal') {
                     console.log('📡 Sending WebSocket sport subscription:', newSport);
                     wsConnection.send(JSON.stringify({
                         action: 'subscribe',
@@ -3141,7 +3142,7 @@
                         }
                     }, 2000);
                 } else {
-                    // No WebSocket - load via HTTP immediately
+                    // No WebSocket OR oddportal sport - load via HTTP immediately
                     console.log('📥 Loading sport data via HTTP:', newSport);
                     loadData(true).catch(err => {
                         console.error('Sport switch failed:', err);
@@ -3634,14 +3635,15 @@
                                 : currentSport === 'boxing' ? 'boxing'
                                 : currentSport === 'volleyball' ? 'volleyball'
                                 : currentSport === 'oddportal' ? 'oddportal'
-                                : 'football/top10';
+                                : 'football';
                 
                 // Detect which API endpoint to use based on current URL and sport
-                // Port 9000: /om/football/top10 or /om/basketball or /om/americanfootball or /om/cricket or /om/baseball or /om/tabletennis or /om/oddportal
-                // Port 8000 or 80: /oddsmagnet/api/football/top10 or /oddsmagnet/api/basketball or /oddsmagnet/api/americanfootball or /oddsmagnet/api/cricket or /oddsmagnet/api/baseball or /oddsmagnet/api/tabletennis or /oddsmagnet/api/oddportal
-                const apiEndpoint = window.location.port === '9000' 
-                    ? `/om/${sportPath}` 
-                    : `/oddsmagnet/api/${sportPath}`;
+                // Port 9000: /om/football or /om/basketball or /om/americanfootball or /om/oddportal
+                // Port 8000 or 80: /oddsmagnet/api/football or /oddsmagnet/api/basketball or /api/oddportal
+                const apiBase = window.location.port === '9000' 
+                    ? '/om' 
+                    : (currentSport === 'oddportal' ? '/api' : '/oddsmagnet/api');
+                const apiEndpoint = `${apiBase}/${sportPath}`;
                 
                 // ALWAYS fetch from API to check for updates (using ETag for efficiency)
                 // The server will return 304 if data hasn't changed, making this very fast

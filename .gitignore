@@ -155,6 +155,9 @@ dmypy.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
 
 # Project-specific ignores
 # Data files (generated)
@@ -171,10 +174,17 @@ cache_backups/
 
 # Logs
 *.log
+*.log.*
 logs/
 fanduel/logs/
 bet365/logs/
 1xbet/logs/
+oddportal/logs/
+*.log.gz
+*.log.tar.gz
+log_*.txt
+scraper_output.txt
+debug_output.txt
 
 # Test files
 test_*.py
@@ -203,12 +213,27 @@ fanduel/cache_data.json
 user-data-dir/
 chrome-profile/
 browser-data/
+chrome_data/
+playwright-state/
+chromium_cache/
+browser_profiles/
+SingletonLock
+SingletonSocket
+.com.google.Chrome*
+.org.chromium.Chromium*
 
 # Temporary files
 *.tmp
 *.temp
 temp/
 tmp/
+.cache/
+*.swp
+*.swo
+*.swn
+*~
+.~*
+~$*
 
 # API keys and secrets
 secrets.json
@@ -262,6 +287,12 @@ cookies/
 # Screenshots and debugging
 screenshots/
 debug/
+debug_*.png
+debug_*.jpg
+screenshot_*.png
+error_screenshots/
+trace_*.zip
+trace_*/
 
 # Backup files
 *.bak
@@ -291,3 +322,48 @@ PROJECT_SUMMARY.md
 bookmakers/bet365/patchright_gui_bet365_com.png
 bookmakers/bet365/patchright_gui_bet365_ca.png
 bookmakers/bet365/fingerprint_check.py
+
+
+# Process management and PID files
+*.pid
+*.lock
+.lock-*
+pids/
+*.sock
+
+# Large data exports
+*.csv
+*.xlsx
+*.xls
+data_export_*
+export_*.json
+dump_*.json
+
+# Chrome/Browser crash dumps
+chrome_debug.log
+gpu_debug.log
+WidevineCdm/
+
+# Node modules (if any Node.js tools used)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Python virtual environment variations
+.python-version
+.python_packages/
+
+# Service worker cache
+sw_cache/
+workbox-*/
+
+# OddPortal specific
+oddportal/oddportal_unified.json
+oddportal/*.json
+!oddportal/requirements.txt
+oddportal/chrome-data/
+oddportal/browser_profiles/
+
+# Monitor scripts outputs
+monitor_*.log
+zombie_cleanup.log

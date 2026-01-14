@@ -625,8 +625,8 @@ async def oddsmagnet_websocket(websocket: WebSocket):
         oddsmagnet_connections[current_sport].append(websocket)
         print(f"🟢 WebSocket connected for {current_sport} (total: {len(oddsmagnet_connections[current_sport])})")
         
-        # Send initial data based on default sport
-        data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / f"oddsmagnet_{current_sport}_top10.json"
+        # Send initial data based on default sport (football = oddsmagnet_football.json)
+        data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_football.json"
         if data_file.exists():
             async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
                 content = await f.read()
@@ -635,8 +635,10 @@ async def oddsmagnet_websocket(websocket: WebSocket):
                     'sport': current_sport,
                     'matches': data.get('matches', []),
                     'timestamp': data.get('timestamp'),
+                    'iteration': data.get('iteration'),
                     'etag': hashlib.md5(content.encode()).hexdigest()
                 })
+                print(f"✅ Sent initial {len(data.get('matches', []))} matches for {current_sport}")
         
         # Listen for messages (sport subscription changes)
         while True:
@@ -657,8 +659,21 @@ async def oddsmagnet_websocket(websocket: WebSocket):
                 
                 print(f"🔄 Client switched to {current_sport}")
                 
+                # Determine correct filename based on sport
+                if current_sport == 'football':
+                    filename = "oddsmagnet_football.json"
+                elif current_sport == 'basketball':
+                    filename = "oddsmagnet_basketball.json"
+                elif current_sport == 'americanfootball':
+                    filename = "oddsmagnet_american_football.json"
+                elif current_sport == 'tabletennis':
+                    filename = "oddsmagnet_table_tennis.json"
+                else:
+                    # For other sports, use lowercase sport name
+                    filename = f"oddsmagnet_{current_sport}.json"
+                
                 # Send data for new sport
-                data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / f"oddsmagnet_{current_sport}_top10.json"
+                data_file = BASE_DIR / "bookmakers" / "oddsmagnet" / filename
                 if data_file.exists():
                     async with aiofiles.open(data_file, 'r', encoding='utf-8') as f:
                         content = await f.read()
@@ -667,8 +682,20 @@ async def oddsmagnet_websocket(websocket: WebSocket):
                             'sport': current_sport,
                             'matches': data.get('matches', []),
                             'timestamp': data.get('timestamp'),
+                            'iteration': data.get('iteration'),
                             'etag': hashlib.md5(content.encode()).hexdigest()
                         })
+                        print(f"✅ Sent {len(data.get('matches', []))} matches for {current_sport} via WebSocket")
+                else:
+                    print(f"⚠️ Data file not found: {data_file}")
+                    # Send empty response so client knows subscription succeeded but no data
+                    await websocket.send_json({
+                        'sport': current_sport,
+                        'matches': [],
+                        'timestamp': datetime.now().isoformat(),
+                        'iteration': 0,
+                        'etag': 'no-data'
+                    })
             
     except WebSocketDisconnect:
         if websocket in oddsmagnet_connections[current_sport]:
@@ -689,7 +716,7 @@ async def push_oddsmagnet_updates():
     
     # Map sports to their data files
     sport_files = {
-        'football': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10.json",
+        'football': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_football.json",
         'basketball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_basketball.json",
         'cricket': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_cricket.json",
         'americanfootball': BASE_DIR / "bookmakers" / "oddsmagnet" / "oddsmagnet_american_football.json",
@@ -1408,8 +1435,10 @@ async def get_oddsmagnet_football(
         }
 
 
-@app.get("/oddsmagnet/api/football/top10")
-@app.get("/oddsmagnet/football/top10")  # Keep for backward compatibility
+@app.get("/oddsmagnet/api/football")
+@app.get("/oddsmagnet/football")  # Keep for backward compatibility
+@app.get("/oddsmagnet/api/football/top10")  # Legacy - kept for backward compatibility
+@app.get("/oddsmagnet/football/top10")  # Legacy - kept for backward compatibility
 async def get_oddsmagnet_top10(
     request: Request,
     page: int = 1,
@@ -1423,8 +1452,10 @@ async def get_oddsmagnet_top10(
     Supports ETag caching for faster subsequent loads.
     
     Accessible via:
-    - /oddsmagnet/api/football/top10 (recommended)
-    - /oddsmagnet/football/top10 (legacy)
+    - /oddsmagnet/api/football (recommended)
+    - /oddsmagnet/football (legacy)
+    - /oddsmagnet/api/football/top10 (legacy - backward compatibility)
+    - /oddsmagnet/football/top10 (legacy - backward compatibility)
     
     Query Parameters:
     - page: Page number (default: 1)
@@ -3417,7 +3448,8 @@ async def get_bet365_eternity_format_legacy():
 
 # ==================== OddPortal API Endpoint ====================
 
-@app.get("/oddsmagnet/api/oddportal")
+@app.get("/api/oddportal")
+@app.get("/oddsmagnet/api/oddportal")  # Legacy - kept for backward compatibility
 @app.get("/oddportal/api/matches")
 async def get_oddportal_data(
     request: Request,
@@ -3430,7 +3462,8 @@ async def get_oddportal_data(
     """Get OddPortal odds data with pagination and filtering
     
     Accessible via:
-    - /oddsmagnet/api/oddportal (displays in oddsmagnet viewer)
+    - /api/oddportal (recommended)
+    - /oddsmagnet/api/oddportal (legacy - backward compatibility)
     - /oddportal/api/matches (standalone access)
     
     Query Parameters:

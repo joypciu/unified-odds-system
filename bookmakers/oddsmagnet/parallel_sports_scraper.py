@@ -27,7 +27,7 @@ SPORTS_CONFIG = {
     'football': {
         'enabled': True,
         'top_leagues': 10,
-        'output': 'oddsmagnet_top10.json',
+        'output': 'oddsmagnet_football.json',
         'markets': ['win market', 'over under betting', 'both teams to score'],
     },
     'basketball': {
