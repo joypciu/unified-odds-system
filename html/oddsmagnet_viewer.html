@@ -3401,7 +3401,8 @@
                 // Use both allMatches and filteredMatches to ensure we get all dates
                 const matchesToCheck = allMatches && allMatches.length > 0 ? allMatches : [];
                 
-                console.log(`[Calendar] Checking ${matchesToCheck.length} matches for date highlighting`);\n                
+                console.log(`[Calendar] Checking ${matchesToCheck.length} matches for date highlighting`);
+                
                 // Debug: Log first match structure to see available fields
                 if (matchesToCheck.length > 0) {
                     const sampleMatch = matchesToCheck[0];
