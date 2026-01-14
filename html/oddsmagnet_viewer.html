@@ -3393,19 +3393,31 @@
                 
                 console.log(`[Calendar] Checking ${matchesToCheck.length} matches for date highlighting`);
                 
-                // Add dates from current matches
+                // Debug: Log first match structure to see available fields
+                if (matchesToCheck.length > 0) {
+                    const sampleMatch = matchesToCheck[0];
+                    console.log('[Calendar] Sample match fields:', Object.keys(sampleMatch));
+                    console.log('[Calendar] Sample match datetime:', sampleMatch.datetime);
+                    console.log('[Calendar] Sample match match_date:', sampleMatch.match_date);
+                    console.log('[Calendar] Sample match date:', sampleMatch.date);
+                }
+                
+                // Add dates from current matches - try multiple field names
                 if (matchesToCheck.length > 0) {
                     for (const match of matchesToCheck) {
-                        if (match.match_date) {
+                        // Try multiple possible date field names
+                        const dateValue = match.datetime || match.match_date || match.date;
+                        
+                        if (dateValue) {
                             try {
-                                const matchDate = new Date(match.match_date);
+                                const matchDate = new Date(dateValue);
                                 if (!isNaN(matchDate.getTime())) {
                                     matchDate.setHours(0, 0, 0, 0);
                                     const dateStr = matchDate.toDateString();
                                     datesWithMatches.add(dateStr);
                                 }
                             } catch (e) {
-                                console.warn('[Calendar] Invalid date:', match.match_date, e);
+                                console.warn('[Calendar] Invalid date:', dateValue, e);
                             }
                         }
                     }
@@ -3432,9 +3444,10 @@
                                 if (data && data.matches) {
                                     window.calendarDatesCache = new Set(
                                         data.matches
-                                            .filter(m => m.match_date)
+                                            .filter(m => m.datetime || m.match_date || m.date)
                                             .map(m => {
-                                                const d = new Date(m.match_date);
+                                                const dateValue = m.datetime || m.match_date || m.date;
+                                                const d = new Date(dateValue);
                                                 d.setHours(0, 0, 0, 0);
                                                 return d.toDateString();
                                             })
