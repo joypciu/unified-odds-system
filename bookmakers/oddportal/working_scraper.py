@@ -8,6 +8,8 @@ import json
 import csv
 import time
 import re
+import signal
+import atexit
 from datetime import datetime
 from typing import List, Dict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -31,6 +33,62 @@ class OddsPortalScraper:
         self.sport_complete_callback = None  # Callback when sport completes
         self.max_matches_per_league = 50  # Increased from 15 to get more matches
         self.max_parallel_sports = 2  # Process 2 sports in parallel for faster collection
+        self.active_browsers = []  # Track all browsers for cleanup
+        self.active_contexts = []  # Track all contexts for cleanup
+        
+        # Register cleanup on exit
+        atexit.register(self.cleanup_all_browsers)
+        signal.signal(signal.SIGTERM, self._signal_handler)
+        try:
+            signal.signal(signal.SIGINT, self._signal_handler)
+        except:
+            pass  # SIGINT may not be available on all platforms
+    
+    def _signal_handler(self, signum, frame):
+        """Handle termination signals"""
+        print(f"\\n⚠️  Signal {signum} received, cleaning up...")
+        self.cleanup_all_browsers()
+        sys.exit(0)
+    
+    def cleanup_all_browsers(self):
+        \"\"\"Kill all Chrome processes and cleanup browsers\"\"\"
+        try:
+            print(\"\\n🧹 Cleaning up browsers and Chrome processes...\")\n            
+            # Close tracked contexts
+            for ctx in self.active_contexts[:]:
+                try:
+                    ctx.close()
+                except:
+                    pass
+            self.active_contexts.clear()
+            
+            # Close tracked browsers
+            for br in self.active_browsers[:]:
+                try:
+                    br.close()
+                except:
+                    pass
+            self.active_browsers.clear()
+            
+            # Kill zombie Chrome processes
+            try:
+                import psutil
+                killed = 0
+                for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                    try:
+                        if 'chrome' in proc.info['name'].lower():
+                            cmdline = ' '.join(proc.info.get('cmdline', []))
+                            if 'headless' in cmdline or 'remote-debugging' in cmdline:
+                                proc.kill()
+                                killed += 1
+                    except:
+                        pass
+                if killed:
+                    print(f\"🧹 Killed {killed} zombie Chrome processes\")
+            except:
+                pass
+        except Exception as e:
+            print(f\"Cleanup error: {e}\")
         
         # Popular leagues that are active - expanded coverage
         self.leagues = {
@@ -276,6 +334,7 @@ class OddsPortalScraper:
                 )
                 
                 print(f"[{sport.upper()}] Browser context created with stealth mode")
+                self.active_contexts.append(context)  # Track for cleanup
                 
                 # Process leagues sequentially but matches in parallel
                 for league_url in league_urls:
@@ -288,6 +347,8 @@ class OddsPortalScraper:
                 # CRITICAL: Always close browser and context to prevent zombie processes
                 try:
                     if context:
+                        if context in self.active_contexts:
+                            self.active_contexts.remove(context)
                         context.close()
                         print(f"[{sport.upper()}] Context closed")
                 except Exception as e:
@@ -295,6 +356,8 @@ class OddsPortalScraper:
                 
                 try:
                     if browser:
+                        if browser in self.active_browsers:
+                            self.active_browsers.remove(browser)
                         browser.close()
                         print(f"[{sport.upper()}] Browser closed")
                 except Exception as e:

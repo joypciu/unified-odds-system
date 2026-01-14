@@ -3462,17 +3462,17 @@ async def get_oddportal_data(
                 }
             )
         
-        # Check ETag for caching
+        # Check ETag for caching - DISABLED to always serve fresh data
         file_stat = oddportal_file.stat()
         file_mtime = file_stat.st_mtime
         file_size = file_stat.st_size
         etag_base = f"{file_mtime}-{file_size}"
         etag = hashlib.md5(etag_base.encode()).hexdigest()
         
-        # Check if client has cached version
-        if_none_match = request.headers.get('if-none-match')
-        if if_none_match == etag:
-            return Response(status_code=304)
+        # DISABLED: ETag check to ensure fresh data is always served
+        # if_none_match = request.headers.get('if-none-match')
+        # if if_none_match == etag:
+        #     return Response(status_code=304)
         
         # Load data
         try:
@@ -3552,7 +3552,12 @@ async def get_oddportal_data(
         
         return JSONResponse(
             content=response_data,
-            headers={'ETag': etag, 'Cache-Control': 'no-cache, must-revalidate'}
+            headers={
+                'ETag': etag,
+                'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
         )
         
     except Exception as e:
