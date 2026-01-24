@@ -7,9 +7,9 @@
   "email": {
     "smtp_server": "smtp.gmail.com",
     "smtp_port": 587,
-    "sender_email": "ENC:Z0FBQUFBQnBOUnZFWVVvcGxQUG5Zbm1KOGdya3dVTjZsYjNkY1c3SHgtQ2txd3FUUGZTSldMYjBHWjlTSjRKR3JBQ21UbXlmakdSUTdDd0ZsZzVTRkRRQXZpYjMxVDdjeHVPdjZHZG9QS3lSTVNxelo1aVN3dHM9",
-    "sender_password": "ENC:Z0FBQUFBQnBOUnZFLXlIQzhER2x3eWJwenNUQTVpTUdwSWwwQlkxSEk5MjlEYnB0N0V2eGxaOHV4Q2dFVF9fYkF2UUpoYzgzeFQyYXZZclZUcm9Td2xjQ0hrbUFhdllGQk5fLUpIU0xJV2xWM2ZQVk5aaG5xWWc9",
-    "admin_email": "usmanjoycse@gmail.com",
+    "sender_email": "your-email@gmail.com",
+    "sender_password": "your-app-password",
+    "admin_email": "admin@example.com",
     "alert_cooldown_minutes": 1440,
     "enabled": true
   },
@@ -32,7 +32,7 @@
   },
   "sportbex": {
     "api_keys": [
-      "Dw7o4sdSeFcEMovchGSjUJ8VYGm73JOx7NRDE64z"
+      "your-sportbex-api-key"
     ],
     "base_url": "https://trial-api.sportbex.com/api/betfair",
     "competitions": [1, 4, 5, 7, 4339, 7522, 6423, 7511, 3988, 998917, 468328]

@@ -1,7 +1,7 @@
 # OddsMagnet Performance Optimization
 
 ## Problem
-The OddsMagnet UI at `http://142.44.160.36:8000/oddsmagnet` was taking 2+ minutes to load initially on every page visit.
+The OddsMagnet UI at `http://YOUR_VPS_IP:8000/oddsmagnet` was taking 2+ minutes to load initially on every page visit.
 
 ## Solutions Implemented
 
@@ -56,7 +56,7 @@ git push origin main
 
 ### Option 2: SSH to VPS and Pull
 ```bash
-ssh ubuntu@142.44.160.36
+ssh ubuntu@YOUR_VPS_IP
 cd /home/ubuntu/services/unified-odds
 git pull origin main
 sudo systemctl restart unified-odds
@@ -73,7 +73,7 @@ cd /home/ubuntu/services/unified-odds
 
 ```bash
 # SSH to VPS
-ssh ubuntu@142.44.160.36
+ssh ubuntu@YOUR_VPS_IP
 
 # Restart the service to apply changes
 sudo systemctl restart unified-odds
@@ -120,7 +120,7 @@ After deployment, test the improvements:
 ```bash
 # First visit (force fresh load)
 # Open browser incognito mode
-http://142.44.160.36:8000/oddsmagnet
+http://YOUR_VPS_IP:8000/oddsmagnet
 
 # Check Network tab:
 # - Initial response should be compressed (gzip)
@@ -137,7 +137,7 @@ http://142.44.160.36:8000/oddsmagnet
 
 ```bash
 # Watch API response times
-curl -I http://142.44.160.36:8000/oddsmagnet/football/top10
+curl -I http://YOUR_VPS_IP:8000/oddsmagnet/football/top10
 
 # Should see headers:
 # Content-Encoding: gzip
@@ -145,7 +145,7 @@ curl -I http://142.44.160.36:8000/oddsmagnet/football/top10
 # Cache-Control: no-cache
 
 # Test 304 response
-curl -I -H 'If-None-Match: "xxxxxxxxxxxxx"' http://142.44.160.36:8000/oddsmagnet/football/top10
+curl -I -H 'If-None-Match: "xxxxxxxxxxxxx"' http://YOUR_VPS_IP:8000/oddsmagnet/football/top10
 # Should return: HTTP/1.1 304 Not Modified
 ```
 

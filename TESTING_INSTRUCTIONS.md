@@ -131,7 +131,7 @@ Test each sport dropdown and verify:
 
 **How to Test**:
 
-1. Open `http://142.44.160.36:8000/oddsmagnet` in browser
+1. Open `http://YOUR_VPS_IP:8000/oddsmagnet` in browser
 2. Click sport dropdown (top left)
 3. Select each sport one by one
 4. Verify icon appears next to sport name
@@ -211,7 +211,7 @@ Test each sport dropdown and verify:
 
 **How to Test**:
 
-1. Open `http://142.44.160.36:8000/oddsmagnet`
+1. Open `http://YOUR_VPS_IP:8000/oddsmagnet`
 2. Find a match, hover over first column
 3. Click star icon
 4. Check localStorage in DevTools
@@ -286,7 +286,7 @@ Test each sport dropdown and verify:
 #### ✅ Collector Processes (SSH to VPS)
 
 ```bash
-ssh ubuntu@142.44.160.36
+ssh ubuntu@YOUR_VPS_IP
 ps aux | grep "oddsmagnet.*realtime" | grep python
 ```
 
@@ -512,7 +512,7 @@ These still need the compression optimization applied:
 
 ## 🚨 Critical Reminders
 
-1. **Always test on actual VPS** (142.44.160.36:9000), not localhost
+1. **Always test on actual VPS** (YOUR_VPS_IP:9000), not localhost
 2. **Test with real data** (live odds), not mock data
 3. **Test across different browsers** (Chrome, Firefox, Safari, Edge)
 4. **Test on mobile devices** (responsive design)
@@ -524,8 +524,8 @@ These still need the compression optimization applied:
 
 ## 📞 Quick Reference
 
-**VPS Access**: `ssh ubuntu@142.44.160.36`
-**Frontend URL**: `http://142.44.160.36:8000/oddsmagnet`
+**VPS Access**: `ssh ubuntu@YOUR_VPS_IP`
+**Frontend URL**: `http://YOUR_VPS_IP:8000/oddsmagnet`
 **Service Name**: `unified-odds.service`
 **Log Command**: `journalctl -u unified-odds -f`
 **Restart Service**: `sudo systemctl restart unified-odds`
@@ -545,7 +545,7 @@ Before starting work:
 - [ ] Read this entire document
 - [ ] SSH to VPS and verify service is running
 - [ ] Check browser console for errors
-- [ ] Load http://142.44.160.36:8000/oddsmagnet and do quick visual check
+- [ ] Load http://YOUR_VPS_IP:8000/oddsmagnet and do quick visual check
 - [ ] Review recent commits (git log --oneline -10)
 - [ ] Check if any new issues reported by user
 

@@ -40,7 +40,7 @@ HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 SSH into your VPS and update the file:
 
 ```bash
-ssh ubuntu@142.44.160.36
+ssh ubuntu@YOUR_VPS_IP
 cd /home/ubuntu/services/unified-odds/agent
 nano .env
 ```

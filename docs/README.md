@@ -7,7 +7,7 @@ A comprehensive Python-based system for collecting, merging, and monitoring bett
 **Production deployment with automatic CI/CD:**
 
 1. Push code to GitHub → Automatically deploys to VPS
-2. Access UI: `http://142.44.160.36:8000`
+2. Access UI: `http://YOUR_VPS_IP:8000`
 3. Services auto-restart on every push to `main` branch
 
 See [GitHub Actions Deployment](#-production-deployment) below for details.
@@ -316,19 +316,19 @@ All `/1xbet`, `/fanduel`, and `/bet365` endpoints return data in OpticOdds forma
 
 ```bash
 # Get all 1xBet pregame odds in OpticOdds format
-curl "http://142.44.160.36:8000/1xbet/pregame"
+curl "http://YOUR_VPS_IP:8000/1xbet/pregame"
 
 # Get FanDuel live odds
-curl "http://142.44.160.36:8000/fanduel/live"
+curl "http://YOUR_VPS_IP:8000/fanduel/live"
 
 # Get Bet365 soccer odds
-curl "http://142.44.160.36:8000/bet365/soccer"
+curl "http://YOUR_VPS_IP:8000/bet365/soccer"
 
 # Get all Bet365 odds
-curl "http://142.44.160.36:8000/bet365"
+curl "http://YOUR_VPS_IP:8000/bet365"
 
 # Legacy unified format
-curl "http://142.44.160.36:8000/api/matches/live"
+curl "http://YOUR_VPS_IP:8000/api/matches/live"
 ```
 
 ### Response Format
@@ -519,7 +519,7 @@ The system supports automatic deployment to VPS servers using GitHub Actions. Ev
 
    | Secret Name    | Value               | Description                |
    | -------------- | ------------------- | -------------------------- |
-   | `VPS_HOST`     | Your VPS IP address | e.g., `142.44.160.36`      |
+   | `VPS_HOST`     | Your VPS IP address | e.g., `YOUR_VPS_IP`      |
    | `VPS_USERNAME` | VPS SSH username    | Usually `ubuntu` or `root` |
    | `VPS_PORT`     | SSH port            | Usually `22`               |
    | `VPS_SSH_KEY`  | SSH private key     | See below                  |
@@ -644,11 +644,11 @@ For issues and questions:
 
 ### Current Production Setup
 
-- **VPS**: 142.44.160.36 (OVH Montreal, Ubuntu 25.04, 12C/48GB/300GB)
+- **VPS**: YOUR_VPS_IP (OVH Montreal, Ubuntu 25.04, 12C/48GB/300GB)
 - **Services**:
   - `unified-odds` - Data collector (auto-restart enabled)
   - `unified-odds-ui` - Web interface on port 8000 (auto-restart enabled)
-- **Access**: `http://142.44.160.36:8000` (UI) | Port 22 (SSH)
+- **Access**: `http://YOUR_VPS_IP:8000` (UI) | Port 22 (SSH)
 - **Auto-Deployment**: Enabled via GitHub Actions
 - **Deployment Time**: ~5-10 seconds per push
 
@@ -681,7 +681,7 @@ git push origin main
 
 ```bash
 # SSH to VPS
-ssh ubuntu@142.44.160.36
+ssh ubuntu@YOUR_VPS_IP
 
 # Navigate and pull
 cd /home/ubuntu/services/unified-odds
@@ -699,7 +699,7 @@ sudo systemctl status unified-odds unified-odds-ui
 
 **GitHub Secrets** (already configured):
 
-- `VPS_HOST` = 142.44.160.36
+- `VPS_HOST` = YOUR_VPS_IP
 - `VPS_USERNAME` = ubuntu
 - `VPS_SSH_KEY` = ed25519 private key
 - `VPS_PORT` = 22
@@ -737,16 +737,16 @@ When you update `requirements.txt`:
 
 ```bash
 # View deployment logs in real-time
-ssh ubuntu@142.44.160.36 "sudo journalctl -u unified-odds -f"
+ssh ubuntu@YOUR_VPS_IP "sudo journalctl -u unified-odds -f"
 
 # Check service status
-ssh ubuntu@142.44.160.36 "sudo systemctl status unified-odds unified-odds-ui"
+ssh ubuntu@YOUR_VPS_IP "sudo systemctl status unified-odds unified-odds-ui"
 
 # Check what's using port 8000
-ssh ubuntu@142.44.160.36 "sudo ss -tlnp | grep :8000"
+ssh ubuntu@YOUR_VPS_IP "sudo ss -tlnp | grep :8000"
 
 # View recent errors
-ssh ubuntu@142.44.160.36 "sudo journalctl -u unified-odds-ui -n 50"
+ssh ubuntu@YOUR_VPS_IP "sudo journalctl -u unified-odds-ui -n 50"
 ```
 
 ### Troubleshooting Deployment

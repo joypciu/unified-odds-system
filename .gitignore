@@ -10,10 +10,15 @@ __pycache__/
 # Runtime data files (exclude from git)
 data/
 *.json
-!config/*.json
+config/config.json
 !config/*.json.template
 !package.json
 !package-lock.json
+
+# Security keys
+vps_ssh_key.txt
+bookmakers/bet365/hyperbrowser api key.txt
+.config_key
 
 # C extensions
 *.so
