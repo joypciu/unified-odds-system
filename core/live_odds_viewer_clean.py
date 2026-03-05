@@ -524,17 +524,22 @@ async def get_home():
 
 @app.get("/oddsmagnet", response_class=HTMLResponse)
 async def get_oddsmagnet_page():
-    """Serve the OddsMagnet multi-sport viewer page"""
-    template_path = BASE_DIR / 'html' / 'oddsmagnet_viewer.html'
-    if not template_path.exists():
-        return HTMLResponse(content="<h1>OddsMagnet viewer not found</h1>", status_code=404)
-    html_content = open(template_path, 'r', encoding='utf-8').read()
-    return HTMLResponse(content=html_content)
+    """OddsMagnet scraper is currently disabled - show notice"""
+    return HTMLResponse(content="""
+    <html><head><title>OddsMagnet - Disabled</title>
+    <style>body{font-family:sans-serif;background:#0f1117;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:16px;}
+    h1{color:#f59e0b;} p{color:#9ca3af;} a{color:#60a5fa;text-decoration:none;border:1px solid #60a5fa;padding:8px 20px;border-radius:6px;} a:hover{background:#1e3a5f;}</style>
+    </head><body>
+    <h1>⚠️ OddsMagnet Scraper Disabled</h1>
+    <p>The OddsMagnet data source is currently disabled as it is not working.</p>
+    <a href="/">← Back to Main Dashboard</a>
+    </body></html>
+    """)
 
 
 @app.get("/oddsmagnet/top10", response_class=HTMLResponse)
 async def get_oddsmagnet_top10_redirect():
-    """Redirect /oddsmagnet/top10 to /oddsmagnet for backward compatibility"""
+    """Redirect /oddsmagnet/top10 to disabled notice"""
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/oddsmagnet", status_code=301)
 

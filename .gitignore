@@ -1,6 +1,12 @@
-# account information
+# Security / account information
 bet365 account information.txt
-
+bookmakers/bet365/bet365 account information.txt
+bookmakers/bet365/hyperbrowser api key.txt
+bookmakers/1xbet/1xbet live url with response for network tab.txt
+deployment/vps_ssh_key.txt
+vps_ssh_key.txt
+.config_key
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -15,10 +21,73 @@ config/config.json
 !package.json
 !package-lock.json
 
-# Security keys
-vps_ssh_key.txt
-bookmakers/bet365/hyperbrowser api key.txt
-.config_key
+# Debug / dev-only scripts
+bookmakers/bet365/debug_*.py
+bookmakers/oddsmagnet/debug_*.py
+bookmakers/1xbet/1xbet_network_inspector.py
+bookmakers/1xbet/1xbet_pregame_network_inspector.py
+bookmakers/1xbet/check_odds.py
+
+# Duplicate / backup files
+**/working_scraper copy*.py
+html/oddsmagnet_viewer backup.html
+html/oddsmagnet_viewer.html
+
+# Temp files
+temp_script.js
+
+# OddsMagnet (disabled - scraper not working)
+bookmakers/oddsmagnet/
+additional_scrapers/inspect_oddsmagnet_bookmakers.py
+ODDSMAGNET_PERFORMANCE_FIX.md
+
+# Additional/experimental scrapers (not part of core production)
+additional_scrapers/
+
+# Standalone agent (not used in production)
+agent/
+
+# Bet365 sport-specific future scrapers (not core)
+bookmakers/bet365/nba__with_future.py
+bookmakers/bet365/ncaab__with_future.py
+bookmakers/bet365/ncaaf__with_future.py
+bookmakers/bet365/nfl__with_future.py
+bookmakers/bet365/nhl__with_future.py
+bookmakers/bet365/soccer__multi_region.py
+bookmakers/bet365/bet365_extraction_template__fallback.py
+bookmakers/bet365/bet365_live_concurrent_scraper.py
+bookmakers/bet365/bet365_pregame_monitor__homepage_fallback.py
+bookmakers/bet365/BET365_SCRAPERS_STRUCTURE.md
+bookmakers/bet365/LOCAL_TESTING_README.md
+
+# Futures scrapers (not currently in use)
+bookmakers/1xbet/FUTURES_*.md
+bookmakers/fanduel/fanduel_future_collector.py
+
+# OddPortal dev files
+bookmakers/oddportal/working_scraper.py
+bookmakers/oddportal/run_full_scraper.py
+bookmakers/oddportal/MANUAL_NETWORK_INSPECTION.md
+
+# Deprecated nginx configs
+deployment/nginx/oddsmagnet-standalone.conf
+deployment/deploy_1xbet_only.ps1
+
+# Old/unused HTML files
+html/llm_analysis.html
+html/image.png
+
+# Dev/setup docs (not needed on VPS)
+HUGGINGFACE_SETUP.md
+LLM_INTEGRATION.md
+ODDPORTAL_INTEGRATION_GUIDE.md
+PERFORMANCE_OPTIMIZATIONS.md
+TESTING_INSTRUCTIONS.md
+UI_REDESIGN.md
+monitor_zombies.sh
+
+# Test stubs
+tests/__init__.py
 
 # C extensions
 *.so
