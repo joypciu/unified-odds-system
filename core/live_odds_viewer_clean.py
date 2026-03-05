@@ -546,8 +546,8 @@ async def get_oddsmagnet_top10_redirect():
 
 @app.get("/oddportal", response_class=HTMLResponse)
 async def get_oddportal_page():
-    """Serve the OddPortal viewer (oddsmagnet_viewer with OddPortal mode)"""
-    template_path = BASE_DIR / 'html' / 'oddsmagnet_viewer.html'
+    """Serve the dedicated OddPortal viewer"""
+    template_path = BASE_DIR / 'html' / 'oddportal_viewer.html'
     if not template_path.exists():
         return HTMLResponse(content="<h1>OddPortal viewer not found</h1>", status_code=404)
     html_content = open(template_path, 'r', encoding='utf-8').read()

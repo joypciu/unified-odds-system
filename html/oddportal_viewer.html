@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OddsPortal Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: #58a6ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo i { font-size: 20px; }
+        .badge {
+            background: #1f6feb;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .nav-btn:hover { background: #30363d; border-color: #58a6ff; color: #58a6ff; }
+        .nav-btn.ai { background: #1f3a6e; border-color: #1f6feb; color: #79c0ff; }
+        .nav-btn.ai:hover { background: #1f6feb; color: #fff; }
+
+        /* ── Stats bar ── */
+        .stats-bar {
+            background: #161b22;
+            border-bottom: 1px solid #21262d;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #8b949e;
+        }
+        .stat-item strong { color: #e6edf3; font-size: 15px; }
+        .stat-item i { color: #58a6ff; }
+        .last-updated { margin-left: auto; font-size: 12px; color: #6e7681; }
+
+        /* ── Toolbar ── */
+        .toolbar {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #0d1117;
+            border-bottom: 1px solid #21262d;
+        }
+        .search-wrap {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        .search-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6e7681;
+            font-size: 14px;
+        }
+        .search-input {
+            width: 100%;
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+            padding: 8px 12px 8px 36px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: #58a6ff; }
+        .search-input::placeholder { color: #6e7681; }
+
+        .filter-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .filter-pill {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: capitalize;
+        }
+        .filter-pill:hover { border-color: #58a6ff; color: #58a6ff; }
+        .filter-pill.active {
+            background: #1f6feb;
+            border-color: #1f6feb;
+            color: #fff;
+            font-weight: 600;
+        }
+        .sort-select {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* ── Content ── */
+        .content {
+            padding: 20px 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ── Section header ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #21262d;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .section-count {
+            background: #21262d;
+            color: #8b949e;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* ── Match Grid ── */
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 12px;
+        }
+
+        /* ── Match Card ── */
+        .match-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .match-card:hover {
+            border-color: #58a6ff;
+            transform: translateY(-1px);
+        }
+        .match-card-header {
+            padding: 12px 14px 10px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .match-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .sport-tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .sport-tag.football   { background: rgba(34,197,94,.15);  color: #4ade80; }
+        .sport-tag.basketball { background: rgba(249,115,22,.15); color: #fb923c; }
+        .sport-tag.tennis     { background: rgba(234,179,8,.15);  color: #facc15; }
+        .sport-tag.hockey     { background: rgba(56,189,248,.15); color: #38bdf8; }
+        .sport-tag.baseball   { background: rgba(168,85,247,.15); color: #c084fc; }
+        .sport-tag.default    { background: rgba(99,102,241,.15); color: #818cf8; }
+        .league-name {
+            font-size: 11px;
+            color: #6e7681;
+        }
+        .match-link {
+            color: #6e7681;
+            font-size: 12px;
+            text-decoration: none;
+            flex-shrink: 0;
+            transition: color 0.2s;
+        }
+        .match-link:hover { color: #58a6ff; }
+
+        .teams {
+            padding: 0 14px 12px;
+        }
+        .teams-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .team-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #e6edf3;
+            flex: 1;
+        }
+        .vs {
+            font-size: 11px;
+            color: #6e7681;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .match-time {
+            font-size: 11px;
+            color: #6e7681;
+            margin-top: 5px;
+        }
+        .match-time i { color: #58a6ff; margin-right: 4px; }
+
+        /* ── Odds Table ── */
+        .odds-section {
+            border-top: 1px solid #21262d;
+            padding: 10px 14px 12px;
+        }
+        .market-name {
+            font-size: 11px;
+            color: #6e7681;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        .odds-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .odds-cell {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 6px;
+            padding: 7px 8px;
+            text-align: center;
+        }
+        .odds-cell.best { border-color: #1f6feb; background: rgba(31,111,235,.08); }
+        .odds-selection {
+            font-size: 10px;
+            color: #6e7681;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .odds-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #e6edf3;
+            line-height: 1;
+        }
+        .odds-cell.best .odds-value { color: #58a6ff; }
+        .odds-bookmaker {
+            font-size: 10px;
+            color: #6e7681;
+            margin-top: 2px;
+        }
+
+        /* more markets toggle */
+        .more-markets {
+            margin-top: 8px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .market-pill {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .market-pill:hover { border-color: #58a6ff; color: #58a6ff; }
+        .market-pill.active { background: #1f3a6e; border-color: #1f6feb; color: #79c0ff; }
+
+        /* ── Loading / Empty ── */
+        .status-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 24px;
+            gap: 16px;
+            text-align: center;
+        }
+        .status-screen i { font-size: 40px; color: #30363d; }
+        .status-screen h2 { font-size: 18px; color: #8b949e; }
+        .status-screen p { font-size: 14px; color: #6e7681; max-width: 400px; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid #21262d;
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Error banner ── */
+        .error-banner {
+            background: rgba(248,81,73,.1);
+            border: 1px solid rgba(248,81,73,.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #f85149;
+        }
+
+        /* ── Pagination ── */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 24px 0 8px;
+            font-size: 13px;
+            color: #8b949e;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .header { padding: 0 14px; }
+            .toolbar { padding: 12px 14px; }
+            .content { padding: 14px; }
+            .matches-grid { grid-template-columns: 1fr; }
+            .last-updated { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-left">
+        <div class="logo">
+            <i class="fas fa-globe"></i>
+            OddsPortal Viewer
+        </div>
+        <span class="badge" id="totalBadge">Loading…</span>
+    </div>
+    <div class="header-right">
+        <a href="/" class="nav-btn"><i class="fas fa-chart-bar"></i> Dashboard</a>
+        <a href="/llm-analysis" class="nav-btn ai"><i class="fas fa-robot"></i> AI Analysis</a>
+    </div>
+</header>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+    <div class="stat-item"><i class="fas fa-futbol"></i> <span id="statMatches"><strong>—</strong> matches</span></div>
+    <div class="stat-item"><i class="fas fa-layer-group"></i> <span id="statSports"><strong>—</strong> sports</span></div>
+    <div class="stat-item"><i class="fas fa-trophy"></i> <span id="statLeagues"><strong>—</strong> leagues</span></div>
+    <div class="last-updated" id="lastUpdated">Last updated: —</div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input class="search-input" id="searchInput" type="text" placeholder="Search teams, leagues…">
+    </div>
+    <div class="filter-group" id="sportFilters">
+        <button class="filter-pill active" data-sport="all">All</button>
+    </div>
+    <select class="sort-select" id="sortSelect">
+        <option value="datetime">Sort: Date</option>
+        <option value="sport">Sort: Sport</option>
+        <option value="league">Sort: League</option>
+        <option value="best_odds">Sort: Best Odds</option>
+    </select>
+</div>
+
+<!-- Main content -->
+<div class="content">
+    <div id="errorBanner" class="error-banner" style="display:none">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span id="errorMsg">Could not load data.</span>
+    </div>
+
+    <div id="loadingScreen" class="status-screen">
+        <div class="spinner"></div>
+        <h2>Loading OddsPortal data…</h2>
+    </div>
+
+    <div id="emptyScreen" class="status-screen" style="display:none">
+        <i class="fas fa-search"></i>
+        <h2>No matches found</h2>
+        <p>Try adjusting your search or sport filter.</p>
+    </div>
+
+    <div id="mainContent" style="display:none">
+        <div id="groupsContainer"></div>
+    </div>
+</div>
+
+<script>
+    let allMatches = [];
+    let activeFilters = { sport: 'all', search: '' };
+    let sortBy = 'datetime';
+
+    // ── Fetch data ──────────────────────────────────────────────
+    async function loadData() {
+        try {
+            const res = await fetch('/api/oddportal?page_size=999');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+
+            if (data.error) {
+                showError(data.message || data.error);
+                return;
+            }
+
+            allMatches = data.matches || [];
+            buildSportFilters();
+            updateStats(data);
+            render();
+
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+
+            // Refresh every 60s
+            setTimeout(loadData, 60000);
+        } catch (e) {
+            showError('Failed to fetch OddsPortal data: ' + e.message);
+        }
+    }
+
+    function showError(msg) {
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('errorBanner').style.display = 'flex';
+        document.getElementById('errorMsg').textContent = msg;
+        document.getElementById('mainContent').style.display = 'block';
+    }
+
+    // ── Stats ────────────────────────────────────────────────────
+    function updateStats(data) {
+        const sports = [...new Set(allMatches.map(m => m.sport).filter(Boolean))];
+        const leagues = [...new Set(allMatches.map(m => m.league).filter(Boolean))];
+        document.getElementById('totalBadge').textContent = allMatches.length + ' matches';
+        document.getElementById('statMatches').innerHTML = `<strong>${allMatches.length}</strong> matches`;
+        document.getElementById('statSports').innerHTML = `<strong>${sports.length}</strong> sports`;
+        document.getElementById('statLeagues').innerHTML = `<strong>${leagues.length}</strong> leagues`;
+        if (data.timestamp) {
+            const d = new Date(data.timestamp);
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + d.toLocaleString();
+        }
+    }
+
+    // ── Sport filter pills ───────────────────────────────────────
+    function buildSportFilters() {
+        const sports = [...new Set(allMatches.map(m => m.sport).filter(Boolean))].sort();
+        const container = document.getElementById('sportFilters');
+        container.innerHTML = `<button class="filter-pill active" data-sport="all">All</button>`;
+        sports.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = 'filter-pill';
+            btn.dataset.sport = s;
+            btn.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+            container.appendChild(btn);
+        });
+        container.addEventListener('click', e => {
+            const pill = e.target.closest('.filter-pill');
+            if (!pill) return;
+            container.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            activeFilters.sport = pill.dataset.sport;
+            render();
+        });
+    }
+
+    // ── Filter + sort ────────────────────────────────────────────
+    function applyFilters() {
+        let matches = allMatches;
+        if (activeFilters.sport !== 'all') {
+            matches = matches.filter(m => m.sport === activeFilters.sport);
+        }
+        if (activeFilters.search) {
+            const q = activeFilters.search.toLowerCase();
+            matches = matches.filter(m =>
+                (m.name || '').toLowerCase().includes(q) ||
+                (m.league || '').toLowerCase().includes(q) ||
+                (m.home || '').toLowerCase().includes(q) ||
+                (m.away || '').toLowerCase().includes(q)
+            );
+        }
+        // Sort
+        if (sortBy === 'sport') matches.sort((a, b) => (a.sport || '').localeCompare(b.sport || ''));
+        else if (sortBy === 'league') matches.sort((a, b) => (a.league || '').localeCompare(b.league || ''));
+        else if (sortBy === 'best_odds') {
+            matches.sort((a, b) => getBestWinOdd(b) - getBestWinOdd(a));
+        } else {
+            // datetime
+            matches.sort((a, b) => (a.datetime || '').localeCompare(b.datetime || ''));
+        }
+        return matches;
+    }
+
+    function getBestWinOdd(m) {
+        const market = getWinMarket(m);
+        if (!market) return 0;
+        return Math.max(...(market.odds || []).map(o => o.decimal_odds || 0));
+    }
+
+    function getWinMarket(m) {
+        const markets = m.markets || {};
+        for (const cat of Object.values(markets)) {
+            for (const mk of (cat || [])) {
+                if ((mk.name || '').toLowerCase().includes('win')) return mk;
+            }
+        }
+        return null;
+    }
+
+    // ── Render ───────────────────────────────────────────────────
+    function render() {
+        const matches = applyFilters();
+        const container = document.getElementById('groupsContainer');
+        const emptyScreen = document.getElementById('emptyScreen');
+
+        if (matches.length === 0) {
+            container.innerHTML = '';
+            emptyScreen.style.display = 'flex';
+            return;
+        }
+        emptyScreen.style.display = 'none';
+
+        // Group by league
+        const groups = {};
+        matches.forEach(m => {
+            const key = (m.sport || 'Other') + '|' + (m.league || 'Unknown');
+            if (!groups[key]) groups[key] = { sport: m.sport, league: m.league, matches: [] };
+            groups[key].matches.push(m);
+        });
+
+        container.innerHTML = '';
+        Object.values(groups).forEach(group => {
+            const section = document.createElement('div');
+            section.style.marginBottom = '28px';
+            section.innerHTML = `
+                <div class="section-header">
+                    <span class="sport-tag ${sportClass(group.sport)}">${group.sport || 'Other'}</span>
+                    <span class="section-title">${group.league || 'Unknown League'}</span>
+                    <span class="section-count">${group.matches.length}</span>
+                </div>
+                <div class="matches-grid">${group.matches.map(renderCard).join('')}</div>
+            `;
+            container.appendChild(section);
+        });
+    }
+
+    function sportClass(sport) {
+        const s = (sport || '').toLowerCase();
+        const map = { football: 'football', basketball: 'basketball', tennis: 'tennis', hockey: 'hockey', baseball: 'baseball' };
+        return map[s] || 'default';
+    }
+
+    function renderCard(m) {
+        const winMarket = getWinMarket(m);
+        const oddsHtml = winMarket ? renderOdds(winMarket, m) : '<p style="font-size:12px;color:#6e7681;padding:4px 0">No odds available</p>';
+
+        // Other markets
+        const allMarketNames = [];
+        Object.values(m.markets || {}).forEach(cat => (cat || []).forEach(mk => {
+            if (mk.name && !mk.name.toLowerCase().includes('win')) allMarketNames.push(mk.name);
+        }));
+        const morePills = allMarketNames.slice(0, 4).map(n =>
+            `<span class="market-pill">${n}</span>`
+        ).join('');
+
+        return `
+        <div class="match-card">
+            <div class="match-card-header">
+                <div class="match-meta">
+                    <span class="sport-tag ${sportClass(m.sport)}">${m.sport || 'Sport'}</span>
+                    <span class="league-name">${m.country ? m.country + ' · ' : ''}${m.league || ''}</span>
+                </div>
+                ${m.match_url ? `<a href="${m.match_url}" target="_blank" rel="noopener noreferrer" class="match-link" title="View on OddsPortal"><i class="fas fa-external-link-alt"></i></a>` : ''}
+            </div>
+            <div class="teams">
+                <div class="teams-row">
+                    <span class="team-name">${m.home || ''}</span>
+                    <span class="vs">VS</span>
+                    <span class="team-name" style="text-align:right">${m.away || ''}</span>
+                </div>
+                ${m.datetime ? `<div class="match-time"><i class="fas fa-clock"></i>${m.datetime}</div>` : ''}
+            </div>
+            <div class="odds-section">
+                <div class="market-name">${winMarket ? winMarket.name : 'Win Market'}</div>
+                ${oddsHtml}
+                ${morePills ? `<div class="more-markets">${morePills}</div>` : ''}
+            </div>
+        </div>`;
+    }
+
+    function renderOdds(market, m) {
+        const odds = market.odds || [];
+        // Group by selection, pick best decimal_odds per selection
+        const best = {};
+        odds.forEach(o => {
+            const sel = o.selection || o.bet_name || '';
+            if (!best[sel] || o.decimal_odds > best[sel].decimal_odds) {
+                best[sel] = o;
+            }
+        });
+
+        const entries = Object.values(best);
+        if (entries.length === 0) return '<p style="font-size:12px;color:#6e7681">No odds data</p>';
+
+        // Find overall best
+        const maxOdd = Math.max(...entries.map(e => e.decimal_odds || 0));
+
+        return `<div class="odds-row">${entries.slice(0, 3).map(o => {
+            const isBest = o.decimal_odds === maxOdd;
+            return `<div class="odds-cell ${isBest ? 'best' : ''}">
+                <div class="odds-selection" title="${o.selection || ''}">${o.selection || ''}</div>
+                <div class="odds-value">${o.decimal_odds ? o.decimal_odds.toFixed(2) : '—'}</div>
+                <div class="odds-bookmaker">${o.bookmaker_name || ''}</div>
+            </div>`;
+        }).join('')}</div>`;
+    }
+
+    // ── Events ───────────────────────────────────────────────────
+    document.getElementById('searchInput').addEventListener('input', e => {
+        activeFilters.search = e.target.value.trim();
+        render();
+    });
+    document.getElementById('sortSelect').addEventListener('change', e => {
+        sortBy = e.target.value;
+        render();
+    });
+
+    // ── Boot ─────────────────────────────────────────────────────
+    loadData();
+</script>
+</body>
+</html>
