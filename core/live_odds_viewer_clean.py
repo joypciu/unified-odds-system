@@ -572,12 +572,9 @@ async def get_llm_analysis_page(response: Response):
 
 @app.get("/modern", response_class=HTMLResponse)
 async def get_modern_viewer():
-    """Serve the modern redesigned odds viewer"""
-    template_path = BASE_DIR / 'html' / 'modern_odds_viewer.html'
-    if not template_path.exists():
-        return HTMLResponse(content="<h1>Modern viewer not found</h1>", status_code=404)
-    html_content = open(template_path, 'r', encoding='utf-8').read()
-    return HTMLResponse(content=html_content)
+    """Redirect /modern to the main dashboard"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url='/', status_code=301)
 
 
 @app.websocket("/ws")
