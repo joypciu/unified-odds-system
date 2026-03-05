@@ -249,39 +249,10 @@ def main():
         print(f"❌ Error starting unified system: {e}")
         sys.exit(1)
     
-    # Start OddsMagnet Base Sport Scraper (Playwright-based, continuous real-time monitoring)
-    print("⚽ Starting OddsMagnet Real-Time Scraper...")
-    print("   - Browser automation bypassing CloudFront WAF")
-    print("   - Continuous monitoring: football, basketball, tennis, table-tennis")
-    print("   - 2 sports scraped in parallel at a time")
-    print("   - Real-time updates with 1 second interval")
-    print("   - Output: bookmakers/oddsmagnet/oddsmagnet_*.json")
+    # DISABLED: OddsMagnet Base Sport Scraper is currently not working
+    # print("⚽ Starting OddsMagnet Real-Time Scraper...")
+    print("⚠️  OddsMagnet scraper is DISABLED (currently not working)")
     print()
-    
-    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "base_sport_scraper.py"
-    if oddsmagnet_script.exists():
-        try:
-            # Start OddsMagnet scraper in continuous mode (all sports, 2 parallel)
-            # Detect if running on VPS (Linux without display) vs local (Windows/Mac with Chrome debugging)
-            import platform
-            is_linux = platform.system() == 'Linux'
-            scraper_mode = "vps" if is_linux else "vps"  # Always use vps mode for stability
-            
-            oddsmagnet_process = subprocess.Popen(
-                [sys.executable, str(oddsmagnet_script), "--continuous"],
-                cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-            )
-            processes.append(oddsmagnet_process)
-            print("✅ OddsMagnet real-time scraper started (PID: {})".format(oddsmagnet_process.pid))
-            print()
-            
-        except Exception as e:
-            print(f"⚠️  Could not start OddsMagnet scraper: {e}")
-            print("   Continuing without OddsMagnet...")
-            print()
-    else:
-        print("⚠️  base_sport_scraper.py not found, skipping OddsMagnet")
-        print()
     
     # Start OddPortal Collector
     print("📊 Starting OddPortal Collector...")
@@ -354,9 +325,8 @@ def main():
             print("   2. Unified Odds Collector - PREGAME ONLY fetching from enabled sources")
         else:
             print("   2. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
-        print("   3. OddsMagnet Parallel Scraper - 5 sports simultaneously, 60s cycle")
-        print("   4. OddPortal Collector - Multiple sports, 5 min cycle")
-        print("   5. Web Viewer - Real-time dashboard with monitoring")
+        print("   3. OddPortal Collector - Multiple sports, 5 min cycle")
+        print("   4. Web Viewer - Real-time dashboard with monitoring")
     else:
         if args.live_only:
             print("   1. Unified Odds Collector - LIVE ONLY fetching from all sources")
@@ -364,9 +334,8 @@ def main():
             print("   1. Unified Odds Collector - PREGAME ONLY fetching from all sources")
         else:
             print("   1. Unified Odds Collector - ALL MODULES (LIVE + PREGAME)")
-        print("   2. OddsMagnet Parallel Scraper - 5 sports simultaneously, 60s cycle")
-        print("   3. OddPortal Collector - Multiple sports, 5 min cycle")
-        print("   4. Web Viewer - Real-time dashboard")
+        print("   2. OddPortal Collector - Multiple sports, 5 min cycle")
+        print("   3. Web Viewer - Real-time dashboard")
     print()
     print("💡 Features Available:")
     if not args.no_monitoring:
@@ -380,7 +349,7 @@ def main():
     else:
         print("   • Real-time PREGAME odds updates (scraped continuously)")
         print("   • Real-time LIVE odds updates (scraped continuously)")
-    print("   • OddsMagnet: 117+ leagues, 9 bookmakers, 69 markets per match")
+    # print("   • OddsMagnet: 117+ leagues, 9 bookmakers, 69 markets per match (DISABLED)")  # Disabled
     print("   • OddPortal: Multi-sport coverage with comprehensive bookmaker odds")
     print("   • Advanced filtering and search")
     print("   • Pagination for large datasets")
@@ -442,37 +411,8 @@ def main():
                     processes[unified_idx] = unified_process
                     print(f"✅ Unified system restarted (PID: {unified_process.pid})")
             
-            # Check OddsMagnet Football collector (if running)
-            oddsmagnet_idx = 2 if not args.no_monitoring else 1
-            if len(processes) > oddsmagnet_idx + 2:  # Has OddsMagnet Football + Basketball + viewer
-                oddsmagnet_status = processes[oddsmagnet_idx].poll()
-                if oddsmagnet_status is not None:
-                    print(f"\n⚠️  OddsMagnet Football collector exited with code {oddsmagnet_status}")
-                    print("🔄 Restarting OddsMagnet Football collector...")
-                    oddsmagnet_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_top10_realtime.py"
-                    if oddsmagnet_script.exists():
-                        oddsmagnet_process = subprocess.Popen(
-                            [sys.executable, str(oddsmagnet_script)],
-                            cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-                        )
-                        processes[oddsmagnet_idx] = oddsmagnet_process
-                        print(f"✅ OddsMagnet Football collector restarted (PID: {oddsmagnet_process.pid})")
-            
-            # Check OddsMagnet Basketball collector (if running)
-            basketball_idx = 3 if not args.no_monitoring else 2
-            if len(processes) > basketball_idx + 1:  # Has Basketball + viewer
-                basketball_status = processes[basketball_idx].poll()
-                if basketball_status is not None:
-                    print(f"\n⚠️  OddsMagnet Basketball collector exited with code {basketball_status}")
-                    print("🔄 Restarting OddsMagnet Basketball collector...")
-                    basketball_script = base_dir / "bookmakers" / "oddsmagnet" / "oddsmagnet_basketball_realtime.py"
-                    if basketball_script.exists():
-                        basketball_process = subprocess.Popen(
-                            [sys.executable, str(basketball_script)],
-                            cwd=str(base_dir / "bookmakers" / "oddsmagnet")
-                        )
-                        processes[basketball_idx] = basketball_process
-                        print(f"✅ OddsMagnet Basketball collector restarted (PID: {basketball_process.pid})")
+            # DISABLED: OddsMagnet collectors are currently not working
+            # oddsmagnet_idx / basketball_idx monitoring removed
             
             # Check viewer (last process)
             viewer_idx = len(processes) - 1
