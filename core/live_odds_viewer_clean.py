@@ -544,6 +544,16 @@ async def get_oddsmagnet_top10_redirect():
     return RedirectResponse(url="/oddsmagnet", status_code=301)
 
 
+@app.get("/oddportal", response_class=HTMLResponse)
+async def get_oddportal_page():
+    """Serve the OddPortal viewer (oddsmagnet_viewer with OddPortal mode)"""
+    template_path = BASE_DIR / 'html' / 'oddsmagnet_viewer.html'
+    if not template_path.exists():
+        return HTMLResponse(content="<h1>OddPortal viewer not found</h1>", status_code=404)
+    html_content = open(template_path, 'r', encoding='utf-8').read()
+    return HTMLResponse(content=html_content)
+
+
 @app.get("/llm-analysis", response_class=HTMLResponse)
 async def get_llm_analysis_page(response: Response):
     """Serve the modern LLM analysis chat interface"""
