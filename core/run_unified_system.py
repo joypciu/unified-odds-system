@@ -610,7 +610,7 @@ class UnifiedSystemRunner:
         self.config = self._load_config()
         self.enabled_scrapers = self.config.get('enabled_scrapers', {
             '1xbet': True,
-            'fanduel': True,
+            'fanduel': False,
             'bet365': False
         })
 
@@ -658,11 +658,11 @@ class UnifiedSystemRunner:
                 print(f"  Enabled scrapers: 1xBet={enabled.get('1xbet', False)}, FanDuel={enabled.get('fanduel', False)}, Bet365={enabled.get('bet365', False)}")
                 return config
             else:
-                print("⚠ config.json not found, using defaults (1xBet and FanDuel enabled)")
-                return {'enabled_scrapers': {'1xbet': True, 'fanduel': True, 'bet365': False}}
+                print("⚠ config.json not found, using defaults (only 1xBet enabled)")
+                return {'enabled_scrapers': {'1xbet': True, 'fanduel': False, 'bet365': False}}
         except Exception as e:
             print(f"⚠ Error loading config: {e}, using defaults")
-            return {'enabled_scrapers': {'1xbet': True, 'fanduel': True, 'bet365': False}}
+            return {'enabled_scrapers': {'1xbet': True, 'fanduel': False, 'bet365': False}}
     
     def _signal_handler(self, signum, frame):
         """Handle Ctrl+C and termination signals gracefully"""

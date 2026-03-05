@@ -1,0 +1,44 @@
+{
+  "enabled_scrapers": {
+    "1xbet": true,
+    "fanduel": false,
+    "bet365": false
+  },
+  "email": {
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "sender_email": "your-email@gmail.com",
+    "sender_password": "your-app-password",
+    "admin_email": "admin@example.com",
+    "alert_cooldown_minutes": 1440,
+    "enabled": true
+  },
+  "monitoring": {
+    "check_interval_seconds": 1200,
+    "data_stale_threshold_minutes": 120,
+    "failure_threshold": 2,
+    "modules": [
+      "bet365_pregame",
+      "bet365_live",
+      "fanduel_pregame",
+      "fanduel_live",
+      "1xbet_pregame",
+      "1xbet_live"
+    ]
+  },
+  "cache": {
+    "auto_update": true,
+    "update_interval_minutes": 60
+  },
+  "sportbex": {
+    "api_keys": [
+      "your-sportbex-api-key"
+    ],
+    "base_url": "https://trial-api.sportbex.com/api/betfair",
+    "competitions": [1, 4, 5, 7, 4339, 7522, 6423, 7511, 3988, 998917, 468328]
+  },
+  "optic_odds": {
+    "api_key": "",
+    "base_url": "https://api.opticodds.com/api/v2"
+  }
+}
